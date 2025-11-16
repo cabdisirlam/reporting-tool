@@ -250,7 +250,8 @@ function onOpen(e) {
       .addItem('Manage Users', 'openUserManagement')
       .addItem('Manage Entities', 'openEntityManagement')
       .addItem('Configure Notes', 'openNoteConfig')
-      .addItem('Period Management', 'openPeriodManagement'))
+      .addItem('Period Management', 'openPeriodManagement')
+      .addItem('Create New Period', 'showCreatePeriodDialog'))
     .addSeparator()
     .addItem('Setup System', 'setupSystem')
     .addToUi();
