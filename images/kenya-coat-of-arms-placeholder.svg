@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Placeholder for Kenya Coat of Arms -->
+  <!-- Replace with official logo from Wikimedia Commons or other official source -->
+
+  <!-- Shield outline -->
+  <path d="M100,20 L160,50 L160,120 Q160,160 100,180 Q40,160 40,120 L40,50 Z"
+        fill="#006600" stroke="#000000" stroke-width="2"/>
+
+  <!-- Shield horizontal stripes -->
+  <rect x="40" y="60" width="120" height="15" fill="#000000"/>
+  <rect x="40" y="90" width="120" height="15" fill="#CC0000"/>
+
+  <!-- Center white stripe -->
+  <rect x="40" y="75" width="120" height="15" fill="#FFFFFF"/>
+
+  <!-- Spears crossed -->
+  <line x1="80" y1="30" x2="80" y2="160" stroke="#8B4513" stroke-width="3"/>
+  <line x1="120" y1="30" x2="120" y2="160" stroke="#8B4513" stroke-width="3"/>
+
+  <!-- Spear tips -->
+  <polygon points="80,25 75,35 85,35" fill="#C0C0C0"/>
+  <polygon points="120,25 115,35 125,35" fill="#C0C0C0"/>
+
+  <!-- Text label -->
+  <text x="100" y="195" font-family="Arial, sans-serif" font-size="12"
+        text-anchor="middle" fill="#000000" font-weight="bold">KENYA</text>
+</svg>
