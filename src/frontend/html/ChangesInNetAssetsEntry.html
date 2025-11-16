@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statement of Changes in Net Assets - IPSAS System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #312D2A;
+            border-bottom: 3px solid #C74634;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        h3 {
+            color: #0572CE;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 40px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            color: #312D2A;
+            position: sticky;
+            top: 0;
+            font-size: 13px;
+        }
+
+        .data-input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            font-size: 13px;
+        }
+
+        .data-input:focus {
+            outline: none;
+            border-color: #0572CE;
+            box-shadow: 0 0 0 2px rgba(5, 114, 206, 0.1);
+        }
+
+        .calculated-cell {
+            background-color: #f9f9f9;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .description-col {
+            width: 20%;
+            font-weight: 500;
+        }
+
+        .amount-col {
+            width: 11.4%;
+        }
+
+        .btn-save {
+            background-color: #0572CE;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .btn-save:hover {
+            background-color: #045aa0;
+        }
+
+        .year-divider {
+            height: 2px;
+            background: linear-gradient(to right, #C74634, transparent);
+            margin: 40px 0 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            th, td {
+                font-size: 11px;
+                padding: 6px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            h3 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Statement of Changes in Net Assets</h2>
+
+        <!-- Current Year Table -->
+        <h3>Changes in Net Assets (Current Year)</h3>
+        <div class="table-container">
+            <table id="currentYearTable">
+                <thead>
+                    <tr>
+                        <th class="description-col">Description</th>
+                        <th class="amount-col">Ordinary share capital</th>
+                        <th class="amount-col">Revaluation reserve</th>
+                        <th class="amount-col">Fair value adjustment reserve</th>
+                        <th class="amount-col">Retained earnings</th>
+                        <th class="amount-col">Capital/ Development Fund</th>
+                        <th class="amount-col">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="description-col">As at 1 July, (Current FY)</td>
+                        <td><input type="number" class="data-input cy-share-capital" data-row="opening" step="0.01" onchange="calculateRowTotal('current', 'opening')"></td>
+                        <td><input type="number" class="data-input cy-revaluation" data-row="opening" step="0.01" onchange="calculateRowTotal('current', 'opening')"></td>
+                        <td><input type="number" class="data-input cy-fair-value" data-row="opening" step="0.01" onchange="calculateRowTotal('current', 'opening')"></td>
+                        <td><input type="number" class="data-input cy-retained" data-row="opening" step="0.01" onchange="calculateRowTotal('current', 'opening')"></td>
+                        <td><input type="number" class="data-input cy-capital-fund" data-row="opening" step="0.01" onchange="calculateRowTotal('current', 'opening')"></td>
+                        <td class="calculated-cell cy-total" data-row="opening"></td>
+                    </tr>
+                    <tr>
+                        <td class="description-col">Surplus/ (deficit) for the year</td>
+                        <td><input type="number" class="data-input cy-share-capital" data-row="surplus" step="0.01" onchange="calculateRowTotal('current', 'surplus')"></td>
+                        <td><input type="number" class="data-input cy-revaluation" data-row="surplus" step="0.01" onchange="calculateRowTotal('current', 'surplus')"></td>
+                        <td><input type="number" class="data-input cy-fair-value" data-row="surplus" step="0.01" onchange="calculateRowTotal('current', 'surplus')"></td>
+                        <td><input type="number" class="data-input cy-retained" data-row="surplus" step="0.01" onchange="calculateRowTotal('current', 'surplus')"></td>
+                        <td><input type="number" class="data-input cy-capital-fund" data-row="surplus" step="0.01" onchange="calculateRowTotal('current', 'surplus')"></td>
+                        <td class="calculated-cell cy-total" data-row="surplus"></td>
+                    </tr>
+                    <tr>
+                        <td class="description-col">Revaluation gain</td>
+                        <td><input type="number" class="data-input cy-share-capital" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('current', 'revaluation-gain')"></td>
+                        <td><input type="number" class="data-input cy-revaluation" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('current', 'revaluation-gain')"></td>
+                        <td><input type="number" class="data-input cy-fair-value" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('current', 'revaluation-gain')"></td>
+                        <td><input type="number" class="data-input cy-retained" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('current', 'revaluation-gain')"></td>
+                        <td><input type="number" class="data-input cy-capital-fund" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('current', 'revaluation-gain')"></td>
+                        <td class="calculated-cell cy-total" data-row="revaluation-gain"></td>
+                    </tr>
+                    <tr>
+                        <td class="description-col">Capital/development grants received</td>
+                        <td><input type="number" class="data-input cy-share-capital" data-row="grants" step="0.01" onchange="calculateRowTotal('current', 'grants')"></td>
+                        <td><input type="number" class="data-input cy-revaluation" data-row="grants" step="0.01" onchange="calculateRowTotal('current', 'grants')"></td>
+                        <td><input type="number" class="data-input cy-fair-value" data-row="grants" step="0.01" onchange="calculateRowTotal('current', 'grants')"></td>
+                        <td><input type="number" class="data-input cy-retained" data-row="grants" step="0.01" onchange="calculateRowTotal('current', 'grants')"></td>
+                        <td><input type="number" class="data-input cy-capital-fund" data-row="grants" step="0.01" onchange="calculateRowTotal('current', 'grants')"></td>
+                        <td class="calculated-cell cy-total" data-row="grants"></td>
+                    </tr>
+                    <tr style="background-color: #e8f4f8; font-weight: bold;">
+                        <td class="description-col">As at 30 June, (Current FY)</td>
+                        <td><input type="number" class="data-input cy-share-capital" data-row="closing" step="0.01" onchange="calculateRowTotal('current', 'closing')"></td>
+                        <td><input type="number" class="data-input cy-revaluation" data-row="closing" step="0.01" onchange="calculateRowTotal('current', 'closing')"></td>
+                        <td><input type="number" class="data-input cy-fair-value" data-row="closing" step="0.01" onchange="calculateRowTotal('current', 'closing')"></td>
+                        <td><input type="number" class="data-input cy-retained" data-row="closing" step="0.01" onchange="calculateRowTotal('current', 'closing')"></td>
+                        <td><input type="number" class="data-input cy-capital-fund" data-row="closing" step="0.01" onchange="calculateRowTotal('current', 'closing')"></td>
+                        <td class="calculated-cell cy-total" data-row="closing"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="year-divider"></div>
+
+        <!-- Prior Year Table -->
+        <h3>Changes in Net Assets (Prior Year)</h3>
+        <div class="table-container">
+            <table id="priorYearTable">
+                <thead>
+                    <tr>
+                        <th class="description-col">Description</th>
+                        <th class="amount-col">Ordinary share capital</th>
+                        <th class="amount-col">Revaluation reserve</th>
+                        <th class="amount-col">Fair value adjustment reserve</th>
+                        <th class="amount-col">Retained earnings</th>
+                        <th class="amount-col">Capital/ Development Fund</th>
+                        <th class="amount-col">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="description-col">As at 1 July, (Previous FY)</td>
+                        <td><input type="number" class="data-input py-share-capital" data-row="opening" step="0.01" onchange="calculateRowTotal('prior', 'opening')"></td>
+                        <td><input type="number" class="data-input py-revaluation" data-row="opening" step="0.01" onchange="calculateRowTotal('prior', 'opening')"></td>
+                        <td><input type="number" class="data-input py-fair-value" data-row="opening" step="0.01" onchange="calculateRowTotal('prior', 'opening')"></td>
+                        <td><input type="number" class="data-input py-retained" data-row="opening" step="0.01" onchange="calculateRowTotal('prior', 'opening')"></td>
+                        <td><input type="number" class="data-input py-capital-fund" data-row="opening" step="0.01" onchange="calculateRowTotal('prior', 'opening')"></td>
+                        <td class="calculated-cell py-total" data-row="opening"></td>
+                    </tr>
+                    <tr>
+                        <td class="description-col">Surplus/ (deficit) for the year</td>
+                        <td><input type="number" class="data-input py-share-capital" data-row="surplus" step="0.01" onchange="calculateRowTotal('prior', 'surplus')"></td>
+                        <td><input type="number" class="data-input py-revaluation" data-row="surplus" step="0.01" onchange="calculateRowTotal('prior', 'surplus')"></td>
+                        <td><input type="number" class="data-input py-fair-value" data-row="surplus" step="0.01" onchange="calculateRowTotal('prior', 'surplus')"></td>
+                        <td><input type="number" class="data-input py-retained" data-row="surplus" step="0.01" onchange="calculateRowTotal('prior', 'surplus')"></td>
+                        <td><input type="number" class="data-input py-capital-fund" data-row="surplus" step="0.01" onchange="calculateRowTotal('prior', 'surplus')"></td>
+                        <td class="calculated-cell py-total" data-row="surplus"></td>
+                    </tr>
+                    <tr>
+                        <td class="description-col">Revaluation gain</td>
+                        <td><input type="number" class="data-input py-share-capital" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('prior', 'revaluation-gain')"></td>
+                        <td><input type="number" class="data-input py-revaluation" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('prior', 'revaluation-gain')"></td>
+                        <td><input type="number" class="data-input py-fair-value" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('prior', 'revaluation-gain')"></td>
+                        <td><input type="number" class="data-input py-retained" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('prior', 'revaluation-gain')"></td>
+                        <td><input type="number" class="data-input py-capital-fund" data-row="revaluation-gain" step="0.01" onchange="calculateRowTotal('prior', 'revaluation-gain')"></td>
+                        <td class="calculated-cell py-total" data-row="revaluation-gain"></td>
+                    </tr>
+                    <tr>
+                        <td class="description-col">Capital/development grants received</td>
+                        <td><input type="number" class="data-input py-share-capital" data-row="grants" step="0.01" onchange="calculateRowTotal('prior', 'grants')"></td>
+                        <td><input type="number" class="data-input py-revaluation" data-row="grants" step="0.01" onchange="calculateRowTotal('prior', 'grants')"></td>
+                        <td><input type="number" class="data-input py-fair-value" data-row="grants" step="0.01" onchange="calculateRowTotal('prior', 'grants')"></td>
+                        <td><input type="number" class="data-input py-retained" data-row="grants" step="0.01" onchange="calculateRowTotal('prior', 'grants')"></td>
+                        <td><input type="number" class="data-input py-capital-fund" data-row="grants" step="0.01" onchange="calculateRowTotal('prior', 'grants')"></td>
+                        <td class="calculated-cell py-total" data-row="grants"></td>
+                    </tr>
+                    <tr style="background-color: #e8f4f8; font-weight: bold;">
+                        <td class="description-col">As at 30 June, (Previous FY)</td>
+                        <td><input type="number" class="data-input py-share-capital" data-row="closing" step="0.01" onchange="calculateRowTotal('prior', 'closing')"></td>
+                        <td><input type="number" class="data-input py-revaluation" data-row="closing" step="0.01" onchange="calculateRowTotal('prior', 'closing')"></td>
+                        <td><input type="number" class="data-input py-fair-value" data-row="closing" step="0.01" onchange="calculateRowTotal('prior', 'closing')"></td>
+                        <td><input type="number" class="data-input py-retained" data-row="closing" step="0.01" onchange="calculateRowTotal('prior', 'closing')"></td>
+                        <td><input type="number" class="data-input py-capital-fund" data-row="closing" step="0.01" onchange="calculateRowTotal('prior', 'closing')"></td>
+                        <td class="calculated-cell py-total" data-row="closing"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <button class="btn-save" onclick="saveData()">Save Changes in Net Assets</button>
+    </div>
+
+    <script>
+        function calculateRowTotal(year, rowId) {
+            const prefix = year === 'current' ? 'cy' : 'py';
+            const row = document.querySelector(`.${prefix}-total[data-row="${rowId}"]`).closest('tr');
+
+            const shareCapital = parseFloat(row.querySelector(`.${prefix}-share-capital[data-row="${rowId}"]`).value) || 0;
+            const revaluation = parseFloat(row.querySelector(`.${prefix}-revaluation[data-row="${rowId}"]`).value) || 0;
+            const fairValue = parseFloat(row.querySelector(`.${prefix}-fair-value[data-row="${rowId}"]`).value) || 0;
+            const retained = parseFloat(row.querySelector(`.${prefix}-retained[data-row="${rowId}"]`).value) || 0;
+            const capitalFund = parseFloat(row.querySelector(`.${prefix}-capital-fund[data-row="${rowId}"]`).value) || 0;
+
+            const total = shareCapital + revaluation + fairValue + retained + capitalFund;
+
+            row.querySelector(`.${prefix}-total[data-row="${rowId}"]`).textContent = total.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function saveData() {
+            // Collect current year data
+            const currentYearData = {
+                opening: collectRowData('current', 'opening'),
+                surplus: collectRowData('current', 'surplus'),
+                revaluationGain: collectRowData('current', 'revaluation-gain'),
+                grants: collectRowData('current', 'grants'),
+                closing: collectRowData('current', 'closing')
+            };
+
+            // Collect prior year data
+            const priorYearData = {
+                opening: collectRowData('prior', 'opening'),
+                surplus: collectRowData('prior', 'surplus'),
+                revaluationGain: collectRowData('prior', 'revaluation-gain'),
+                grants: collectRowData('prior', 'grants'),
+                closing: collectRowData('prior', 'closing')
+            };
+
+            const data = {
+                currentYear: currentYearData,
+                priorYear: priorYearData
+            };
+
+            // Here you would call your backend to save the data
+            console.log('Saving changes in net assets data:', data);
+            alert('Changes in Net Assets data saved successfully!');
+        }
+
+        function collectRowData(year, rowId) {
+            const prefix = year === 'current' ? 'cy' : 'py';
+            const row = document.querySelector(`.${prefix}-total[data-row="${rowId}"]`).closest('tr');
+
+            return {
+                shareCapital: parseFloat(row.querySelector(`.${prefix}-share-capital[data-row="${rowId}"]`).value) || 0,
+                revaluation: parseFloat(row.querySelector(`.${prefix}-revaluation[data-row="${rowId}"]`).value) || 0,
+                fairValue: parseFloat(row.querySelector(`.${prefix}-fair-value[data-row="${rowId}"]`).value) || 0,
+                retained: parseFloat(row.querySelector(`.${prefix}-retained[data-row="${rowId}"]`).value) || 0,
+                capitalFund: parseFloat(row.querySelector(`.${prefix}-capital-fund[data-row="${rowId}"]`).value) || 0,
+                total: parseFloat(row.querySelector(`.${prefix}-total[data-row="${rowId}"]`).textContent.replace(/,/g, '')) || 0
+            };
+        }
+    </script>
+</body>
+</html>

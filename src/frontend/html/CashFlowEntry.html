@@ -1,1 +1,267 @@
-<!DOCTYPE html><html><head><title>CashFlowEntry</title></head><body><h1>CashFlowEntry</h1><p>Page under construction</p></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statement of Cash Flows Note - IPSAS System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #312D2A;
+            border-bottom: 3px solid #C74634;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        h4 {
+            color: #0572CE;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            color: #312D2A;
+        }
+
+        .data-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+        }
+
+        .data-input:focus {
+            outline: none;
+            border-color: #0572CE;
+            box-shadow: 0 0 0 2px rgba(5, 114, 206, 0.1);
+        }
+
+        .description-col {
+            width: 50%;
+        }
+
+        .amount-col {
+            width: 25%;
+        }
+
+        .btn-save {
+            background-color: #0572CE;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .btn-save:hover {
+            background-color: #045aa0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Note 54: Statement of Cash Flows</h2>
+
+        <h4>(a) Operating Activities</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th class="description-col">Description</th>
+                    <th class="amount-col">Current Year (Kshs)</th>
+                    <th class="amount-col">Prior Year (Kshs)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Transfers from other governments</td>
+                    <td><input type="number" class="data-input" id="oa_transfers_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="oa_transfers_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Rendering of services</td>
+                    <td><input type="number" class="data-input" id="oa_services_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="oa_services_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Other Receipts</td>
+                    <td><input type="number" class="data-input" id="oa_receipts_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="oa_receipts_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Use of goods and services</td>
+                    <td><input type="number" class="data-input" id="oa_goods_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="oa_goods_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Employee costs</td>
+                    <td><input type="number" class="data-input" id="oa_employee_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="oa_employee_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Other Payments</td>
+                    <td><input type="number" class="data-input" id="oa_payments_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="oa_payments_prior" step="0.01"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>(b) Investing Activities</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th class="description-col">Description</th>
+                    <th class="amount-col">Current Year (Kshs)</th>
+                    <th class="amount-col">Prior Year (Kshs)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Purchase of PPE</td>
+                    <td><input type="number" class="data-input" id="ia_ppe_purchase_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="ia_ppe_purchase_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Proceeds from sale of PPE</td>
+                    <td><input type="number" class="data-input" id="ia_ppe_sale_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="ia_ppe_sale_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Mortgage/Car Loan Receipts</td>
+                    <td><input type="number" class="data-input" id="ia_loan_receipts_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="ia_loan_receipts_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Mortgage/Car Loan Payments</td>
+                    <td><input type="number" class="data-input" id="ia_loan_payments_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="ia_loan_payments_prior" step="0.01"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>(c) Financing Activities</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th class="description-col">Description</th>
+                    <th class="amount-col">Current Year (Kshs)</th>
+                    <th class="amount-col">Prior Year (Kshs)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Proceeds from borrowings</td>
+                    <td><input type="number" class="data-input" id="fa_borrowings_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="fa_borrowings_prior" step="0.01"></td>
+                </tr>
+                <tr>
+                    <td>Repayment of borrowings</td>
+                    <td><input type="number" class="data-input" id="fa_repayment_current" step="0.01"></td>
+                    <td><input type="number" class="data-input" id="fa_repayment_prior" step="0.01"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button class="btn-save" onclick="saveData()">Save Note</button>
+    </div>
+
+    <script>
+        function saveData() {
+            // Collect all data
+            const data = {
+                operatingActivities: {
+                    transfersFromGov: {
+                        current: document.getElementById('oa_transfers_current').value,
+                        prior: document.getElementById('oa_transfers_prior').value
+                    },
+                    renderingServices: {
+                        current: document.getElementById('oa_services_current').value,
+                        prior: document.getElementById('oa_services_prior').value
+                    },
+                    otherReceipts: {
+                        current: document.getElementById('oa_receipts_current').value,
+                        prior: document.getElementById('oa_receipts_prior').value
+                    },
+                    goodsServices: {
+                        current: document.getElementById('oa_goods_current').value,
+                        prior: document.getElementById('oa_goods_prior').value
+                    },
+                    employeeCosts: {
+                        current: document.getElementById('oa_employee_current').value,
+                        prior: document.getElementById('oa_employee_prior').value
+                    },
+                    otherPayments: {
+                        current: document.getElementById('oa_payments_current').value,
+                        prior: document.getElementById('oa_payments_prior').value
+                    }
+                },
+                investingActivities: {
+                    ppePurchase: {
+                        current: document.getElementById('ia_ppe_purchase_current').value,
+                        prior: document.getElementById('ia_ppe_purchase_prior').value
+                    },
+                    ppeSale: {
+                        current: document.getElementById('ia_ppe_sale_current').value,
+                        prior: document.getElementById('ia_ppe_sale_prior').value
+                    },
+                    loanReceipts: {
+                        current: document.getElementById('ia_loan_receipts_current').value,
+                        prior: document.getElementById('ia_loan_receipts_prior').value
+                    },
+                    loanPayments: {
+                        current: document.getElementById('ia_loan_payments_current').value,
+                        prior: document.getElementById('ia_loan_payments_prior').value
+                    }
+                },
+                financingActivities: {
+                    borrowings: {
+                        current: document.getElementById('fa_borrowings_current').value,
+                        prior: document.getElementById('fa_borrowings_prior').value
+                    },
+                    repayment: {
+                        current: document.getElementById('fa_repayment_current').value,
+                        prior: document.getElementById('fa_repayment_prior').value
+                    }
+                }
+            };
+
+            // Here you would call your backend to save the data
+            console.log('Saving cash flow data:', data);
+            alert('Cash flow note data saved successfully!');
+        }
+    </script>
+</body>
+</html>
