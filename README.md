@@ -329,7 +329,8 @@ The system sends automatic emails for:
 ## 📞 Support
 
 For technical support:
-- **Email**: ipsas-support@treasury.go.ke
+- **Email**: cabdisirlam@gmail.com
+- **Contact**: 254716261111
 - **Documentation**: See `docs/` folder
 - **Issue Tracker**: GitHub Issues
 
