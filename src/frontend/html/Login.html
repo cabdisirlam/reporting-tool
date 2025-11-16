@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - IPSAS Financial Consolidation System</title>
+    <?!= include('src/frontend/css/main'); ?>
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #1a73e8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-login:hover {
+            background: #1557b0;
+        }
+        .error-message {
+            background: #fef0f0;
+            color: #d32f2f;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .forgot-password a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">📊</div>
+            <h1>IPSAS System</h1>
+            <p>Financial Consolidation Tool</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="user@treasury.go.ke">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+
+            <button type="submit" class="btn-login" id="loginButton">
+                Login
+            </button>
+
+            <div class="forgot-password">
+                <a href="#" onclick="handleForgotPassword()">Forgot Password?</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginButton');
+
+            // Clear previous errors
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+
+            // Disable button
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            // Call Google Apps Script function
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        // Redirect to appropriate page based on role
+                        window.location.href = '?page=' + result.redirectTo;
+                    } else {
+                        showError(result.error);
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Login';
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('An error occurred. Please try again.');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                })
+                .handleLogin({ email: email, password: password });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function handleForgotPassword() {
+            const email = prompt('Enter your email address:');
+            if (email) {
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        if (result.success) {
+                            alert('Password reset link sent to your email.');
+                        } else {
+                            alert('Error: ' + result.error);
+                        }
+                    })
+                    .resetPassword(email);
+            }
+        }
+    </script>
+</body>
+</html>

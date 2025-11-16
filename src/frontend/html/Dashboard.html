@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - IPSAS System</title>
+    <?!= include('src/frontend/css/main'); ?>
+    <?!= include('src/frontend/css/dashboard'); ?>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1>IPSAS Financial Consolidation System</h1>
+                <div class="user-info">
+                    <span><?= user.name ?></span>
+                    <span class="role-badge"><?= user.role ?></span>
+                    <button onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <h2>Dashboard</h2>
+
+            <!-- Role-specific dashboard -->
+            <? if (role === 'DATA_ENTRY') { ?>
+                <?!= include('src/frontend/html/partials/DataEntryDashboard'); ?>
+            <? } else if (role === 'APPROVER') { ?>
+                <?!= include('src/frontend/html/partials/ApproverDashboard'); ?>
+            <? } else if (role === 'ADMIN') { ?>
+                <?!= include('src/frontend/html/partials/AdminDashboard'); ?>
+            <? } ?>
+        </div>
+    </main>
+
+    <script>
+        function logout() {
+            google.script.run
+                .withSuccessHandler(function() {
+                    window.location.href = '?page=index';
+                })
+                .handleLogout();
+        }
+
+        // Load dashboard data on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+        });
+
+        function loadDashboardData() {
+            // Implementation depends on role
+            console.log('Loading dashboard data...');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+/**
+ * Approval.gs - Approval Workflow
+ *
+ * Handles:
+ * - Submission for approval
+ * - Approval/rejection workflow
+ * - Status tracking
+ * - Approval notifications
+ */
+
+// ============================================================================
+// SUBMISSION OPERATIONS
+// ============================================================================
+
+/**
+ * Submits entity data for approval
+ * @param {Object} params - Submission parameters
+ * @returns {Object} Submission result
+ */
+function submitForApproval(params) {
+  try {
+    const { entityId, periodId, userId, comments } = params;
+
+    // Validate user can submit
+    const user = getUserById(userId);
+    if (!user || !canAccessEntity(user, entityId)) {
+      return {
+        success: false,
+        error: 'Not authorized to submit for this entity'
+      };
+    }
+
+    // Run validations first
+    const validationResult = runValidations(entityId, periodId);
+
+    // Check for errors
+    if (validationResult.summary.errorsCount > 0) {
+      return {
+        success: false,
+        error: 'Cannot submit - validation errors found',
+        validationErrors: validationResult.errors
+      };
+    }
+
+    // Update submission status
+    updateSubmissionStatus(entityId, periodId, {
+      status: CONFIG.STATUS.SUBMITTED,
+      submittedBy: userId,
+      submittedDate: new Date(),
+      comments: comments || ''
+    });
+
+    // Send notification to approvers
+    notifyApprovers(entityId, periodId, user);
+
+    // Log activity
+    logActivity(
+      user.email,
+      'SUBMIT_FOR_APPROVAL',
+      `Submitted ${entityId} for approval`
+    );
+
+    return {
+      success: true,
+      message: 'Submitted for approval successfully',
+      validationWarnings: validationResult.warnings
+    };
+  } catch (error) {
+    Logger.log('Error submitting for approval: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Approves entity submission
+ * @param {Object} params - Approval parameters
+ * @returns {Object} Approval result
+ */
+function approveSubmission(params) {
+  try {
+    const { entityId, periodId, approverId, comments } = params;
+
+    // Validate user is an approver
+    const approver = getUserById(approverId);
+    if (!approver || approver.role !== CONFIG.ROLES.APPROVER) {
+      return {
+        success: false,
+        error: 'Not authorized to approve submissions'
+      };
+    }
+
+    // Update submission status
+    updateSubmissionStatus(entityId, periodId, {
+      status: CONFIG.STATUS.APPROVED,
+      approvedBy: approverId,
+      approvedDate: new Date(),
+      approverComments: comments || ''
+    });
+
+    // Notify data entry officer
+    notifyDataEntryOfficer(entityId, periodId, 'APPROVED', approver);
+
+    // Log activity
+    logActivity(
+      approver.email,
+      'APPROVE_SUBMISSION',
+      `Approved ${entityId}`
+    );
+
+    return {
+      success: true,
+      message: 'Submission approved successfully'
+    };
+  } catch (error) {
+    Logger.log('Error approving submission: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Rejects entity submission
+ * @param {Object} params - Rejection parameters
+ * @returns {Object} Rejection result
+ */
+function rejectSubmission(params) {
+  try {
+    const { entityId, periodId, approverId, comments } = params;
+
+    // Validate user is an approver
+    const approver = getUserById(approverId);
+    if (!approver || approver.role !== CONFIG.ROLES.APPROVER) {
+      return {
+        success: false,
+        error: 'Not authorized to reject submissions'
+      };
+    }
+
+    if (!comments || comments.trim() === '') {
+      return {
+        success: false,
+        error: 'Rejection reason is required'
+      };
+    }
+
+    // Update submission status
+    updateSubmissionStatus(entityId, periodId, {
+      status: CONFIG.STATUS.REJECTED,
+      rejectedBy: approverId,
+      rejectedDate: new Date(),
+      rejectionReason: comments
+    });
+
+    // Notify data entry officer
+    notifyDataEntryOfficer(entityId, periodId, 'REJECTED', approver, comments);
+
+    // Log activity
+    logActivity(
+      approver.email,
+      'REJECT_SUBMISSION',
+      `Rejected ${entityId}: ${comments}`
+    );
+
+    return {
+      success: true,
+      message: 'Submission rejected'
+    };
+  } catch (error) {
+    Logger.log('Error rejecting submission: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+// ============================================================================
+// STATUS MANAGEMENT
+// ============================================================================
+
+/**
+ * Updates submission status
+ * @param {string} entityId - Entity ID
+ * @param {string} periodId - Period ID
+ * @param {Object} statusData - Status data to update
+ */
+function updateSubmissionStatus(entityId, periodId, statusData) {
+  try {
+    const periodSs = getPeriodSpreadsheet(periodId);
+    if (!periodSs) return;
+
+    let statusSheet = periodSs.getSheetByName('SubmissionStatus');
+    if (!statusSheet) {
+      statusSheet = createSubmissionStatusSheet(periodSs);
+    }
+
+    const data = statusSheet.getDataRange().getValues();
+    let rowIndex = -1;
+
+    // Find existing row
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === entityId) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+
+    const row = [
+      entityId,
+      statusData.status,
+      statusData.submittedBy || data[rowIndex - 1]?.[2] || '',
+      statusData.submittedDate || data[rowIndex - 1]?.[3] || '',
+      statusData.comments || data[rowIndex - 1]?.[4] || '',
+      statusData.approvedBy || statusData.rejectedBy || '',
+      statusData.approvedDate || statusData.rejectedDate || '',
+      statusData.approverComments || statusData.rejectionReason || '',
+      new Date()
+    ];
+
+    if (rowIndex > 0) {
+      statusSheet.getRange(rowIndex, 1, 1, row.length).setValues([row]);
+    } else {
+      statusSheet.appendRow(row);
+    }
+  } catch (error) {
+    Logger.log('Error updating submission status: ' + error.toString());
+  }
+}
+
+/**
+ * Gets submission status for an entity
+ * @param {string} entityId - Entity ID
+ * @param {string} periodId - Period ID
+ * @returns {Object} Submission status
+ */
+function getSubmissionStatus(entityId, periodId) {
+  try {
+    const periodSs = getPeriodSpreadsheet(periodId);
+    if (!periodSs) {
+      return { success: false, error: 'Period spreadsheet not found' };
+    }
+
+    const statusSheet = periodSs.getSheetByName('SubmissionStatus');
+    if (!statusSheet) {
+      return {
+        success: true,
+        status: CONFIG.STATUS.DRAFT
+      };
+    }
+
+    const data = statusSheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === entityId) {
+        return {
+          success: true,
+          status: data[i][1],
+          submittedBy: data[i][2],
+          submittedDate: data[i][3],
+          submitterComments: data[i][4],
+          reviewedBy: data[i][5],
+          reviewedDate: data[i][6],
+          reviewerComments: data[i][7],
+          lastUpdated: data[i][8]
+        };
+      }
+    }
+
+    return {
+      success: true,
+      status: CONFIG.STATUS.DRAFT
+    };
+  } catch (error) {
+    Logger.log('Error getting submission status: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets all pending approvals
+ * @param {string} periodId - Period ID
+ * @returns {Array} Pending submissions
+ */
+function getPendingApprovals(periodId) {
+  try {
+    const periodSs = getPeriodSpreadsheet(periodId);
+    if (!periodSs) {
+      return { success: false, error: 'Period spreadsheet not found' };
+    }
+
+    const statusSheet = periodSs.getSheetByName('SubmissionStatus');
+    if (!statusSheet) {
+      return { success: true, submissions: [] };
+    }
+
+    const data = statusSheet.getDataRange().getValues();
+    const pending = [];
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === CONFIG.STATUS.SUBMITTED) {
+        // Get entity details
+        const entityResult = getEntityById(data[i][0]);
+
+        pending.push({
+          entityId: data[i][0],
+          entityName: entityResult.success ? entityResult.entity.name : 'Unknown',
+          submittedBy: data[i][2],
+          submittedDate: data[i][3],
+          comments: data[i][4]
+        });
+      }
+    }
+
+    return {
+      success: true,
+      submissions: pending
+    };
+  } catch (error) {
+    Logger.log('Error getting pending approvals: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Creates submission status sheet
+ * @param {Spreadsheet} ss - Spreadsheet object
+ * @returns {Sheet} Created sheet
+ */
+function createSubmissionStatusSheet(ss) {
+  const sheet = ss.insertSheet('SubmissionStatus');
+
+  const headers = [
+    'EntityID', 'Status', 'SubmittedBy', 'SubmittedDate', 'SubmitterComments',
+    'ReviewedBy', 'ReviewedDate', 'ReviewerComments', 'LastUpdated'
+  ];
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  sheet.setFrozenRows(1);
+
+  return sheet;
+}
+
+/**
+ * Notifies approvers of new submission
+ * @param {string} entityId - Entity ID
+ * @param {string} periodId - Period ID
+ * @param {Object} submitter - Submitter user object
+ */
+function notifyApprovers(entityId, periodId, submitter) {
+  try {
+    const entityResult = getEntityById(entityId);
+    const entityName = entityResult.success ? entityResult.entity.name : entityId;
+
+    // Get all approvers
+    const approvers = getAllApprovers();
+
+    approvers.forEach(approver => {
+      sendNotification({
+        to: approver.email,
+        subject: `New Submission for Approval: ${entityName}`,
+        body: `Dear ${approver.name},\n\n` +
+          `A new submission requires your approval:\n\n` +
+          `Entity: ${entityName}\n` +
+          `Period: ${periodId}\n` +
+          `Submitted by: ${submitter.name}\n` +
+          `Submitted on: ${formatDateTime(new Date())}\n\n` +
+          `Please review and approve/reject at: ${ScriptApp.getService().getUrl()}?page=approvalReview&entity=${entityId}\n\n` +
+          `Best regards,\n` +
+          `IPSAS System`
+      });
+    });
+  } catch (error) {
+    Logger.log('Error notifying approvers: ' + error.toString());
+  }
+}
+
+/**
+ * Notifies data entry officer of approval/rejection
+ * @param {string} entityId - Entity ID
+ * @param {string} periodId - Period ID
+ * @param {string} action - APPROVED or REJECTED
+ * @param {Object} approver - Approver user object
+ * @param {string} comments - Optional comments
+ */
+function notifyDataEntryOfficer(entityId, periodId, action, approver, comments) {
+  try {
+    const entityResult = getEntityById(entityId);
+    const entityName = entityResult.success ? entityResult.entity.name : entityId;
+
+    // Get entity data entry officer
+    const officer = getDataEntryOfficerForEntity(entityId);
+    if (!officer) return;
+
+    const subject = action === 'APPROVED' ?
+      `Submission Approved: ${entityName}` :
+      `Submission Rejected: ${entityName}`;
+
+    const body = `Dear ${officer.name},\n\n` +
+      `Your submission has been ${action.toLowerCase()}:\n\n` +
+      `Entity: ${entityName}\n` +
+      `Period: ${periodId}\n` +
+      `Reviewed by: ${approver.name}\n` +
+      `Reviewed on: ${formatDateTime(new Date())}\n` +
+      (comments ? `\nComments:\n${comments}\n` : '') +
+      `\n\nBest regards,\n` +
+      `IPSAS System`;
+
+    sendNotification({
+      to: officer.email,
+      subject: subject,
+      body: body
+    });
+  } catch (error) {
+    Logger.log('Error notifying data entry officer: ' + error.toString());
+  }
+}
+
+/**
+ * Gets all approvers
+ * @returns {Array} List of approvers
+ */
+function getAllApprovers() {
+  // This would query the Users sheet for all APPROVER role users
+  // Simplified version
+  return [];
+}
+
+/**
+ * Gets data entry officer for an entity
+ * @param {string} entityId - Entity ID
+ * @returns {Object} User object
+ */
+function getDataEntryOfficerForEntity(entityId) {
+  // This would query the Users sheet for the DATA_ENTRY user assigned to this entity
+  // Simplified version
+  return null;
+}

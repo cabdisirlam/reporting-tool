@@ -1,0 +1,6 @@
+**/**
+!src/backend/**/*.gs
+!appsscript.json
+.git/**
+node_modules/**
+.clasp.json
