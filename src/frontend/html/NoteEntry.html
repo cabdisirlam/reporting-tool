@@ -1,1 +1,410 @@
-<!DOCTYPE html><html><head><title>NoteEntry</title></head><body><h1>NoteEntry</h1><p>Page under construction</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Entry - IPSAS System</title>
+    <style>
+        <?!= include('css/main.css'); ?>
+        <?!= include('src/frontend/css/forms.css'); ?>
+    </style>
+    <style>
+        .note-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .note-header {
+            background: #1a73e8;
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .note-selector {
+            margin-bottom: 20px;
+        }
+        .note-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .note-lines-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .note-lines-table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            font-weight: 600;
+        }
+        .note-lines-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .line-description {
+            font-weight: 500;
+        }
+        .line-indent-1 {
+            padding-left: 30px;
+        }
+        .line-indent-2 {
+            padding-left: 50px;
+        }
+        .line-indent-3 {
+            padding-left: 70px;
+        }
+        .line-header {
+            background: #f9f9f9;
+            font-weight: 600;
+            color: #1a73e8;
+        }
+        .line-total {
+            background: #e3f2fd;
+            font-weight: 600;
+        }
+        .line-subtotal {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        .amount-input {
+            width: 150px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: right;
+        }
+        .amount-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+        .calculated-amount {
+            background: #f5f5f5;
+            color: #666;
+            cursor: not-allowed;
+        }
+        .btn-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: #1a73e8;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1557b0;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error-message {
+            background: #fef0f0;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .success-message {
+            background: #f0fef0;
+            color: #2f8d32;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="note-container">
+        <div class="note-header">
+            <h1>Note Entry</h1>
+            <p>Enter financial data for disclosure notes</p>
+        </div>
+
+        <div id="messageArea"></div>
+
+        <div class="note-selector">
+            <label for="noteSelect">Select Note:</label>
+            <select id="noteSelect" onchange="loadNoteLines()">
+                <option value="">-- Select a Note --</option>
+            </select>
+        </div>
+
+        <div id="noteContent">
+            <div class="loading">Select a note to begin data entry</div>
+        </div>
+    </div>
+
+    <script>
+        let allNotes = [];
+        let currentNote = null;
+        let currentLines = [];
+        let noteData = {};
+
+        // Load notes on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadNotes();
+        });
+
+        function loadNotes() {
+            showLoading('Loading notes...');
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        allNotes = result.notes;
+                        populateNoteSelector();
+                    } else {
+                        showError('Failed to load notes: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error loading notes: ' + error.message);
+                })
+                .getNoteTemplates();
+        }
+
+        function populateNoteSelector() {
+            const select = document.getElementById('noteSelect');
+            select.innerHTML = '<option value="">-- Select a Note --</option>';
+
+            allNotes.forEach(function(note) {
+                if (note.active) {
+                    const option = document.createElement('option');
+                    option.value = note.noteId;
+                    option.textContent = 'Note ' + note.noteNumber + ' - ' + note.noteName;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        function loadNoteLines() {
+            const select = document.getElementById('noteSelect');
+            const noteId = select.value;
+
+            if (!noteId) {
+                document.getElementById('noteContent').innerHTML =
+                    '<div class="loading">Select a note to begin data entry</div>';
+                return;
+            }
+
+            currentNote = allNotes.find(n => n.noteId === noteId);
+            showLoading('Loading note lines...');
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        currentLines = result.lines;
+                        displayNoteLines();
+                    } else {
+                        showError('Failed to load note lines: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error loading note lines: ' + error.message);
+                })
+                .getNoteLines(noteId);
+        }
+
+        function displayNoteLines() {
+            if (!currentLines || currentLines.length === 0) {
+                document.getElementById('noteContent').innerHTML =
+                    '<div class="loading">No lines configured for this note</div>';
+                return;
+            }
+
+            let html = '<table class="note-lines-table">';
+            html += '<thead><tr>';
+            html += '<th style="width: 100px">Line No.</th>';
+            html += '<th>Description</th>';
+            html += '<th style="width: 180px">Current Year</th>';
+            html += '<th style="width: 180px">Prior Year</th>';
+            html += '</tr></thead><tbody>';
+
+            currentLines.forEach(function(line) {
+                const rowClass =
+                    line.lineType === 'HEADER' ? 'line-header' :
+                    line.lineType === 'TOTAL' ? 'line-total' :
+                    line.lineType === 'SUBTOTAL' ? 'line-subtotal' : '';
+
+                html += '<tr class="' + rowClass + '">';
+                html += '<td>' + line.lineNumber + '</td>';
+
+                const indentClass = 'line-indent-' + line.indent;
+                html += '<td class="line-description ' + indentClass + '">' +
+                        escapeHtml(line.description) + '</td>';
+
+                if (line.lineType === 'DATA' || line.lineType === 'SUBTOTAL') {
+                    const isCalculated = line.formula && line.formula !== '';
+                    const inputClass = isCalculated ? 'amount-input calculated-amount' : 'amount-input';
+                    const disabled = isCalculated ? 'disabled' : '';
+
+                    html += '<td><input type="number" class="' + inputClass + '" ' +
+                            'id="current_' + line.lineId + '" ' +
+                            'data-line-id="' + line.lineId + '" ' +
+                            'data-period="current" ' + disabled +
+                            ' step="0.01" placeholder="0.00"></td>';
+
+                    html += '<td><input type="number" class="' + inputClass + '" ' +
+                            'id="prior_' + line.lineId + '" ' +
+                            'data-line-id="' + line.lineId + '" ' +
+                            'data-period="prior" ' + disabled +
+                            ' step="0.01" placeholder="0.00"></td>';
+                } else {
+                    html += '<td colspan="2"></td>';
+                }
+
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            html += '<div class="btn-group">';
+            html += '<button class="btn btn-primary" onclick="saveNoteData()">Save Draft</button>';
+            html += '<button class="btn btn-primary" onclick="submitNoteData()">Submit for Approval</button>';
+            html += '<button class="btn btn-secondary" onclick="clearForm()">Clear</button>';
+            html += '</div>';
+
+            document.getElementById('noteContent').innerHTML = html;
+        }
+
+        function saveNoteData() {
+            const data = collectFormData();
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showSuccess('Note data saved successfully');
+                    } else {
+                        showError('Failed to save: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error saving data: ' + error.message);
+                })
+                .saveNoteData(data);
+        }
+
+        function submitNoteData() {
+            if (!confirm('Submit this note for approval? You will not be able to edit it after submission.')) {
+                return;
+            }
+
+            const data = collectFormData();
+            data.status = 'SUBMITTED';
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showSuccess('Note submitted for approval successfully');
+                        // Disable all inputs
+                        disableAllInputs();
+                    } else {
+                        showError('Failed to submit: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error submitting data: ' + error.message);
+                })
+                .saveNoteData(data);
+        }
+
+        function collectFormData() {
+            const data = {
+                noteId: currentNote.noteId,
+                noteNumber: currentNote.noteNumber,
+                lines: []
+            };
+
+            currentLines.forEach(function(line) {
+                if (line.lineType === 'DATA' || line.lineType === 'SUBTOTAL') {
+                    const currentInput = document.getElementById('current_' + line.lineId);
+                    const priorInput = document.getElementById('prior_' + line.lineId);
+
+                    if (currentInput || priorInput) {
+                        data.lines.push({
+                            lineId: line.lineId,
+                            lineNumber: line.lineNumber,
+                            currentYear: currentInput ? parseFloat(currentInput.value) || 0 : 0,
+                            priorYear: priorInput ? parseFloat(priorInput.value) || 0 : 0
+                        });
+                    }
+                }
+            });
+
+            return data;
+        }
+
+        function clearForm() {
+            if (!confirm('Clear all entered data?')) {
+                return;
+            }
+
+            const inputs = document.querySelectorAll('.amount-input:not(.calculated-amount)');
+            inputs.forEach(function(input) {
+                input.value = '';
+            });
+        }
+
+        function disableAllInputs() {
+            const inputs = document.querySelectorAll('.amount-input');
+            inputs.forEach(function(input) {
+                input.disabled = true;
+                input.classList.add('calculated-amount');
+            });
+        }
+
+        function showLoading(message) {
+            document.getElementById('noteContent').innerHTML =
+                '<div class="loading">' + message + '</div>';
+        }
+
+        function showError(message) {
+            document.getElementById('messageArea').innerHTML =
+                '<div class="error-message">' + message + '</div>';
+            setTimeout(function() {
+                document.getElementById('messageArea').innerHTML = '';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            document.getElementById('messageArea').innerHTML =
+                '<div class="success-message">' + message + '</div>';
+            setTimeout(function() {
+                document.getElementById('messageArea').innerHTML = '';
+            }, 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

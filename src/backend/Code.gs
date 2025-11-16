@@ -95,7 +95,7 @@ function doGet(e) {
     // Route to appropriate page
     switch(page) {
       case 'index':
-        return HtmlService.createHtmlOutputFromFile('Index')
+        return HtmlService.createHtmlOutputFromFile('index')
           .setTitle(CONFIG.APP_NAME)
           .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png');
 
