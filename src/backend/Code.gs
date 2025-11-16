@@ -283,6 +283,9 @@ function openPeriodManagement() {
 // INSTALLATION & SETUP
 // ============================================================================
 
+/**
+ * Setup system with UI prompts (call from spreadsheet menu)
+ */
 function setupSystem() {
   const ui = SpreadsheetApp.getUi();
   const response = ui.alert(
@@ -297,6 +300,24 @@ function setupSystem() {
     } catch (error) {
       ui.alert('Error', 'Setup failed: ' + error.toString(), ui.ButtonSet.OK);
     }
+  }
+}
+
+/**
+ * Setup system without UI (call from script editor)
+ * Run this function directly from the script editor to create the master config
+ */
+function setupSystemNoUI() {
+  try {
+    Logger.log('Starting system setup...');
+    const ssId = createMasterConfigSpreadsheet();
+    Logger.log('System setup completed successfully!');
+    Logger.log('Master Config Spreadsheet ID: ' + ssId);
+    Logger.log('Please add this ID to Script Properties as MASTER_CONFIG_ID (it should be set automatically)');
+    return ssId;
+  } catch (error) {
+    Logger.log('Setup failed: ' + error.toString());
+    throw error;
   }
 }
 
