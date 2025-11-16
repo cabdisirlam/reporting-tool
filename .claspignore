@@ -1,6 +1,26 @@
+# Ignore everything by default
 **/**
-!src/backend/**/*.gs
+
+# Include the project manifest (REQUIRED)
 !appsscript.json
+
+# Include the main HTML page
+!index.html
+
+# Include all backend .gs code files
+!src/backend/**/*.gs
+
+# Include all frontend HTML page files
+!src/frontend/html/**/*.html
+
+# Include all CSS files (renamed to .html)
+!css/**/*.html
+
+# Include frontend CSS and JS files (renamed to .html)
+!src/frontend/css/**/*.html
+!src/frontend/js/**/*.html
+
+# Explicitly ignore git and node_modules
 .git/**
 node_modules/**
 .clasp.json

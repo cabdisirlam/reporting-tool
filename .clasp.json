@@ -1,5 +1,4 @@
 {
   "scriptId": "14YK_GfbysoKmMsbjUXoNW4GT8axkT3CwKQmCZIWXOBYf9y8ldo5Mnbaj",
-  "rootDir": "./src/backend",
-  "fileExtension": "gs"
+  "rootDir": "."
 }
