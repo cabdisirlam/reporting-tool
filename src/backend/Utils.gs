@@ -321,7 +321,7 @@ function calculateVariance(current, prior) {
   return {
     amount: amount,
     percent: percent,
-    formatted: formatCurrency(amount) + ' (' + formatPercent(percent / 100) + ')'
+    formatted: formatCurrency(amount) + ' (' + formatPercent(percent) + ')'
   };
 }
 

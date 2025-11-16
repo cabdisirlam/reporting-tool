@@ -5,6 +5,8 @@
 const DataEntry = {
     autoSaveTimer: null,
     currentNote: null,
+    currentEntityId: null,
+    currentPeriodId: null,
 
     init() {
         this.setupAutoSave();

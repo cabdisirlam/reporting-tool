@@ -436,9 +436,44 @@ function notifyDataEntryOfficer(entityId, periodId, action, approver, comments) 
  * @returns {Array} List of approvers
  */
 function getAllApprovers() {
-  // This would query the Users sheet for all APPROVER role users
-  // Simplified version
-  return [];
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('Users');
+
+    if (!sheet) {
+      Logger.log('Users sheet not found');
+      return [];
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+
+    // Find role column
+    const roleCol = headers.indexOf('Role');
+    const statusCol = headers.indexOf('Status');
+
+    const approvers = [];
+
+    // Find all approver users
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][roleCol] === CONFIG.USER_ROLES.APPROVER &&
+          data[i][statusCol] === 'ACTIVE') {
+        approvers.push({
+          id: data[i][0],
+          email: data[i][headers.indexOf('Email')],
+          name: data[i][headers.indexOf('Name')],
+          role: data[i][roleCol],
+          entityId: data[i][headers.indexOf('EntityID')],
+          entityName: data[i][headers.indexOf('EntityName')]
+        });
+      }
+    }
+
+    return approvers;
+  } catch (error) {
+    Logger.log('Error getting approvers: ' + error.toString());
+    return [];
+  }
 }
 
 /**
@@ -447,7 +482,42 @@ function getAllApprovers() {
  * @returns {Object} User object
  */
 function getDataEntryOfficerForEntity(entityId) {
-  // This would query the Users sheet for the DATA_ENTRY user assigned to this entity
-  // Simplified version
-  return null;
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('Users');
+
+    if (!sheet) {
+      Logger.log('Users sheet not found');
+      return null;
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+
+    // Find relevant columns
+    const roleCol = headers.indexOf('Role');
+    const entityIdCol = headers.indexOf('EntityID');
+    const statusCol = headers.indexOf('Status');
+
+    // Find data entry user for this entity
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][roleCol] === CONFIG.USER_ROLES.DATA_ENTRY &&
+          data[i][entityIdCol] === entityId &&
+          data[i][statusCol] === 'ACTIVE') {
+        return {
+          id: data[i][0],
+          email: data[i][headers.indexOf('Email')],
+          name: data[i][headers.indexOf('Name')],
+          role: data[i][roleCol],
+          entityId: data[i][entityIdCol],
+          entityName: data[i][headers.indexOf('EntityName')]
+        };
+      }
+    }
+
+    return null;
+  } catch (error) {
+    Logger.log('Error getting data entry officer: ' + error.toString());
+    return null;
+  }
 }

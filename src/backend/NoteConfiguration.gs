@@ -183,7 +183,7 @@ function createNoteTemplatesSheet(ss) {
     ['NOTE_53', '53', 'Deferred Tax Liabilities', 'Position', 'SFP', false, true, true],
 
     // Cash Flow Statement
-    ['NOTE_54', '54', 'Cash Flow Statement', 'CashFlow', 'SCF', false, true, true],
+    ['NOTE_CF', 'CF', 'Cash Flow Statement', 'CashFlow', 'SCF', false, true, true],
 
     // Budget and Other Statements
     ['NOTE_BUDGET', 'BUDGET', 'Statement of Comparison of Budget and Actual', 'Budget', 'BUDGET', false, true, true],
@@ -227,25 +227,25 @@ function createNoteLineSheet(ss) {
   // Note 54 - Cash Flow Operating Activities
   const cashFlowLines = [
     // Operating Activities
-    ['LINE_54_OA', 'NOTE_54', '54.A', 'Operating Activities', 'HEADER', '', 0, 'TEXT', false, ''],
-    ['LINE_54_OA_01', 'NOTE_54', '54.A.1', 'Transfers from other governments', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_OA_02', 'NOTE_54', '54.A.2', 'Rendering of services', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_OA_03', 'NOTE_54', '54.A.3', 'Other Receipts', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_OA_04', 'NOTE_54', '54.A.4', 'Use of goods and services', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_OA_05', 'NOTE_54', '54.A.5', 'Employee costs', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_OA_06', 'NOTE_54', '54.A.6', 'Other Payments', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA', 'NOTE_CF', '54.A', 'Operating Activities', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_54_OA_01', 'NOTE_CF', '54.A.1', 'Transfers from other governments', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_02', 'NOTE_CF', '54.A.2', 'Rendering of services', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_03', 'NOTE_CF', '54.A.3', 'Other Receipts', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_04', 'NOTE_CF', '54.A.4', 'Use of goods and services', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_05', 'NOTE_CF', '54.A.5', 'Employee costs', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_06', 'NOTE_CF', '54.A.6', 'Other Payments', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
 
     // Investing Activities
-    ['LINE_54_IA', 'NOTE_54', '54.B', 'Investing Activities', 'HEADER', '', 0, 'TEXT', false, ''],
-    ['LINE_54_IA_01', 'NOTE_54', '54.B.1', 'Purchase of PPE', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_IA_02', 'NOTE_54', '54.B.2', 'Proceeds from sale of PPE', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_IA_03', 'NOTE_54', '54.B.3', 'Mortgage/Car Loan Receipts', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_IA_04', 'NOTE_54', '54.B.4', 'Mortgage/Car Loan Payments', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_IA', 'NOTE_CF', '54.B', 'Investing Activities', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_54_IA_01', 'NOTE_CF', '54.B.1', 'Purchase of PPE', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_IA_02', 'NOTE_CF', '54.B.2', 'Proceeds from sale of PPE', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_IA_03', 'NOTE_CF', '54.B.3', 'Mortgage/Car Loan Receipts', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_IA_04', 'NOTE_CF', '54.B.4', 'Mortgage/Car Loan Payments', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
 
     // Financing Activities
-    ['LINE_54_FA', 'NOTE_54', '54.C', 'Financing Activities', 'HEADER', '', 0, 'TEXT', false, ''],
-    ['LINE_54_FA_01', 'NOTE_54', '54.C.1', 'Proceeds from borrowings', 'DATA', 'LINE_54_FA', 1, 'CURRENCY', false, ''],
-    ['LINE_54_FA_02', 'NOTE_54', '54.C.2', 'Repayment of borrowings', 'DATA', 'LINE_54_FA', 1, 'CURRENCY', false, '']
+    ['LINE_54_FA', 'NOTE_CF', '54.C', 'Financing Activities', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_54_FA_01', 'NOTE_CF', '54.C.1', 'Proceeds from borrowings', 'DATA', 'LINE_54_FA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_FA_02', 'NOTE_CF', '54.C.2', 'Repayment of borrowings', 'DATA', 'LINE_54_FA', 1, 'CURRENCY', false, '']
   ];
 
   // Note BUDGET - Budget vs Actual
@@ -282,6 +282,8 @@ function createNoteLineSheet(ss) {
   }
 
   sheet.autoResizeColumns(1, headers.length);
+
+  return sheet;
 }
 
 /**
