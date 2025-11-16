@@ -216,3 +216,229 @@ function getNoteStructure(noteNumber) {
     };
   }
 }
+
+// ============================================================================
+// INITIALIZATION FUNCTIONS - POPULATE MASTER CONFIG WITH ALL NOTES
+// ============================================================================
+
+/**
+ * Initializes all note templates in the MASTER_CONFIG spreadsheet
+ * Populates NoteTemplates sheet with all 49 notes (6-54)
+ */
+function initializeAllNoteTemplates() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('NoteTemplates');
+
+    if (!sheet) {
+      return {
+        success: false,
+        error: 'NoteTemplates sheet not found. Please run createNoteTemplatesSheet() first.'
+      };
+    }
+
+    // Clear existing data (except headers)
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      sheet.deleteRows(2, lastRow - 1);
+    }
+
+    // Get all note templates from NotesData.gs
+    const noteTemplates = getAllNoteTemplates();
+
+    // Prepare data for batch write
+    const data = noteTemplates.map(note => [
+      note.noteId,
+      note.noteNumber,
+      note.noteName,
+      note.category,
+      note.statementType,
+      note.hasMovementSchedule,
+      note.required,
+      note.active
+    ]);
+
+    // Write all notes at once
+    if (data.length > 0) {
+      sheet.getRange(2, 1, data.length, 8).setValues(data);
+    }
+
+    return {
+      success: true,
+      message: `Successfully initialized ${noteTemplates.length} note templates`,
+      count: noteTemplates.length
+    };
+  } catch (error) {
+    Logger.log('Error initializing note templates: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Initializes all note line items in the MASTER_CONFIG spreadsheet
+ * Populates NoteLines sheet with line definitions for all notes
+ */
+function initializeAllNoteLines() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('NoteLines');
+
+    if (!sheet) {
+      return {
+        success: false,
+        error: 'NoteLines sheet not found. Please run createNoteLineSheet() first.'
+      };
+    }
+
+    // Clear existing data (except headers)
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      sheet.deleteRows(2, lastRow - 1);
+    }
+
+    // Get all note lines from NotesLineItems.gs
+    const noteLines = getAllNoteLines();
+
+    // Prepare data for batch write
+    const data = noteLines.map(line => [
+      line.lineId,
+      line.noteId,
+      line.lineNumber,
+      line.description,
+      line.lineType,
+      line.parentLineId,
+      line.indent,
+      line.dataType,
+      line.required,
+      line.formula
+    ]);
+
+    // Write all lines at once
+    if (data.length > 0) {
+      sheet.getRange(2, 1, data.length, 10).setValues(data);
+    }
+
+    return {
+      success: true,
+      message: `Successfully initialized ${noteLines.length} note line items`,
+      count: noteLines.length
+    };
+  } catch (error) {
+    Logger.log('Error initializing note lines: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Master function to initialize both note templates and note lines
+ * Run this function to populate the MASTER_CONFIG with all IPSAS notes
+ */
+function initializeAllIPSASNotes() {
+  try {
+    Logger.log('Starting initialization of all IPSAS notes...');
+
+    // Initialize note templates
+    const templatesResult = initializeAllNoteTemplates();
+    if (!templatesResult.success) {
+      return templatesResult;
+    }
+    Logger.log(templatesResult.message);
+
+    // Initialize note lines
+    const linesResult = initializeAllNoteLines();
+    if (!linesResult.success) {
+      return linesResult;
+    }
+    Logger.log(linesResult.message);
+
+    return {
+      success: true,
+      message: `Successfully initialized ${templatesResult.count} note templates and ${linesResult.count} line items`,
+      templates: templatesResult.count,
+      lines: linesResult.count
+    };
+  } catch (error) {
+    Logger.log('Error initializing IPSAS notes: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+// ============================================================================
+// QUERY FUNCTIONS - RETRIEVE NOTES BY CATEGORY
+// ============================================================================
+
+/**
+ * Gets all revenue notes (Statement of Financial Performance - Revenue)
+ * @returns {Array} Notes 6-15
+ */
+function getRevenueNotes() {
+  const allNotes = getAllNoteTemplates();
+  return allNotes.filter(note => {
+    const noteNum = parseInt(note.noteNumber);
+    return noteNum >= 6 && noteNum <= 15;
+  });
+}
+
+/**
+ * Gets all expense notes (Statement of Financial Performance - Expenses)
+ * @returns {Array} Notes 16-29
+ */
+function getExpenseNotes() {
+  const allNotes = getAllNoteTemplates();
+  return allNotes.filter(note => {
+    const noteNum = parseInt(note.noteNumber);
+    return noteNum >= 16 && noteNum <= 29;
+  });
+}
+
+/**
+ * Gets all asset notes (Statement of Financial Position - Assets)
+ * @returns {Array} Notes 30-39
+ */
+function getAssetNotes() {
+  const allNotes = getAllNoteTemplates();
+  return allNotes.filter(note => {
+    const noteNum = parseInt(note.noteNumber);
+    return noteNum >= 30 && noteNum <= 39;
+  });
+}
+
+/**
+ * Gets all liability notes (Statement of Financial Position - Liabilities)
+ * @returns {Array} Notes 40-53
+ */
+function getLiabilityNotes() {
+  const allNotes = getAllNoteTemplates();
+  return allNotes.filter(note => {
+    const noteNum = parseInt(note.noteNumber);
+    return noteNum >= 40 && noteNum <= 53;
+  });
+}
+
+/**
+ * Gets all notes that require movement schedules
+ * @returns {Array} Notes with hasMovementSchedule = true
+ */
+function getNotesWithMovementSchedules() {
+  const allNotes = getAllNoteTemplates();
+  return allNotes.filter(note => note.hasMovementSchedule === true);
+}
+
+/**
+ * Gets notes by statement type
+ * @param {string} statementType - 'SFP', 'SOFP', or 'CF'
+ * @returns {Array} Notes for the specified statement
+ */
+function getNotesByStatementType(statementType) {
+  const allNotes = getAllNoteTemplates();
+  return allNotes.filter(note => note.statementType === statementType);
+}
