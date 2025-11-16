@@ -438,7 +438,7 @@ function createUsersSheet(ss) {
   const sheet = ss.insertSheet('Users');
   const headers = [
     'UserID', 'Email', 'Name', 'Role', 'EntityID', 'EntityName',
-    'Status', 'PasswordHash', 'PasswordSalt', 'CreatedDate', 'CreatedBy'
+    'Status', 'PINHash', 'PINSalt', 'CreatedDate', 'CreatedBy'
   ];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
@@ -459,6 +459,23 @@ function createUsersSheet(ss) {
     new Date(),
     'system'
   ]);
+
+  // Default user for ease of login
+  const defaultUserHash = hashPIN('123456');
+  sheet.appendRow([
+    'USR_DEFAULT',
+    'cabdisirlam@gmail.com',
+    'Default User',
+    'ADMIN',
+    '',
+    '',
+    'ACTIVE',
+    defaultUserHash.hash,
+    defaultUserHash.salt,
+    new Date(),
+    'system'
+  ]);
+
   sheet.autoResizeColumns(1, headers.length);
 }
 
