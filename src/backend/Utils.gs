@@ -439,7 +439,7 @@ function createUsersSheet(ss) {
 
   const headers = [
     'UserID', 'Email', 'Name', 'Role', 'EntityID', 'EntityName',
-    'Status', 'PasswordHash', 'CreatedDate', 'CreatedBy'
+    'Status', 'PasswordHash', 'PasswordSalt', 'CreatedDate', 'CreatedBy'
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -447,7 +447,7 @@ function createUsersSheet(ss) {
   sheet.setFrozenRows(1);
 
   // Sample admin user
-  const adminHash = hashPassword('admin123');
+  const adminPassword = hashPassword('admin123');
   sheet.appendRow([
     'USR_ADMIN',
     'admin@treasury.go.ke',
@@ -456,7 +456,8 @@ function createUsersSheet(ss) {
     '',
     '',
     'ACTIVE',
-    adminHash,
+    adminPassword.hash,
+    adminPassword.salt,
     new Date(),
     'system'
   ]);
@@ -512,5 +513,73 @@ function createPeriodConfigSheet(ss) {
     new Date()
   ]);
 
+  sheet.autoResizeColumns(1, headers.length);
+}
+
+/**
+ * Creates note templates sheet
+ * @param {Spreadsheet} ss - Spreadsheet object
+ */
+function createNoteTemplatesSheet(ss) {
+  const sheet = ss.insertSheet('NoteTemplates');
+
+  const headers = [
+    'NoteID', 'NoteName', 'NoteType', 'Description', 'Active'
+  ];
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, headers.length);
+}
+
+/**
+ * Creates note line items sheet
+ * @param {Spreadsheet} ss - Spreadsheet object
+ */
+function createNoteLineSheet(ss) {
+  const sheet = ss.insertSheet('NoteLines');
+
+  const headers = [
+    'LineID', 'NoteID', 'LineNumber', 'LineDescription', 'LineType', 'Formula'
+  ];
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, headers.length);
+}
+
+/**
+ * Creates entity note data sheet (for period spreadsheets)
+ * @param {Spreadsheet} ss - Spreadsheet object
+ */
+function createEntityNoteDataSheet(ss) {
+  const sheet = ss.insertSheet('EntityNoteData');
+
+  const headers = [
+    'EntityID', 'NoteID', 'LineID', 'Value', 'LastUpdated', 'UpdatedBy'
+  ];
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, headers.length);
+}
+
+/**
+ * Creates submission status sheet (for period spreadsheets)
+ * @param {Spreadsheet} ss - Spreadsheet object
+ */
+function createSubmissionStatusSheet(ss) {
+  const sheet = ss.insertSheet('SubmissionStatus');
+
+  const headers = [
+    'EntityID', 'Status', 'SubmittedDate', 'SubmittedBy', 'ApprovedDate', 'ApprovedBy', 'Comments'
+  ];
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  sheet.setFrozenRows(1);
   sheet.autoResizeColumns(1, headers.length);
 }
