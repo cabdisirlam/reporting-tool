@@ -341,8 +341,9 @@ MIT License - National Treasury of Kenya
 
 - National Treasury of Kenya
 - IPSAS Board
-- Google Apps Script Team
-
+- Solomon Ngahu
+- Eric Mwarome
+- Abdi Yussuf
 ## 📝 Version History
 
 ### v1.0.0 (Current)
