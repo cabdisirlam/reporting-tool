@@ -285,21 +285,29 @@ function openPeriodManagement() {
 
 /**
  * Setup system with UI prompts (call from spreadsheet menu)
+ * Automatically falls back to non-UI mode if UI is not available
  */
 function setupSystem() {
-  const ui = SpreadsheetApp.getUi();
-  const response = ui.alert(
-    'Setup System',
-    'This will create the master configuration spreadsheet. Continue?',
-    ui.ButtonSet.YES_NO
-  );
-  if (response === ui.Button.YES) {
-    try {
-      createMasterConfigSpreadsheet();
-      ui.alert('Success', 'System setup completed successfully!', ui.ButtonSet.OK);
-    } catch (error) {
-      ui.alert('Error', 'Setup failed: ' + error.toString(), ui.ButtonSet.OK);
+  try {
+    // Try to get UI context - this will fail if not in a UI context
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.alert(
+      'Setup System',
+      'This will create the master configuration spreadsheet. Continue?',
+      ui.ButtonSet.YES_NO
+    );
+    if (response === ui.Button.YES) {
+      try {
+        createMasterConfigSpreadsheet();
+        ui.alert('Success', 'System setup completed successfully!', ui.ButtonSet.OK);
+      } catch (error) {
+        ui.alert('Error', 'Setup failed: ' + error.toString(), ui.ButtonSet.OK);
+      }
     }
+  } catch (error) {
+    // If UI is not available, run setupSystemNoUI instead
+    Logger.log('UI context not available, running setup without UI...');
+    return setupSystemNoUI();
   }
 }
 
@@ -322,25 +330,67 @@ function setupSystemNoUI() {
 }
 
 function createMasterConfigSpreadsheet() {
-  // Create new spreadsheet
-  const ss = SpreadsheetApp.create('IPSAS_MASTER_CONFIG');
+  Logger.log('Creating master configuration spreadsheet...');
+
+  // Create new spreadsheet with timestamp
+  const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmmss');
+  const ss = SpreadsheetApp.create(`IPSAS_MASTER_CONFIG_${timestamp}`);
   const ssId = ss.getId();
+
+  Logger.log('Master config spreadsheet ID: ' + ssId);
 
   // Store the ID in script properties
   PropertiesService.getScriptProperties().setProperty('MASTER_CONFIG_ID', ssId);
 
-  // Create sheets
+  // Create sheets in logical order
+  Logger.log('Creating configuration sheets...');
   createEntitiesSheet(ss);
   createUsersSheet(ss);
+  createPeriodConfigSheet(ss);
   createNoteTemplatesSheet(ss);
   createNoteLineSheet(ss);
   createValidationRulesSheet(ss);
-  createPeriodConfigSheet(ss);
+
+  // Set up spreadsheet-level formatting
+  ss.setSpreadsheetTimeZone(Session.getScriptTimeZone());
+
+  // Add a README sheet with instructions
+  const readmeSheet = ss.insertSheet('README', 0);
+  const readmeContent = [
+    ['IPSAS Financial Consolidation System - Master Configuration'],
+    [''],
+    ['This spreadsheet contains the master configuration data for the IPSAS system.'],
+    [''],
+    ['Sheet Overview:'],
+    ['- Entities: List of all state corporations and entities'],
+    ['- Users: User accounts and permissions'],
+    ['- PeriodConfig: Reporting periods (quarters, annual)'],
+    ['- NoteTemplates: Financial statement note templates'],
+    ['- NoteLines: Line items for each note'],
+    ['- ValidationRules: Data validation rules'],
+    [''],
+    ['Important Notes:'],
+    ['- Do NOT delete or rename sheets'],
+    ['- Do NOT modify column headers'],
+    ['- Use the web interface for most operations'],
+    [''],
+    ['Created: ' + new Date().toString()],
+    ['Spreadsheet ID: ' + ssId]
+  ];
+
+  readmeSheet.getRange(1, 1, readmeContent.length, 1).setValues(readmeContent);
+  readmeSheet.getRange('A1').setFontWeight('bold').setFontSize(14);
+  readmeSheet.getRange('A5').setFontWeight('bold');
+  readmeSheet.getRange('A13').setFontWeight('bold');
+  readmeSheet.setColumnWidth(1, 600);
 
   // Delete default sheet
   const defaultSheet = ss.getSheetByName('Sheet1');
   if (defaultSheet) ss.deleteSheet(defaultSheet);
-  Logger.log('Master config spreadsheet created: ' + ssId);
+
+  Logger.log('Master config spreadsheet created successfully: ' + ssId);
+  Logger.log('Spreadsheet URL: ' + ss.getUrl());
+
   return ssId;
 }
 
