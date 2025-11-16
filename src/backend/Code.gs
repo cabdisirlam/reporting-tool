@@ -18,6 +18,7 @@ const CONFIG = {
   APP_VERSION: '1.0.0',
 
   // Spreadsheet IDs (Configure these after creating sheets)
+  // WARNING: MASTER_CONFIG_ID may be null before system setup
   MASTER_CONFIG_ID: PropertiesService.getScriptProperties().getProperty('MASTER_CONFIG_ID'),
 
   // User roles
@@ -41,8 +42,42 @@ const CONFIG = {
     OPEN: 'OPEN',
     CLOSED: 'CLOSED',
     LOCKED: 'LOCKED'
+  },
+
+  // User roles (alias for backward compatibility)
+  USER_ROLES: {
+    ADMIN: 'ADMIN',
+    APPROVER: 'APPROVER',
+    DATA_ENTRY: 'DATA_ENTRY',
+    VIEWER: 'VIEWER'
   }
 };
+
+// ============================================================================
+// CONFIGURATION HELPERS
+// ============================================================================
+
+/**
+ * Gets the Master Config ID with null check
+ * @returns {string} Master Config ID
+ * @throws {Error} If system is not configured
+ */
+function getMasterConfigId() {
+  const id = PropertiesService.getScriptProperties().getProperty('MASTER_CONFIG_ID');
+  if (!id) {
+    throw new Error('System not configured. Please run setupSystem() first to create the master configuration spreadsheet.');
+  }
+  return id;
+}
+
+/**
+ * Checks if the system is configured
+ * @returns {boolean} True if configured
+ */
+function isSystemConfigured() {
+  const id = PropertiesService.getScriptProperties().getProperty('MASTER_CONFIG_ID');
+  return !!id;
+}
 
 // ============================================================================
 // WEB APP ENTRY POINTS

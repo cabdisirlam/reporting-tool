@@ -172,11 +172,15 @@ function generateCashFlowStatement(entityId, periodId) {
  * @returns {Object} Current assets
  */
 function calculateCurrentAssets(data) {
+  const cash = getFieldValue(data, 'NOTE_30', 'totalCurrent', 0);
+  const receivables = getFieldValue(data, 'NOTE_32', 'totalCurrent', 0);
+  const inventories = getFieldValue(data, 'NOTE_38', 'totalCurrent', 0);
+
   return {
-    cash: getFieldValue(data, 'NOTE_30', 'totalCurrent', 0),
-    receivables: getFieldValue(data, 'NOTE_32', 'totalCurrent', 0),
-    inventories: getFieldValue(data, 'NOTE_38', 'totalCurrent', 0),
-    total: 0
+    cash: cash,
+    receivables: receivables,
+    inventories: inventories,
+    total: cash + receivables + inventories
   };
 }
 
@@ -186,10 +190,13 @@ function calculateCurrentAssets(data) {
  * @returns {Object} Non-current assets
  */
 function calculateNonCurrentAssets(data) {
+  const ppe = getFieldValue(data, 'NOTE_36', 'carryingAmount', 0);
+  const intangibles = getFieldValue(data, 'NOTE_37', 'carryingAmount', 0);
+
   return {
-    ppe: getFieldValue(data, 'NOTE_36', 'carryingAmount', 0),
-    intangibles: getFieldValue(data, 'NOTE_37', 'carryingAmount', 0),
-    total: 0
+    ppe: ppe,
+    intangibles: intangibles,
+    total: ppe + intangibles
   };
 }
 
@@ -199,10 +206,13 @@ function calculateNonCurrentAssets(data) {
  * @returns {Object} Current liabilities
  */
 function calculateCurrentLiabilities(data) {
+  const payables = getFieldValue(data, 'NOTE_45', 'totalCurrent', 0);
+  const borrowings = getFieldValue(data, 'NOTE_50', 'totalCurrent', 0);
+
   return {
-    payables: getFieldValue(data, 'NOTE_45', 'totalCurrent', 0),
-    borrowings: getFieldValue(data, 'NOTE_50', 'totalCurrent', 0),
-    total: 0
+    payables: payables,
+    borrowings: borrowings,
+    total: payables + borrowings
   };
 }
 
@@ -212,9 +222,11 @@ function calculateCurrentLiabilities(data) {
  * @returns {Object} Non-current liabilities
  */
 function calculateNonCurrentLiabilities(data) {
+  const borrowings = getFieldValue(data, 'NOTE_50', 'totalNonCurrent', 0);
+
   return {
-    borrowings: getFieldValue(data, 'NOTE_50', 'totalNonCurrent', 0),
-    total: 0
+    borrowings: borrowings,
+    total: borrowings
   };
 }
 
@@ -224,11 +236,15 @@ function calculateNonCurrentLiabilities(data) {
  * @returns {Object} Equity
  */
 function calculateEquity(data) {
+  const capital = 0;  // TODO: Extract from appropriate note
+  const reserves = 0;  // TODO: Extract from appropriate note
+  const retainedSurplus = 0;  // TODO: Extract from appropriate note
+
   return {
-    capital: 0,
-    reserves: 0,
-    retainedSurplus: 0,
-    total: 0
+    capital: capital,
+    reserves: reserves,
+    retainedSurplus: retainedSurplus,
+    total: capital + reserves + retainedSurplus
   };
 }
 
@@ -238,10 +254,13 @@ function calculateEquity(data) {
  * @returns {Object} Revenue
  */
 function calculateRevenue(data) {
+  const exchangeRevenue = getFieldValue(data, 'NOTE_06', 'total', 0);
+  const nonExchangeRevenue = getFieldValue(data, 'NOTE_07', 'total', 0);
+
   return {
-    exchangeRevenue: getFieldValue(data, 'NOTE_06', 'total', 0),
-    nonExchangeRevenue: getFieldValue(data, 'NOTE_07', 'total', 0),
-    total: 0
+    exchangeRevenue: exchangeRevenue,
+    nonExchangeRevenue: nonExchangeRevenue,
+    total: exchangeRevenue + nonExchangeRevenue
   };
 }
 
@@ -251,11 +270,15 @@ function calculateRevenue(data) {
  * @returns {Object} Expenses
  */
 function calculateExpenses(data) {
+  const employeeCosts = getFieldValue(data, 'NOTE_15', 'total', 0);
+  const depreciation = getFieldValue(data, 'NOTE_16', 'total', 0);
+  const other = 0;  // TODO: Extract from appropriate note
+
   return {
-    employeeCosts: getFieldValue(data, 'NOTE_15', 'total', 0),
-    depreciation: getFieldValue(data, 'NOTE_16', 'total', 0),
-    other: 0,
-    total: 0
+    employeeCosts: employeeCosts,
+    depreciation: depreciation,
+    other: other,
+    total: employeeCosts + depreciation + other
   };
 }
 

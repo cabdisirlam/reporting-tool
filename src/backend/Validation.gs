@@ -138,6 +138,8 @@ function validateCalculations(entityData, results) {
   const notesResult = getNoteTemplates();
   if (!notesResult.success) return;
 
+  let calculationErrors = 0;
+
   notesResult.notes.forEach(note => {
     if (!entityData[note.noteId]) return;
 
@@ -152,6 +154,7 @@ function validateCalculations(entityData, results) {
       const entered = parseFloat(noteData[line.lineId]) || 0;
 
       if (Math.abs(calculated - entered) > 0.01) {
+        calculationErrors++;
         results.errors.push({
           code: 'CALCULATION_ERROR',
           severity: 'ERROR',
@@ -166,10 +169,13 @@ function validateCalculations(entityData, results) {
     });
   });
 
-  results.passed.push({
-    code: 'CALCULATIONS_CHECK',
-    message: 'All totals calculate correctly'
-  });
+  // Only add passed message if no calculation errors were found
+  if (calculationErrors === 0) {
+    results.passed.push({
+      code: 'CALCULATIONS_CHECK',
+      message: 'All totals calculate correctly'
+    });
+  }
 }
 
 /**
