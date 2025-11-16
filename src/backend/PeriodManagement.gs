@@ -15,8 +15,22 @@
 /**
  * Shows dialog to create a new period
  * Prompts admin for all required period information
+ * Automatically falls back to logging if UI is not available
  */
 function showCreatePeriodDialog() {
+  try {
+    // Try to get UI context - this will fail if not in a UI context
+    const ui = SpreadsheetApp.getUi();
+  } catch (uiError) {
+    Logger.log('UI context not available. Use createPeriod() function directly with period data.');
+    Logger.log('Example: createPeriod({periodName: "Q1 2024-25", fiscalYear: "2024-25", quarter: "Q1", startDate: "2024-07-01", endDate: "2024-09-30", deadlineDate: "2024-10-15"})');
+    return {
+      success: false,
+      error: 'UI context not available. Call createPeriod() directly instead.'
+    };
+  }
+
+  // If we get here, UI is available
   const ui = SpreadsheetApp.getUi();
 
   try {
@@ -546,22 +560,68 @@ function closeAllOpenPeriods() {
  * @returns {string} Spreadsheet ID
  */
 function createPeriodSpreadsheet(periodId, periodName) {
-  // Create new spreadsheet
-  const ss = SpreadsheetApp.create(`IPSAS_${periodId}_${periodName}`);
+  Logger.log(`Creating period spreadsheet for ${periodId}...`);
+
+  // Create new spreadsheet with timestamp for uniqueness
+  const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmmss');
+  const ss = SpreadsheetApp.create(`IPSAS_${periodId}_${periodName}_${timestamp}`);
   const ssId = ss.getId();
+
+  Logger.log(`Period spreadsheet ID: ${ssId}`);
 
   // Store the ID in script properties
   PropertiesService.getScriptProperties().setProperty('PERIOD_' + periodId, ssId);
 
-  // Create sheets
-  createEntityNoteDataSheet(ss);
+  // Set up spreadsheet-level formatting
+  ss.setSpreadsheetTimeZone(Session.getScriptTimeZone());
+
+  // Add a README/Info sheet
+  const infoSheet = ss.insertSheet('Period_Info', 0);
+  const infoContent = [
+    ['IPSAS Financial Consolidation System - Period Data'],
+    [''],
+    [`Period: ${periodName}`],
+    [`Period ID: ${periodId}`],
+    [''],
+    ['This spreadsheet contains all entity submissions for this reporting period.'],
+    [''],
+    ['Sheet Overview:'],
+    ['- Period_Info: This information sheet'],
+    ['- SubmissionStatus: Tracks which entities have submitted/been approved'],
+    ['- EntityNoteData: Stores all financial data entries by entity and note'],
+    [''],
+    ['Important Notes:'],
+    ['- Data is managed through the web interface'],
+    ['- Do NOT manually edit unless you know what you are doing'],
+    ['- Submission status is automatically updated'],
+    [''],
+    ['Created: ' + new Date().toString()],
+    ['Spreadsheet ID: ' + ssId]
+  ];
+
+  infoSheet.getRange(1, 1, infoContent.length, 1).setValues(infoContent);
+  infoSheet.getRange('A1').setFontWeight('bold').setFontSize(14);
+  infoSheet.getRange('A3:A4').setFontWeight('bold');
+  infoSheet.getRange('A8').setFontWeight('bold');
+  infoSheet.getRange('A13').setFontWeight('bold');
+  infoSheet.setColumnWidth(1, 600);
+
+  // Protect the info sheet
+  const protection = infoSheet.protect();
+  protection.setDescription('Period information - read only');
+  protection.setWarningOnly(true);
+
+  // Create data sheets
   createSubmissionStatusSheet(ss);
+  createEntityNoteDataSheet(ss);
 
   // Delete default sheet
   const defaultSheet = ss.getSheetByName('Sheet1');
   if (defaultSheet) ss.deleteSheet(defaultSheet);
 
-  Logger.log(`Period spreadsheet created: ${ssId}`);
+  Logger.log(`Period spreadsheet created successfully: ${ssId}`);
+  Logger.log(`Spreadsheet URL: ${ss.getUrl()}`);
+
   return ssId;
 }
 
