@@ -98,9 +98,18 @@ function doGet(e) {
         if (!user) return redirectToLogin();
         return serveReports(user);
 
+      case 'admin':
+      case 'AdminPanel':
+        if (!user) return redirectToLogin();
+        // Only admins can access admin panel
+        if (user.role !== CONFIG.ROLES.ADMIN) {
+          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>You do not have permission to access this page.</p>');
+        }
+        return serveAdminPanel(user);
+
       default:
         // Handle other pages if they exist
-        if (page === 'AdminPanel' || page === 'ApprovalDashboard' || page === 'BudgetEntry' || page === 'CashFlowEntry') {
+        if (page === 'ApprovalDashboard' || page === 'BudgetEntry' || page === 'CashFlowEntry') {
             if (!user) return redirectToLogin();
             // This is a generic loader for other HTML files
             return HtmlService.createTemplateFromFile(`src/frontend/html/${page}`)
@@ -184,6 +193,14 @@ function serveReports(user) {
   template.user = user;
   return template.evaluate()
     .setTitle('Reports - '.concat(CONFIG.APP_NAME));
+}
+
+function serveAdminPanel(user) {
+  const template = HtmlService.createTemplateFromFile('src/frontend/html/AdminPanel');
+  template.user = user;
+  return template.evaluate()
+    .setTitle('Admin Panel - ' + CONFIG.APP_NAME)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
 function redirectToLogin() {
@@ -326,4 +343,57 @@ function testSystem() {
     version: CONFIG.APP_VERSION,
     timestamp: new Date().toISOString()
   };
+}
+
+/**
+ * Gets dashboard data including current period and submission stats
+ * @returns {Object} Dashboard data
+ */
+function getDashboardData() {
+  try {
+    // Get current active/open period
+    const periodsResult = getAllPeriods();
+    if (!periodsResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get periods'
+      };
+    }
+
+    // Find the most recent open or closed period
+    let currentPeriod = null;
+    for (const period of periodsResult.periods) {
+      if (period.status === CONFIG.PERIOD_STATUS.OPEN) {
+        currentPeriod = period;
+        break;
+      }
+    }
+
+    // If no open period, get the most recent period
+    if (!currentPeriod && periodsResult.periods.length > 0) {
+      // Sort by start date descending
+      const sortedPeriods = periodsResult.periods.sort((a, b) => {
+        return new Date(b.startDate) - new Date(a.startDate);
+      });
+      currentPeriod = sortedPeriods[0];
+    }
+
+    // Get submission statistics for current period
+    let stats = null;
+    if (currentPeriod) {
+      stats = getPeriodSubmissionStats(currentPeriod.periodId);
+    }
+
+    return {
+      success: true,
+      period: currentPeriod,
+      stats: stats
+    };
+  } catch (error) {
+    Logger.log('Error getting dashboard data: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
 }

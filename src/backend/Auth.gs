@@ -210,6 +210,50 @@ function getUserById(userId) {
 }
 
 /**
+ * Gets all users
+ * @returns {Object} Result with list of users
+ */
+function getAllUsers() {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('Users');
+
+    if (!sheet) {
+      return { success: false, error: 'Users sheet not found' };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const users = [];
+
+    // Map data to objects
+    for (let i = 1; i < data.length; i++) {
+      users.push({
+        id: data[i][0],
+        email: data[i][headers.indexOf('Email')],
+        name: data[i][headers.indexOf('Name')],
+        role: data[i][headers.indexOf('Role')],
+        entityId: data[i][headers.indexOf('EntityID')],
+        entityName: data[i][headers.indexOf('EntityName')],
+        status: data[i][headers.indexOf('Status')]
+      });
+    }
+
+    return {
+      success: true,
+      users: users,
+      count: users.length
+    };
+  } catch (error) {
+    Logger.log('Error getting users: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
  * Creates a new user
  * @param {Object} userData - User data
  * @returns {Object} Result

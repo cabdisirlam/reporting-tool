@@ -183,6 +183,64 @@ function isValidDate(dateString) {
 }
 
 /**
+ * Calculates the submission deadline based on quarter and end date
+ * Rules:
+ * - Q1 ends Sept 30, Q2 ends Dec 31, Q3 ends Mar 31
+ * - Annual (Q4) ends June 30
+ * - Quarter deadline: 15 days after end of quarter
+ * - Annual deadline: 2 months (60 days) after end of year
+ *
+ * @param {string} quarter - Quarter (Q1, Q2, Q3, Q4 or ANNUAL)
+ * @param {string} endDate - Period end date in YYYY-MM-DD format
+ * @returns {string} Deadline date in YYYY-MM-DD format
+ */
+function calculateDeadline(quarter, endDate) {
+  const end = new Date(endDate);
+
+  // For annual period (ends June 30), add 2 months (60 days)
+  if (quarter === 'Q4' || quarter === 'ANNUAL' || quarter.toUpperCase().includes('ANNUAL')) {
+    const deadline = new Date(end);
+    deadline.setDate(deadline.getDate() + 60); // 2 months = ~60 days
+    return deadline.toISOString().split('T')[0];
+  }
+
+  // For quarterly periods (Q1, Q2, Q3), add 15 days
+  const deadline = new Date(end);
+  deadline.setDate(deadline.getDate() + 15);
+  return deadline.toISOString().split('T')[0];
+}
+
+/**
+ * Gets the standard end date for a given quarter
+ * @param {string} quarter - Quarter (Q1, Q2, Q3, Q4/ANNUAL)
+ * @param {string} fiscalYear - Fiscal year (e.g., "2024-2025")
+ * @returns {string} End date in YYYY-MM-DD format
+ */
+function getQuarterEndDate(quarter, fiscalYear) {
+  const years = fiscalYear.split('-');
+  const startYear = parseInt(years[0]);
+  const endYear = years.length > 1 ? parseInt(years[1]) : startYear + 1;
+
+  switch(quarter.toUpperCase()) {
+    case 'Q1':
+      // Q1 ends September 30 of start year
+      return `${startYear}-09-30`;
+    case 'Q2':
+      // Q2 ends December 31 of start year
+      return `${startYear}-12-31`;
+    case 'Q3':
+      // Q3 ends March 31 of end year
+      return `${endYear}-03-31`;
+    case 'Q4':
+    case 'ANNUAL':
+      // Annual ends June 30 of end year
+      return `${endYear}-06-30`;
+    default:
+      return null;
+  }
+}
+
+/**
  * Creates a new reporting period
  * @param {Object} periodData - Period data
  * @returns {Object} Creation result
@@ -617,6 +675,77 @@ function getAllPeriods() {
     };
   } catch (error) {
     Logger.log('Error getting periods: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets the period spreadsheet by period ID
+ * @param {string} periodId - Period ID
+ * @returns {Spreadsheet} Period spreadsheet
+ */
+function getPeriodSpreadsheet(periodId) {
+  try {
+    const ssId = PropertiesService.getScriptProperties().getProperty('PERIOD_' + periodId);
+    if (!ssId) return null;
+    return SpreadsheetApp.openById(ssId);
+  } catch (error) {
+    Logger.log('Error getting period spreadsheet: ' + error.toString());
+    return null;
+  }
+}
+
+/**
+ * Gets submission status for an entity in a period
+ * @param {string} entityId - Entity ID
+ * @param {string} periodId - Period ID
+ * @returns {Object} Submission status
+ */
+function getSubmissionStatus(entityId, periodId) {
+  try {
+    const periodSs = getPeriodSpreadsheet(periodId);
+    if (!periodSs) {
+      return {
+        success: false,
+        error: 'Period spreadsheet not found'
+      };
+    }
+
+    const sheet = periodSs.getSheetByName('SubmissionStatus');
+    if (!sheet) {
+      return {
+        success: true,
+        status: CONFIG.STATUS.DRAFT
+      };
+    }
+
+    const data = sheet.getDataRange().getValues();
+
+    // Find entity submission status
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === entityId) {
+        return {
+          success: true,
+          status: data[i][1] || CONFIG.STATUS.DRAFT,
+          submittedDate: data[i][2],
+          submittedBy: data[i][3],
+          approvedDate: data[i][4],
+          approvedBy: data[i][5],
+          comments: data[i][6]
+        };
+      }
+    }
+
+    // Entity not found in submission status - default to DRAFT
+    return {
+      success: true,
+      status: CONFIG.STATUS.DRAFT
+    };
+  } catch (error) {
+    Logger.log('Error getting submission status: ' + error.toString());
     return {
       success: false,
       error: error.toString()

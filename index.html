@@ -81,17 +81,16 @@
                 <div class="info-grid">
                     <div class="info-card">
                         <div class="info-label">Current Period</div>
-                        <div class="info-value">Q2 2024-25</div>
+                        <div class="info-value" id="currentPeriod">Loading...</div>
                     </div>
                     <div class="info-card">
                         <div class="info-label">Submission Deadline</div>
-                        <div class="info-value">December 31, 2024</div>
+                        <div class="info-value" id="submissionDeadline">Loading...</div>
                     </div>
                     <div class="info-card">
                         <div class="info-label">Entities Submitted</div>
                         <div class="info-value">
-                            <span class="submission-count">680/750</span>
-                            <span class="submission-percent">(91%)</span>
+                            <span class="submission-count" id="entitiesSubmitted">Loading...</span>
                         </div>
                     </div>
                 </div>
@@ -103,7 +102,7 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <p class="footer-text">&copy; 2024 National Treasury of Kenya</p>
+                <p class="footer-text" id="copyrightText">&copy; <span id="currentYear"></span> National Treasury of Kenya</p>
                 <p class="footer-version">Version 1.0</p>
             </div>
         </div>
@@ -273,6 +272,59 @@
                 hidePasswordChangeModal();
             }
         });
+
+        // Set dynamic copyright year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Load dynamic dashboard data on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+        });
+
+        function loadDashboardData() {
+            // Load current period and submission stats
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success && result.period) {
+                        // Update current period
+                        document.getElementById('currentPeriod').textContent = result.period.periodName || 'N/A';
+
+                        // Update submission deadline
+                        if (result.period.deadlineDate) {
+                            const deadline = new Date(result.period.deadlineDate);
+                            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                            document.getElementById('submissionDeadline').textContent =
+                                deadline.toLocaleDateString('en-US', options);
+                        } else {
+                            document.getElementById('submissionDeadline').textContent = 'N/A';
+                        }
+
+                        // Update entities submitted
+                        if (result.stats) {
+                            const percentage = result.stats.total > 0
+                                ? Math.round((result.stats.submitted / result.stats.total) * 100)
+                                : 0;
+                            document.getElementById('entitiesSubmitted').innerHTML =
+                                `<span class="submission-count">${result.stats.submitted}/${result.stats.total}</span> ` +
+                                `<span class="submission-percent">(${percentage}%)</span>`;
+                        } else {
+                            document.getElementById('entitiesSubmitted').textContent = 'N/A';
+                        }
+                    } else {
+                        // No active period found
+                        document.getElementById('currentPeriod').textContent = 'No active period';
+                        document.getElementById('submissionDeadline').textContent = 'N/A';
+                        document.getElementById('entitiesSubmitted').textContent = '0/0 (0%)';
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Error loading dashboard data:', error);
+                    document.getElementById('currentPeriod').textContent = 'Error loading';
+                    document.getElementById('submissionDeadline').textContent = 'Error loading';
+                    document.getElementById('entitiesSubmitted').textContent = 'Error loading';
+                })
+                .getDashboardData();
+        }
     </script>
 </body>
 </html>
