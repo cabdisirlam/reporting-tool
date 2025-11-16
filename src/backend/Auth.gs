@@ -14,19 +14,27 @@
 
 /**
  * Handles user login
- * @param {Object} credentials - Email and password
+ * @param {Object} credentials - Email and PIN
  * @returns {Object} Login result with user info or error
  */
 function handleLogin(credentials) {
   try {
     const email = credentials.email;
-    const password = credentials.password;
+    const pin = credentials.pin;
 
     // Validate input
-    if (!email || !password) {
+    if (!email || !pin) {
       return {
         success: false,
-        error: 'Email and password are required'
+        error: 'Email and PIN are required'
+      };
+    }
+
+    // Validate PIN format (exactly 6 digits)
+    if (!/^\d{6}$/.test(pin)) {
+      return {
+        success: false,
+        error: 'PIN must be exactly 6 digits'
       };
     }
 
@@ -48,23 +56,23 @@ function handleLogin(credentials) {
       };
     }
 
-    // Verify password (in production, use proper hashing)
-    if (!verifyPassword(password, user.passwordHash, user.passwordSalt)) {
+    // Verify PIN
+    if (!verifyPIN(pin, user.pinHash, user.pinSalt)) {
       // Log failed attempt
       logLoginAttempt(email, false);
 
       return {
         success: false,
-        error: 'Invalid password'
+        error: 'Invalid PIN'
       };
     }
 
-    // Check if user needs to change password
-    const requirePasswordChange = isTemporaryPassword(password, user.passwordHash, user.passwordSalt);
+    // Check if user needs to change PIN
+    const requirePINChange = isTemporaryPIN(pin, user.pinHash, user.pinSalt);
 
-    // Create session only if password change is not required
+    // Create session only if PIN change is not required
     let session = null;
-    if (!requirePasswordChange) {
+    if (!requirePINChange) {
       session = createUserSession(user);
     }
 
@@ -83,7 +91,7 @@ function handleLogin(credentials) {
       },
       session: session,
       redirectTo: getDefaultPageForRole(user.role),
-      requirePasswordChange: requirePasswordChange
+      requirePINChange: requirePINChange
     };
 
   } catch (error) {
@@ -151,7 +159,7 @@ function getUserByEmail(email) {
     // Find user row
     for (let i = 1; i < data.length; i++) {
       if (data[i][emailCol] === email) {
-        const saltIndex = headers.indexOf('PasswordSalt');
+        const saltIndex = headers.indexOf('PINSalt');
         return {
           id: data[i][0],
           email: data[i][emailCol],
@@ -160,8 +168,8 @@ function getUserByEmail(email) {
           entityId: data[i][headers.indexOf('EntityID')],
           entityName: data[i][headers.indexOf('EntityName')],
           status: data[i][headers.indexOf('Status')],
-          passwordHash: data[i][headers.indexOf('PasswordHash')],
-          passwordSalt: saltIndex >= 0 ? data[i][saltIndex] : null
+          pinHash: data[i][headers.indexOf('PINHash')],
+          pinSalt: saltIndex >= 0 ? data[i][saltIndex] : null
         };
       }
     }
@@ -266,10 +274,10 @@ function createUser(userData) {
     // Generate user ID
     const userId = 'USR_' + Utilities.getUuid().substring(0, 8).toUpperCase();
 
-    // Hash password with unique salt
-    const passwordData = hashPassword(userData.password || 'changeme');
+    // Hash PIN with unique salt (default PIN: 123456)
+    const pinData = hashPIN(userData.pin || '123456');
 
-    // Add user (includes PasswordSalt column)
+    // Add user (includes PINSalt column)
     sheet.appendRow([
       userId,
       userData.email,
@@ -278,8 +286,8 @@ function createUser(userData) {
       userData.entityId || '',
       userData.entityName || '',
       'ACTIVE',
-      passwordData.hash,
-      passwordData.salt,
+      pinData.hash,
+      pinData.salt,
       new Date(),
       Session.getActiveUser().getEmail()
     ]);
@@ -422,11 +430,11 @@ function validateSession() {
 }
 
 // ============================================================================
-// PASSWORD MANAGEMENT
+// PIN MANAGEMENT
 // ============================================================================
 
 /**
- * Generates a unique random salt for password hashing
+ * Generates a unique random salt for PIN hashing
  * @returns {string} Random salt
  */
 function generateSalt() {
@@ -436,12 +444,12 @@ function generateSalt() {
 }
 
 /**
- * Hashes a password with a unique salt
- * @param {string} password - Plain text password
+ * Hashes a PIN with a unique salt
+ * @param {string} pin - Plain text PIN (6 digits)
  * @param {string} salt - Unique salt (if not provided, generates new one)
  * @returns {Object} Object containing hash and salt
  */
-function hashPassword(password, salt) {
+function hashPIN(pin, salt) {
   // Generate new salt if not provided
   if (!salt) {
     salt = generateSalt();
@@ -449,7 +457,7 @@ function hashPassword(password, salt) {
 
   const hash = Utilities.computeDigest(
     Utilities.DigestAlgorithm.SHA_256,
-    password + salt
+    pin + salt
   ).map(function(byte) {
     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
   }).join('');
@@ -462,45 +470,39 @@ function hashPassword(password, salt) {
 }
 
 /**
- * Verifies a password against a stored hash
- * @param {string} password - Plain text password
+ * Verifies a PIN against a stored hash
+ * @param {string} pin - Plain text PIN
  * @param {string} storedHash - Stored hash
  * @param {string} salt - User's unique salt
- * @returns {boolean} True if password matches
+ * @returns {boolean} True if PIN matches
  */
-function verifyPassword(password, storedHash, salt) {
+function verifyPIN(pin, storedHash, salt) {
   if (!salt) {
     // Backward compatibility: if no salt provided, use old static salt
     const legacySalt = 'IPSAS_SALT_2024';
     const legacyHash = Utilities.computeDigest(
       Utilities.DigestAlgorithm.SHA_256,
-      password + legacySalt
+      pin + legacySalt
     ).map(function(byte) {
       return ('0' + (byte & 0xFF).toString(16)).slice(-2);
     }).join('');
     return legacyHash === storedHash;
   }
 
-  const result = hashPassword(password, salt);
+  const result = hashPIN(pin, salt);
   return result.hash === storedHash;
 }
 
 /**
- * Checks if the current password is a temporary password that needs to be changed
- * @param {string} password - Plain text password
+ * Checks if the current PIN is a temporary PIN that needs to be changed
+ * @param {string} pin - Plain text PIN
  * @param {string} storedHash - Stored hash
  * @param {string} salt - User's unique salt
- * @returns {boolean} True if password is temporary
+ * @returns {boolean} True if PIN is temporary
  */
-function isTemporaryPassword(password, storedHash, salt) {
-  // Check if password is the default "changeme"
-  if (password === 'changeme') {
-    return true;
-  }
-
-  // Check if password is a UUID-style temporary password (8 characters, alphanumeric)
-  // This catches passwords generated by resetPassword function
-  if (password.length === 8 && /^[a-zA-Z0-9]{8}$/.test(password)) {
+function isTemporaryPIN(pin, storedHash, salt) {
+  // Check if PIN is the default "123456"
+  if (pin === '123456') {
     return true;
   }
 
@@ -508,27 +510,27 @@ function isTemporaryPassword(password, storedHash, salt) {
 }
 
 /**
- * Changes user password
- * @param {Object} data - Contains email, currentPassword, and newPassword
+ * Changes user PIN
+ * @param {Object} data - Contains email, currentPIN, and newPIN
  * @returns {Object} Result
  */
-function changePassword(data) {
+function changePIN(data) {
   try {
-    const { email, currentPassword, newPassword } = data;
+    const { email, currentPIN, newPIN } = data;
 
     // Validate input
-    if (!email || !currentPassword || !newPassword) {
+    if (!email || !currentPIN || !newPIN) {
       return {
         success: false,
-        error: 'Email, current password, and new password are required'
+        error: 'Email, current PIN, and new PIN are required'
       };
     }
 
-    // Validate new password length
-    if (newPassword.length < 8) {
+    // Validate new PIN format (exactly 6 digits)
+    if (!/^\d{6}$/.test(newPIN)) {
       return {
         success: false,
-        error: 'New password must be at least 8 characters long'
+        error: 'New PIN must be exactly 6 digits'
       };
     }
 
@@ -541,95 +543,95 @@ function changePassword(data) {
       };
     }
 
-    // Verify current password
-    if (!verifyPassword(currentPassword, user.passwordHash, user.passwordSalt)) {
+    // Verify current PIN
+    if (!verifyPIN(currentPIN, user.pinHash, user.pinSalt)) {
       return {
         success: false,
-        error: 'Current password is incorrect'
+        error: 'Current PIN is incorrect'
       };
     }
 
-    // Hash new password with new salt
-    const passwordData = hashPassword(newPassword);
+    // Hash new PIN with new salt
+    const pinData = hashPIN(newPIN);
 
-    // Update password and salt in database
+    // Update PIN and salt in database
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('Users');
     const data_range = sheet.getDataRange().getValues();
     const headers = data_range[0];
-    const hashCol = headers.indexOf('PasswordHash') + 1;
-    const saltCol = headers.indexOf('PasswordSalt') + 1;
+    const hashCol = headers.indexOf('PINHash') + 1;
+    const saltCol = headers.indexOf('PINSalt') + 1;
     const emailCol = headers.indexOf('Email') + 1;
 
     for (let i = 1; i < data_range.length; i++) {
       if (data_range[i][emailCol - 1] === email) {
-        sheet.getRange(i + 1, hashCol).setValue(passwordData.hash);
+        sheet.getRange(i + 1, hashCol).setValue(pinData.hash);
         if (saltCol > 0) {
-          sheet.getRange(i + 1, saltCol).setValue(passwordData.salt);
+          sheet.getRange(i + 1, saltCol).setValue(pinData.salt);
         }
         break;
       }
     }
 
     // Log activity
-    logActivity(email, 'PASSWORD_CHANGE', 'User changed password');
+    logActivity(email, 'PIN_CHANGE', 'User changed PIN');
 
     return {
       success: true,
-      message: 'Password changed successfully'
+      message: 'PIN changed successfully'
     };
   } catch (error) {
-    Logger.log('Error changing password: ' + error.toString());
+    Logger.log('Error changing PIN: ' + error.toString());
     return {
       success: false,
-      error: 'An error occurred while changing password: ' + error.toString()
+      error: 'An error occurred while changing PIN: ' + error.toString()
     };
   }
 }
 
 /**
- * Resets user password
+ * Resets user PIN
  * @param {string} email - User email
  * @returns {Object} Result
  */
-function resetPassword(email) {
+function resetPIN(email) {
   try {
     const user = getUserByEmail(email);
     if (!user) {
       return { success: false, error: 'User not found' };
     }
 
-    // Generate temporary password
-    const tempPassword = Utilities.getUuid().substring(0, 8);
-    const passwordData = hashPassword(tempPassword);
+    // Generate temporary PIN (6 random digits)
+    const tempPIN = Math.floor(100000 + Math.random() * 900000).toString();
+    const pinData = hashPIN(tempPIN);
 
-    // Update password and salt
+    // Update PIN and salt
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('Users');
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
-    const hashCol = headers.indexOf('PasswordHash') + 1;
-    const saltCol = headers.indexOf('PasswordSalt') + 1;
+    const hashCol = headers.indexOf('PINHash') + 1;
+    const saltCol = headers.indexOf('PINSalt') + 1;
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][1] === email) { // Email column
-        sheet.getRange(i + 1, hashCol).setValue(passwordData.hash);
+        sheet.getRange(i + 1, hashCol).setValue(pinData.hash);
         if (saltCol > 0) {
-          sheet.getRange(i + 1, saltCol).setValue(passwordData.salt);
+          sheet.getRange(i + 1, saltCol).setValue(pinData.salt);
         }
         break;
       }
     }
 
-    // Send email with new password
-    sendPasswordResetEmail(email, user.name, tempPassword);
+    // Send email with new PIN
+    sendPINResetEmail(email, user.name, tempPIN);
 
     return {
       success: true,
-      message: 'Password reset email sent'
+      message: 'PIN reset email sent'
     };
   } catch (error) {
-    Logger.log('Error resetting password: ' + error.toString());
+    Logger.log('Error resetting PIN: ' + error.toString());
     return {
       success: false,
       error: error.toString()
@@ -679,8 +681,8 @@ function sendWelcomeEmail(email, name) {
   const body = `Dear ${name},\n\n` +
     `Your account has been created in the IPSAS Financial Consolidation System.\n\n` +
     `Email: ${email}\n` +
-    `Temporary Password: changeme\n\n` +
-    `Please login and change your password immediately.\n\n` +
+    `Temporary PIN: 123456\n\n` +
+    `Please login and change your PIN immediately.\n\n` +
     `System URL: ${ScriptApp.getService().getUrl()}\n\n` +
     `Best regards,\n` +
     `IPSAS System Administrator`;
@@ -689,17 +691,17 @@ function sendWelcomeEmail(email, name) {
 }
 
 /**
- * Sends password reset email
+ * Sends PIN reset email
  * @param {string} email - User email
  * @param {string} name - User name
- * @param {string} tempPassword - Temporary password
+ * @param {string} tempPIN - Temporary PIN
  */
-function sendPasswordResetEmail(email, name, tempPassword) {
-  const subject = 'Password Reset - IPSAS System';
+function sendPINResetEmail(email, name, tempPIN) {
+  const subject = 'PIN Reset - IPSAS System';
   const body = `Dear ${name},\n\n` +
-    `Your password has been reset.\n\n` +
-    `Temporary Password: ${tempPassword}\n\n` +
-    `Please login and change your password immediately.\n\n` +
+    `Your PIN has been reset.\n\n` +
+    `Temporary PIN: ${tempPIN}\n\n` +
+    `Please login and change your PIN immediately.\n\n` +
     `System URL: ${ScriptApp.getService().getUrl()}\n\n` +
     `Best regards,\n` +
     `IPSAS System Administrator`;
