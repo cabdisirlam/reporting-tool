@@ -109,6 +109,20 @@ src/frontend/
 
 ## 🚀 Installation & Setup
 
+### 📖 Complete Installation Guide
+
+**For detailed step-by-step installation instructions, see [INSTALLATION_GUIDE.md](./INSTALLATION_GUIDE.md)**
+
+The comprehensive guide covers:
+- ✅ Two installation methods (Clasp CLI and Manual)
+- ✅ Initial system configuration
+- ✅ Database structure setup
+- ✅ User account creation
+- ✅ Testing procedures
+- ✅ Troubleshooting common issues
+
+### Quick Start (Using Clasp CLI)
+
 ### Prerequisites
 - Google Account with Google Apps Script access
 - Node.js 14+ (for clasp CLI)
@@ -116,14 +130,13 @@ src/frontend/
 
 ### Step 1: Clone Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/cabdisirlam/reporting-tool.git
 cd reporting-tool
 ```
 
 ### Step 2: Install Dependencies
 ```bash
 npm install -g @google/clasp
-npm install
 ```
 
 ### Step 3: Authenticate with Google
@@ -152,8 +165,8 @@ Or deploy via the Apps Script editor:
 1. Open the project: `clasp open`
 2. Click **Deploy** > **New deployment**
 3. Select type: **Web app**
-4. Execute as: **User accessing the web app**
-5. Who has access: **Anyone**
+4. Execute as: **Me**
+5. Who has access: **Anyone** (or Anyone with Google account)
 6. Click **Deploy**
 
 ### Step 7: Initial System Setup
