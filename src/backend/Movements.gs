@@ -249,7 +249,7 @@ function saveInventoryMovement(params) {
     const saveResult = saveNoteData({
       entityId: entityId,
       periodId: periodId,
-      noteId: 'NOTE_38',
+      noteId: 'NOTE_34',
       noteData: calculated,
       userId: Session.getActiveUser().getEmail()
     });
