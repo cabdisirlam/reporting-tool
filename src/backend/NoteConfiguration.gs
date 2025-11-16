@@ -135,10 +135,11 @@ function createNoteTemplatesSheet(ss) {
     ['NOTE_50', '50', 'Borrowings', 'Position', 'SFP', false, true, true],
 
     // Cash Flow Statement
-    ['NOTE_CF', 'CF', 'Cash Flow Statement', 'CashFlow', 'CF', false, true, true],
+    ['NOTE_54', '54', 'Cash Flow Operating Activities Reconciliation', 'CashFlow', 'SCF', false, true, true],
 
-    // Budget
-    ['NOTE_BUD', 'BUD', 'Budget Comparison', 'Budget', 'BUD', false, true, true]
+    // Budget and Other Statements
+    ['NOTE_BUDGET', 'BUDGET', 'Statement of Comparison of Budget and Actual', 'Budget', 'BUDGET', false, true, true],
+    ['NOTE_CINA', 'CINA', 'Statement of Changes in Net Assets', 'NetAssets', 'CINA', false, true, true]
   ];
 
   for (let i = 0; i < sampleNotes.length; i++) {
@@ -175,8 +176,61 @@ function createNoteLineSheet(ss) {
     ['LINE_30_TOTAL', 'NOTE_30', '30.T', 'Total Cash and Cash Equivalents', 'TOTAL', '', 0, 'CURRENCY', true, 'SUM(30.1,30.2)']
   ];
 
-  for (let i = 0; i < cashLines.length; i++) {
-    sheet.appendRow(cashLines[i]);
+  // Note 54 - Cash Flow Operating Activities
+  const cashFlowLines = [
+    // Operating Activities
+    ['LINE_54_OA', 'NOTE_54', '54.A', 'Operating Activities', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_54_OA_01', 'NOTE_54', '54.A.1', 'Transfers from other governments', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_02', 'NOTE_54', '54.A.2', 'Rendering of services', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_03', 'NOTE_54', '54.A.3', 'Other Receipts', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_04', 'NOTE_54', '54.A.4', 'Use of goods and services', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_05', 'NOTE_54', '54.A.5', 'Employee costs', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_OA_06', 'NOTE_54', '54.A.6', 'Other Payments', 'DATA', 'LINE_54_OA', 1, 'CURRENCY', false, ''],
+
+    // Investing Activities
+    ['LINE_54_IA', 'NOTE_54', '54.B', 'Investing Activities', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_54_IA_01', 'NOTE_54', '54.B.1', 'Purchase of PPE', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_IA_02', 'NOTE_54', '54.B.2', 'Proceeds from sale of PPE', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_IA_03', 'NOTE_54', '54.B.3', 'Mortgage/Car Loan Receipts', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_IA_04', 'NOTE_54', '54.B.4', 'Mortgage/Car Loan Payments', 'DATA', 'LINE_54_IA', 1, 'CURRENCY', false, ''],
+
+    // Financing Activities
+    ['LINE_54_FA', 'NOTE_54', '54.C', 'Financing Activities', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_54_FA_01', 'NOTE_54', '54.C.1', 'Proceeds from borrowings', 'DATA', 'LINE_54_FA', 1, 'CURRENCY', false, ''],
+    ['LINE_54_FA_02', 'NOTE_54', '54.C.2', 'Repayment of borrowings', 'DATA', 'LINE_54_FA', 1, 'CURRENCY', false, '']
+  ];
+
+  // Note BUDGET - Budget vs Actual
+  const budgetLines = [
+    ['LINE_BUD_H1', 'NOTE_BUDGET', 'BUD.H1', 'Receipts', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_BUD_01', 'NOTE_BUDGET', 'BUD.1', 'Transfers from Other Governments', 'DATA', 'LINE_BUD_H1', 1, 'CURRENCY', false, ''],
+    ['LINE_BUD_H2', 'NOTE_BUDGET', 'BUD.H2', 'Payments', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_BUD_02', 'NOTE_BUDGET', 'BUD.2', 'Employee costs', 'DATA', 'LINE_BUD_H2', 1, 'CURRENCY', false, '']
+  ];
+
+  // Note CINA - Changes in Net Assets
+  const cinaLines = [
+    // Current Year
+    ['LINE_CINA_CY', 'NOTE_CINA', 'CINA.CY', 'Changes in Net Assets (Current Year)', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_CINA_CY_01', 'NOTE_CINA', 'CINA.CY.1', 'As at 1 July, (Current FY)', 'DATA', 'LINE_CINA_CY', 1, 'CURRENCY', true, ''],
+    ['LINE_CINA_CY_02', 'NOTE_CINA', 'CINA.CY.2', 'Surplus/ (deficit) for the year', 'DATA', 'LINE_CINA_CY', 1, 'CURRENCY', false, ''],
+    ['LINE_CINA_CY_03', 'NOTE_CINA', 'CINA.CY.3', 'Revaluation gain', 'DATA', 'LINE_CINA_CY', 1, 'CURRENCY', false, ''],
+    ['LINE_CINA_CY_04', 'NOTE_CINA', 'CINA.CY.4', 'Capital/development grants received', 'DATA', 'LINE_CINA_CY', 1, 'CURRENCY', false, ''],
+    ['LINE_CINA_CY_05', 'NOTE_CINA', 'CINA.CY.5', 'As at 30 June, (Current FY)', 'SUBTOTAL', 'LINE_CINA_CY', 1, 'CURRENCY', true, ''],
+
+    // Prior Year
+    ['LINE_CINA_PY', 'NOTE_CINA', 'CINA.PY', 'Changes in Net Assets (Prior Year)', 'HEADER', '', 0, 'TEXT', false, ''],
+    ['LINE_CINA_PY_01', 'NOTE_CINA', 'CINA.PY.1', 'As at 1 July, (Previous FY)', 'DATA', 'LINE_CINA_PY', 1, 'CURRENCY', true, ''],
+    ['LINE_CINA_PY_02', 'NOTE_CINA', 'CINA.PY.2', 'Surplus/ (deficit) for the year', 'DATA', 'LINE_CINA_PY', 1, 'CURRENCY', false, ''],
+    ['LINE_CINA_PY_03', 'NOTE_CINA', 'CINA.PY.3', 'Revaluation gain', 'DATA', 'LINE_CINA_PY', 1, 'CURRENCY', false, ''],
+    ['LINE_CINA_PY_04', 'NOTE_CINA', 'CINA.PY.4', 'Capital/development grants received', 'DATA', 'LINE_CINA_PY', 1, 'CURRENCY', false, ''],
+    ['LINE_CINA_PY_05', 'NOTE_CINA', 'CINA.PY.5', 'As at 30 June, (Previous FY)', 'SUBTOTAL', 'LINE_CINA_PY', 1, 'CURRENCY', true, '']
+  ];
+
+  // Append all lines
+  const allLines = [...cashLines, ...cashFlowLines, ...budgetLines, ...cinaLines];
+  for (let i = 0; i < allLines.length; i++) {
+    sheet.appendRow(allLines[i]);
   }
 
   sheet.autoResizeColumns(1, headers.length);
