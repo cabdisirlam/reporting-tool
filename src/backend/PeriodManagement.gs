@@ -13,6 +13,176 @@
 // ============================================================================
 
 /**
+ * Shows dialog to create a new period
+ * Prompts admin for all required period information
+ */
+function showCreatePeriodDialog() {
+  const ui = SpreadsheetApp.getUi();
+
+  try {
+    // Step 1: Get Period Name
+    const periodNameResponse = ui.prompt(
+      'Create New Period - Step 1 of 6',
+      'Enter the Period Name (e.g., "Q1 2023-2024"):',
+      ui.ButtonSet.OK_CANCEL
+    );
+
+    if (periodNameResponse.getSelectedButton() !== ui.Button.OK) {
+      ui.alert('Period creation cancelled.');
+      return;
+    }
+    const periodName = periodNameResponse.getResponseText().trim();
+    if (!periodName) {
+      ui.alert('Error', 'Period Name is required.', ui.ButtonSet.OK);
+      return;
+    }
+
+    // Step 2: Get Fiscal Year
+    const fiscalYearResponse = ui.prompt(
+      'Create New Period - Step 2 of 6',
+      'Enter the Fiscal Year (e.g., "2023-2024"):',
+      ui.ButtonSet.OK_CANCEL
+    );
+
+    if (fiscalYearResponse.getSelectedButton() !== ui.Button.OK) {
+      ui.alert('Period creation cancelled.');
+      return;
+    }
+    const fiscalYear = fiscalYearResponse.getResponseText().trim();
+    if (!fiscalYear) {
+      ui.alert('Error', 'Fiscal Year is required.', ui.ButtonSet.OK);
+      return;
+    }
+
+    // Step 3: Get Quarter
+    const quarterResponse = ui.prompt(
+      'Create New Period - Step 3 of 6',
+      'Enter the Quarter (e.g., "Q1", "Q2", "Q3", or "Q4"):',
+      ui.ButtonSet.OK_CANCEL
+    );
+
+    if (quarterResponse.getSelectedButton() !== ui.Button.OK) {
+      ui.alert('Period creation cancelled.');
+      return;
+    }
+    const quarter = quarterResponse.getResponseText().trim().toUpperCase();
+    if (!quarter || !['Q1', 'Q2', 'Q3', 'Q4'].includes(quarter)) {
+      ui.alert('Error', 'Quarter must be Q1, Q2, Q3, or Q4.', ui.ButtonSet.OK);
+      return;
+    }
+
+    // Step 4: Get Start Date
+    const startDateResponse = ui.prompt(
+      'Create New Period - Step 4 of 6',
+      'Enter the Start Date (format: YYYY-MM-DD, e.g., "2023-04-01"):',
+      ui.ButtonSet.OK_CANCEL
+    );
+
+    if (startDateResponse.getSelectedButton() !== ui.Button.OK) {
+      ui.alert('Period creation cancelled.');
+      return;
+    }
+    const startDate = startDateResponse.getResponseText().trim();
+    if (!startDate || !isValidDate(startDate)) {
+      ui.alert('Error', 'Invalid date format. Please use YYYY-MM-DD.', ui.ButtonSet.OK);
+      return;
+    }
+
+    // Step 5: Get End Date
+    const endDateResponse = ui.prompt(
+      'Create New Period - Step 5 of 6',
+      'Enter the End Date (format: YYYY-MM-DD, e.g., "2023-06-30"):',
+      ui.ButtonSet.OK_CANCEL
+    );
+
+    if (endDateResponse.getSelectedButton() !== ui.Button.OK) {
+      ui.alert('Period creation cancelled.');
+      return;
+    }
+    const endDate = endDateResponse.getResponseText().trim();
+    if (!endDate || !isValidDate(endDate)) {
+      ui.alert('Error', 'Invalid date format. Please use YYYY-MM-DD.', ui.ButtonSet.OK);
+      return;
+    }
+
+    // Step 6: Get Deadline Date
+    const deadlineDateResponse = ui.prompt(
+      'Create New Period - Step 6 of 6',
+      'Enter the Submission Deadline Date (format: YYYY-MM-DD, e.g., "2023-07-15"):',
+      ui.ButtonSet.OK_CANCEL
+    );
+
+    if (deadlineDateResponse.getSelectedButton() !== ui.Button.OK) {
+      ui.alert('Period creation cancelled.');
+      return;
+    }
+    const deadlineDate = deadlineDateResponse.getResponseText().trim();
+    if (!deadlineDate || !isValidDate(deadlineDate)) {
+      ui.alert('Error', 'Invalid date format. Please use YYYY-MM-DD.', ui.ButtonSet.OK);
+      return;
+    }
+
+    // Assemble periodData object
+    const periodData = {
+      periodName: periodName,
+      fiscalYear: fiscalYear,
+      quarter: quarter,
+      startDate: startDate,
+      endDate: endDate,
+      deadlineDate: deadlineDate
+    };
+
+    // Call the existing createPeriod function
+    const result = createPeriod(periodData);
+
+    // Show success or error alert
+    if (result.success) {
+      ui.alert(
+        'Success',
+        `Period "${periodName}" has been created successfully!\n\nPeriod ID: ${result.periodId}`,
+        ui.ButtonSet.OK
+      );
+    } else {
+      ui.alert(
+        'Error',
+        `Failed to create period: ${result.error}`,
+        ui.ButtonSet.OK
+      );
+    }
+
+  } catch (error) {
+    ui.alert(
+      'Error',
+      `An unexpected error occurred: ${error.toString()}`,
+      ui.ButtonSet.OK
+    );
+  }
+}
+
+/**
+ * Validates a date string in YYYY-MM-DD format
+ * @param {string} dateString - Date string to validate
+ * @returns {boolean} True if valid
+ */
+function isValidDate(dateString) {
+  // Check format YYYY-MM-DD
+  const regex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!regex.test(dateString)) {
+    return false;
+  }
+
+  // Check if it's a valid date
+  const date = new Date(dateString);
+  const timestamp = date.getTime();
+
+  if (typeof timestamp !== 'number' || Number.isNaN(timestamp)) {
+    return false;
+  }
+
+  return dateString === date.toISOString().split('T')[0];
+}
+
+/**
  * Creates a new reporting period
  * @param {Object} periodData - Period data
  * @returns {Object} Creation result
