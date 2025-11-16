@@ -16,35 +16,24 @@
 const CONFIG = {
   APP_NAME: 'IPSAS Financial Consolidation System',
   APP_VERSION: '1.0.0',
-
-  // Spreadsheet IDs (Configure these after creating sheets)
-  // WARNING: MASTER_CONFIG_ID may be null before system setup
   MASTER_CONFIG_ID: PropertiesService.getScriptProperties().getProperty('MASTER_CONFIG_ID'),
-
-  // User roles
   ROLES: {
     ADMIN: 'ADMIN',
     APPROVER: 'APPROVER',
     DATA_ENTRY: 'DATA_ENTRY',
     VIEWER: 'VIEWER'
   },
-
-  // Submission statuses
   STATUS: {
     DRAFT: 'DRAFT',
     SUBMITTED: 'SUBMITTED',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED'
   },
-
-  // Period statuses
   PERIOD_STATUS: {
     OPEN: 'OPEN',
     CLOSED: 'CLOSED',
     LOCKED: 'LOCKED'
   },
-
-  // User roles (alias for backward compatibility)
   USER_ROLES: {
     ADMIN: 'ADMIN',
     APPROVER: 'APPROVER',
@@ -52,16 +41,10 @@ const CONFIG = {
     VIEWER: 'VIEWER'
   }
 };
-
 // ============================================================================
 // CONFIGURATION HELPERS
 // ============================================================================
 
-/**
- * Gets the Master Config ID with null check
- * @returns {string} Master Config ID
- * @throws {Error} If system is not configured
- */
 function getMasterConfigId() {
   const id = PropertiesService.getScriptProperties().getProperty('MASTER_CONFIG_ID');
   if (!id) {
@@ -70,10 +53,6 @@ function getMasterConfigId() {
   return id;
 }
 
-/**
- * Checks if the system is configured
- * @returns {boolean} True if configured
- */
 function isSystemConfigured() {
   const id = PropertiesService.getScriptProperties().getProperty('MASTER_CONFIG_ID');
   return !!id;
@@ -86,6 +65,8 @@ function isSystemConfigured() {
 /**
  * Serves the main web application
  * GET request handler
+ *
+ * CORRECTED FILE PATHS
  */
 function doGet(e) {
   try {
@@ -95,12 +76,14 @@ function doGet(e) {
     // Route to appropriate page
     switch(page) {
       case 'index':
+        // This is the main login page
         return HtmlService.createHtmlOutputFromFile('index')
           .setTitle(CONFIG.APP_NAME)
           .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png');
 
       case 'login':
-        return HtmlService.createHtmlOutputFromFile('Login')
+        // This is the alternate login page path
+        return HtmlService.createHtmlOutputFromFile('src/frontend/html/Login')
           .setTitle('Login - ' + CONFIG.APP_NAME);
 
       case 'dashboard':
@@ -116,10 +99,19 @@ function doGet(e) {
         return serveReports(user);
 
       default:
-        return HtmlService.createHtmlOutput('<h1>404 - Page Not Found</h1>');
+        // Handle other pages if they exist
+        if (page === 'AdminPanel' || page === 'ApprovalDashboard' || page === 'BudgetEntry' || page === 'CashFlowEntry') {
+            if (!user) return redirectToLogin();
+            // This is a generic loader for other HTML files
+            return HtmlService.createTemplateFromFile(`src/frontend/html/${page}`)
+                .evaluate()
+                .setTitle(page + ' - ' + CONFIG.APP_NAME)
+                .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+        }
+        return HtmlService.createHtmlOutput('<h1>404 - Page Not Found</h1><p>The page "' + page + '" does not exist.</p>');
     }
   } catch (error) {
-    Logger.log('Error in doGet: ' + error.toString());
+    Logger.log('Error in doGet: ' + error.toString() + ' for page: ' + (e.parameter.page || 'index'));
     return HtmlService.createHtmlOutput('<h1>Error loading page</h1><p>' + error.toString() + '</p>');
   }
 }
@@ -167,14 +159,11 @@ function doPost(e) {
 }
 
 // ============================================================================
-// PAGE SERVING FUNCTIONS
+// PAGE SERVING FUNCTIONS (WITH CORRECTED PATHS)
 // ============================================================================
 
-/**
- * Serves the dashboard page based on user role
- */
 function serveDashboard(user) {
-  const template = HtmlService.createTemplateFromFile('Dashboard');
+  const template = HtmlService.createTemplateFromFile('src/frontend/html/Dashboard');
   template.user = user;
   template.role = user.role;
 
@@ -183,33 +172,23 @@ function serveDashboard(user) {
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-/**
- * Serves the data entry page
- */
 function serveDataEntry(user) {
-  const template = HtmlService.createTemplateFromFile('DataEntry');
+  const template = HtmlService.createTemplateFromFile('src/frontend/html/DataEntry');
   template.user = user;
-
   return template.evaluate()
     .setTitle('Data Entry - ' + CONFIG.APP_NAME);
 }
 
-/**
- * Serves the reports page
- */
 function serveReports(user) {
-  const template = HtmlService.createTemplateFromFile('Reports');
+  const template = HtmlService.createTemplateFromFile('src/frontend/html/Reports');
   template.user = user;
-
   return template.evaluate()
-    .setTitle('Reports - ' + CONFIG.APP_NAME);
+    .setTitle('Reports - '.concat(CONFIG.APP_NAME));
 }
 
-/**
- * Redirects to login page
- */
 function redirectToLogin() {
-  return HtmlService.createHtmlOutputFromFile('Login')
+  // Redirect to the main index page, which IS the login page
+  return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('Login Required - ' + CONFIG.APP_NAME);
 }
 
@@ -217,20 +196,14 @@ function redirectToLogin() {
 // HELPER FUNCTIONS FOR HTML
 // ============================================================================
 
-/**
- * Include HTML files (for template composition)
- */
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-/**
- * Get current user from session
- */
 function getCurrentUser() {
   const email = Session.getActiveUser().getEmail();
   if (!email) return null;
-
+  // This function is in Auth.gs, which is fine
   return getUserByEmail(email);
 }
 
@@ -238,9 +211,6 @@ function getCurrentUser() {
 // MENU CREATION (for Spreadsheet UI)
 // ============================================================================
 
-/**
- * Creates custom menu when spreadsheet opens
- */
 function onOpen(e) {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('IPSAS System')
@@ -257,9 +227,6 @@ function onOpen(e) {
     .addToUi();
 }
 
-/**
- * Opens the main dashboard in a new browser window
- */
 function openDashboard() {
   const url = ScriptApp.getService().getUrl() + '?page=dashboard';
   const html = '<script>window.open("' + url + '"); google.script.host.close();</script>';
@@ -267,9 +234,6 @@ function openDashboard() {
   SpreadsheetApp.getUi().showModalDialog(ui, 'Opening Dashboard...');
 }
 
-/**
- * Opens user management
- */
 function openUserManagement() {
   const url = ScriptApp.getService().getUrl() + '?page=admin&section=users';
   const html = '<script>window.open("' + url + '"); google.script.host.close();</script>';
@@ -277,9 +241,6 @@ function openUserManagement() {
   SpreadsheetApp.getUi().showModalDialog(ui, 'Opening User Management...');
 }
 
-/**
- * Opens entity management
- */
 function openEntityManagement() {
   const url = ScriptApp.getService().getUrl() + '?page=admin&section=entities';
   const html = '<script>window.open("' + url + '"); google.script.host.close();</script>';
@@ -287,9 +248,6 @@ function openEntityManagement() {
   SpreadsheetApp.getUi().showModalDialog(ui, 'Opening Entity Management...');
 }
 
-/**
- * Opens note configuration
- */
 function openNoteConfig() {
   const url = ScriptApp.getService().getUrl() + '?page=admin&section=notes';
   const html = '<script>window.open("' + url + '"); google.script.host.close();</script>';
@@ -297,9 +255,6 @@ function openNoteConfig() {
   SpreadsheetApp.getUi().showModalDialog(ui, 'Opening Note Configuration...');
 }
 
-/**
- * Opens period management
- */
 function openPeriodManagement() {
   const url = ScriptApp.getService().getUrl() + '?page=admin&section=periods';
   const html = '<script>window.open("' + url + '"); google.script.host.close();</script>';
@@ -311,10 +266,6 @@ function openPeriodManagement() {
 // INSTALLATION & SETUP
 // ============================================================================
 
-/**
- * Initial system setup
- * Creates necessary spreadsheets and configurations
- */
 function setupSystem() {
   const ui = SpreadsheetApp.getUi();
   const response = ui.alert(
@@ -322,7 +273,6 @@ function setupSystem() {
     'This will create the master configuration spreadsheet. Continue?',
     ui.ButtonSet.YES_NO
   );
-
   if (response === ui.Button.YES) {
     try {
       createMasterConfigSpreadsheet();
@@ -333,9 +283,6 @@ function setupSystem() {
   }
 }
 
-/**
- * Creates the master configuration spreadsheet
- */
 function createMasterConfigSpreadsheet() {
   // Create new spreadsheet
   const ss = SpreadsheetApp.create('IPSAS_MASTER_CONFIG');
@@ -355,7 +302,6 @@ function createMasterConfigSpreadsheet() {
   // Delete default sheet
   const defaultSheet = ss.getSheetByName('Sheet1');
   if (defaultSheet) ss.deleteSheet(defaultSheet);
-
   Logger.log('Master config spreadsheet created: ' + ssId);
   return ssId;
 }
@@ -364,9 +310,6 @@ function createMasterConfigSpreadsheet() {
 // API ENDPOINTS (called from frontend)
 // ============================================================================
 
-/**
- * Get application configuration
- */
 function getAppConfig() {
   return {
     appName: CONFIG.APP_NAME,
@@ -376,9 +319,6 @@ function getAppConfig() {
   };
 }
 
-/**
- * Test function to verify system is working
- */
 function testSystem() {
   return {
     success: true,
