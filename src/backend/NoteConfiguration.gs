@@ -183,7 +183,7 @@ function createNoteTemplatesSheet(ss) {
     ['NOTE_53', '53', 'Deferred Tax Liabilities', 'Position', 'SFP', false, true, true],
 
     // Cash Flow Statement
-    ['NOTE_54', '54', 'Cash Flow Operating Activities Reconciliation', 'CashFlow', 'SCF', false, true, true],
+    ['NOTE_54', '54', 'Cash Flow Statement', 'CashFlow', 'SCF', false, true, true],
 
     // Budget and Other Statements
     ['NOTE_BUDGET', 'BUDGET', 'Statement of Comparison of Budget and Actual', 'Budget', 'BUDGET', false, true, true],
