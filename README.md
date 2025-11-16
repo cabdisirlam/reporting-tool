@@ -301,7 +301,7 @@ google.script.run.runValidations('ENT_001', 'PER_Q2_2024')
 
 The system sends automatic emails for:
 - ✉️ Welcome emails (new users)
-- ✉️ Password reset
+- ✉️ PIN reset
 - ✉️ Submission confirmations
 - ✉️ Approval/rejection notifications
 - ✉️ Deadline reminders (30, 14, 7, 3, 1 days before)
@@ -309,7 +309,7 @@ The system sends automatic emails for:
 
 ## 🔒 Security
 
-- **Authentication**: Email/password with hashing (upgrade to OAuth recommended)
+- **Authentication**: Email/PIN with SHA-256 hashing and unique salts
 - **Authorization**: Role-based access control (RBAC)
 - **Session Management**: 24-hour session timeout
 - **Audit Trail**: All actions logged with user, timestamp, and IP

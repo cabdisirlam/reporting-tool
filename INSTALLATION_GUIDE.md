@@ -374,48 +374,16 @@ The period spreadsheet should contain:
 2. Go to **Users** sheet
 3. Add your admin account:
 
-| UserID | Email | Password | FirstName | LastName | Role | EntityID | Status |
-|--------|-------|----------|-----------|----------|------|----------|--------|
-| USR_001 | your.email@domain.com | [hashed] | Your | Name | ADMIN | | ACTIVE |
+The system automatically creates a default admin user:
+- **Email**: cabdisirlam@gmail.com
+- **PIN**: 123456
+- **Role**: ADMIN
 
-**Password Hashing:**
-
-For security, passwords are hashed. To create a hashed password:
-
-1. In Apps Script editor, create a temporary function:
-
-```javascript
-function hashMyPassword() {
-  var password = 'YourPassword123';
-  var hash = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256,
-    password
-  );
-  var hashString = hash.map(function(byte) {
-    var v = (byte < 0) ? 256 + byte : byte;
-    return ('0' + v.toString(16)).slice(-2);
-  }).join('');
-
-  Logger.log('Hashed password: ' + hashString);
-}
-```
-
-2. Replace `'YourPassword123'` with your desired password
-3. Run the function
-4. Copy the hash from the execution log
-5. Paste it in the Password column
-6. Delete the function (for security)
+**Note:** The system uses 6-digit PINs for authentication, not passwords. PINs are automatically hashed with SHA-256 and unique salts when the Users sheet is created
 
 ### Step 2: Create Sample Users (Optional)
 
-Run the `createSampleUsers()` function:
-
-```javascript
-function createSampleUsers() {
-  // This creates sample users with different roles
-  // Default password for all: 'password123'
-}
-```
+You can use the Admin Panel in the application to create additional users with different roles. All new users will receive a default PIN of 123456 and can change it after first login
 
 **User Roles:**
 
@@ -435,7 +403,7 @@ function createSampleUsers() {
 
 ### Step 2: Login
 
-1. Enter your email and password
+1. Enter your email (cabdisirlam@gmail.com) and PIN (123456)
 2. Click **Login**
 3. You should be redirected to the **Dashboard**
 
@@ -500,7 +468,7 @@ function createSampleUsers() {
 - Check the **Users** sheet in MASTER_CONFIG
 - Verify your email is listed
 - Ensure Status is "ACTIVE"
-- Check password hash is correct
+- Check PIN hash and salt columns are populated
 
 ### Issue: "Period spreadsheet not found"
 
@@ -586,7 +554,7 @@ After successful installation:
 
 ## Security Recommendations
 
-1. **Change Default Passwords**: Change all sample user passwords immediately
+1. **Change Default PIN**: Change the default PIN (123456) to a secure 6-digit PIN after first login
 2. **Restrict Access**: Set web app access to "Anyone with Google account" instead of "Anyone"
 3. **Enable 2FA**: Enable two-factor authentication on your Google account
 4. **Regular Backups**: Set up automatic backups of your spreadsheets

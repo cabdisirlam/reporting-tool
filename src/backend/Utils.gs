@@ -444,28 +444,12 @@ function createUsersSheet(ss) {
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
   sheet.setFrozenRows(1);
 
-  // Sample admin user
-  const adminHash = hashPIN('admin123'); // This returns {hash: "...", salt: "..."}
-  sheet.appendRow([
-    'USR_ADMIN',
-    'admin@treasury.go.ke',
-    'System Administrator',
-    'ADMIN',
-    '',
-    '',
-    'ACTIVE',
-    adminHash.hash,     // Correctly save just the hash
-    adminHash.salt,     // Correctly save the salt
-    new Date(),
-    'system'
-  ]);
-
-  // Default user for ease of login
+  // Default admin user for login
   const defaultUserHash = hashPIN('123456');
   sheet.appendRow([
-    'USR_DEFAULT',
+    'USR_ADMIN',
     'cabdisirlam@gmail.com',
-    'Default User',
+    'System Administrator',
     'ADMIN',
     '',
     '',

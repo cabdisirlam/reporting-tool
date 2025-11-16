@@ -46,15 +46,16 @@ Stores user accounts.
 | EntityID | Text | Assigned entity | ENT_001 |
 | EntityName | Text | Entity name | KENGEN |
 | Status | Text | Account status | ACTIVE/INACTIVE |
-| PasswordHash | Text | Hashed password | [hash] |
+| PINHash | Text | Hashed 6-digit PIN | [hash] |
+| PINSalt | Text | Unique salt for PIN | [salt] |
 | CreatedDate | Date | Account creation date | 2024-01-15 |
-| CreatedBy | Email | Creator | admin@treasury.go.ke |
+| CreatedBy | Email | Creator | system |
 
 **Sample Data:**
 ```
-USR_001 | admin@treasury.go.ke | Admin User     | ADMIN      |         |        | ACTIVE
-USR_002 | john@kengen.co.ke    | John Doe       | DATA_ENTRY | ENT_001 | KENGEN | ACTIVE
-USR_003 | approver@treasury.go.ke | Jane Approver | APPROVER  |         |        | ACTIVE
+USR_ADMIN | cabdisirlam@gmail.com | System Administrator | ADMIN      |         |        | ACTIVE
+USR_002   | john@kengen.co.ke     | John Doe             | DATA_ENTRY | ENT_001 | KENGEN | ACTIVE
+USR_003   | jane@kengen.co.ke     | Jane Approver        | APPROVER   |         |        | ACTIVE
 ```
 
 ### Sheet: NoteTemplates
