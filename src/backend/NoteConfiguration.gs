@@ -117,22 +117,70 @@ function createNoteTemplatesSheet(ss) {
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
   sheet.setFrozenRows(1);
 
-  // Add sample notes
+  // Add all notes from financial statements
   const sampleNotes = [
-    // Statement of Financial Performance
-    ['NOTE_06', '6', 'Revenue', 'Performance', 'SOFP', false, true, true],
-    ['NOTE_07', '7', 'Non-Exchange Revenue', 'Performance', 'SOFP', false, true, true],
-    ['NOTE_15', '15', 'Employee Costs', 'Performance', 'SOFP', false, true, true],
-    ['NOTE_16', '16', 'Depreciation and Amortization', 'Performance', 'SOFP', false, true, true],
+    // Statement of Financial Performance - Revenue from Non-Exchange Transactions
+    ['NOTE_06', '6', 'Transfers from other governments entities', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_07', '7', 'Levies, Fines, and penalties', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_08', '8', 'Public contributions and donations', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_09', '9', 'Property taxes revenue', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_10', '10', 'Licenses and permits', 'Performance', 'SOFP', false, true, true],
 
-    // Statement of Financial Position
-    ['NOTE_30', '30', 'Cash and Cash Equivalents', 'Position', 'SFP', false, true, true],
-    ['NOTE_32', '32', 'Receivables', 'Position', 'SFP', false, true, true],
+    // Revenue from Exchange Transactions
+    ['NOTE_11', '11', 'Rendering of services', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_12', '12', 'Sale of goods', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_13', '13', 'Rental revenue from facilities and equipment', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_14', '14', 'Finance income', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_15', '15', 'Other income', 'Performance', 'SOFP', false, true, true],
+
+    // Expenses
+    ['NOTE_16', '16', 'Use of goods and services', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_17', '17', 'Employee costs', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_18', '18', 'Board Expenses', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_19', '19', 'Depreciation and amortization expense', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_20', '20', 'Repairs and maintenance', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_21', '21', 'Contracted services', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_22', '22', 'Grants and subsidies', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_23', '23', 'Finance costs', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_24', '24', 'Social Benefits expenses', 'Performance', 'SOFP', false, true, true],
+
+    // Other gains/(losses)
+    ['NOTE_25', '25', 'Gain/Loss on sale of assets', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_26', '26', 'Gain/Loss on foreign exchange transactions', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_27', '27', 'Gain/Loss on fair value of investments', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_28', '28', 'Impairment loss', 'Performance', 'SOFP', false, true, true],
+    ['NOTE_29', '29', 'Taxation', 'Performance', 'SOFP', false, true, true],
+
+    // Statement of Financial Position - Current Assets
+    ['NOTE_30', '30', 'Cash and Cash equivalents', 'Position', 'SFP', false, true, true],
+    ['NOTE_31', '31', 'Prepayments', 'Position', 'SFP', false, true, true],
+    ['NOTE_32', '32', 'Receivables from Exchange Transactions', 'Position', 'SFP', false, true, true],
+    ['NOTE_33', '33', 'Receivables from Non-Exchange Transactions', 'Position', 'SFP', false, true, true],
+    ['NOTE_34', '34', 'Inventories', 'Position', 'SFP', false, true, true],
+    ['NOTE_35', '35', 'Investments in financial assets', 'Position', 'SFP', false, true, true],
+
+    // Non-Current Assets
     ['NOTE_36', '36', 'Property, Plant and Equipment', 'Position', 'SFP', true, true, true],
     ['NOTE_37', '37', 'Intangible Assets', 'Position', 'SFP', true, true, true],
-    ['NOTE_38', '38', 'Inventories', 'Position', 'SFP', true, true, true],
-    ['NOTE_45', '45', 'Payables', 'Position', 'SFP', false, true, true],
-    ['NOTE_50', '50', 'Borrowings', 'Position', 'SFP', false, true, true],
+    ['NOTE_38', '38', 'Investment Property', 'Position', 'SFP', true, true, true],
+    ['NOTE_39', '39', 'Biological Assets', 'Position', 'SFP', false, true, true],
+
+    // Current Liabilities
+    ['NOTE_40', '40', 'Trade and Other Payables', 'Position', 'SFP', false, true, true],
+    ['NOTE_41', '41', 'Refundable deposits', 'Position', 'SFP', false, true, true],
+    ['NOTE_42', '42', 'Prepayments from customers', 'Position', 'SFP', false, true, true],
+    ['NOTE_43', '43', 'Current Provision', 'Position', 'SFP', false, true, true],
+    ['NOTE_44', '44', 'Finance Lease Obligation', 'Position', 'SFP', false, true, true],
+    ['NOTE_45', '45', 'Deferred Income', 'Position', 'SFP', false, true, true],
+    ['NOTE_46', '46', 'Employee Benefit Obligation', 'Position', 'SFP', false, true, true],
+    ['NOTE_47', '47', 'Borrowings', 'Position', 'SFP', false, true, true],
+    ['NOTE_48', '48', 'Social Benefits', 'Position', 'SFP', false, true, true],
+
+    // Non-Current Liabilities
+    ['NOTE_49', '49', 'Non-Current Provisions', 'Position', 'SFP', false, true, true],
+    ['NOTE_50', '50', 'Service Concession Liability', 'Position', 'SFP', false, true, true],
+    ['NOTE_52', '52', 'Taxation', 'Position', 'SFP', false, true, true],
+    ['NOTE_53', '53', 'Deferred Tax Liabilities', 'Position', 'SFP', false, true, true],
 
     // Cash Flow Statement
     ['NOTE_54', '54', 'Cash Flow Operating Activities Reconciliation', 'CashFlow', 'SCF', false, true, true],
