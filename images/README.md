@@ -2,7 +2,7 @@
 
 ## Kenya Government Coat of Arms
 
-The official Kenya Coat of Arms logo should be placed in this directory.
+✅ **Official logo is now installed:** `kenya-logo.png`
 
 ### Download Sources
 
