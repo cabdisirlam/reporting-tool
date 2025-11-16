@@ -1,0 +1,26 @@
+{
+  "name": "ipsas-financial-consolidation-system",
+  "version": "1.0.0",
+  "description": "IPSAS-based Financial Consolidation System for SAGAs Reporting",
+  "main": "src/backend/Code.gs",
+  "scripts": {
+    "push": "clasp push",
+    "pull": "clasp pull",
+    "deploy": "clasp deploy",
+    "open": "clasp open",
+    "logs": "clasp logs"
+  },
+  "keywords": [
+    "ipsas",
+    "financial-reporting",
+    "consolidation",
+    "sagas",
+    "google-apps-script"
+  ],
+  "author": "National Treasury of Kenya",
+  "license": "MIT",
+  "devDependencies": {
+    "@google/clasp": "^2.4.2",
+    "@types/google-apps-script": "^1.0.83"
+  }
+}

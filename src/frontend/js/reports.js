@@ -1,0 +1,23 @@
+/**
+ * reports.js - Report generation client-side
+ */
+
+const Reports = {
+    generateReport(entityId, periodId, reportType) {
+        return new Promise((resolve, reject) => {
+            google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)
+                .generateEntityReport(entityId, periodId, reportType);
+        });
+    },
+
+    exportToPDF(entityId, periodId, reportType) {
+        return new Promise((resolve, reject) => {
+            google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)
+                .exportToPDF(entityId, periodId, reportType);
+        });
+    }
+};
