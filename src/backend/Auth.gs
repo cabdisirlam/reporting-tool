@@ -49,7 +49,7 @@ function handleLogin(credentials) {
     }
 
     // Verify password (in production, use proper hashing)
-    if (!verifyPassword(password, user.passwordHash)) {
+    if (!verifyPassword(password, user.passwordHash, user.passwordSalt)) {
       // Log failed attempt
       logLoginAttempt(email, false);
 
@@ -144,6 +144,7 @@ function getUserByEmail(email) {
     // Find user row
     for (let i = 1; i < data.length; i++) {
       if (data[i][emailCol] === email) {
+        const saltIndex = headers.indexOf('PasswordSalt');
         return {
           id: data[i][0],
           email: data[i][emailCol],
@@ -152,7 +153,8 @@ function getUserByEmail(email) {
           entityId: data[i][headers.indexOf('EntityID')],
           entityName: data[i][headers.indexOf('EntityName')],
           status: data[i][headers.indexOf('Status')],
-          passwordHash: data[i][headers.indexOf('PasswordHash')]
+          passwordHash: data[i][headers.indexOf('PasswordHash')],
+          passwordSalt: saltIndex >= 0 ? data[i][saltIndex] : null
         };
       }
     }
@@ -213,10 +215,10 @@ function createUser(userData) {
     // Generate user ID
     const userId = 'USR_' + Utilities.getUuid().substring(0, 8).toUpperCase();
 
-    // Hash password
-    const passwordHash = hashPassword(userData.password || 'changeme');
+    // Hash password with unique salt
+    const passwordData = hashPassword(userData.password || 'changeme');
 
-    // Add user
+    // Add user (includes PasswordSalt column)
     sheet.appendRow([
       userId,
       userData.email,
@@ -225,7 +227,8 @@ function createUser(userData) {
       userData.entityId || '',
       userData.entityName || '',
       'ACTIVE',
-      passwordHash,
+      passwordData.hash,
+      passwordData.salt,
       new Date(),
       Session.getActiveUser().getEmail()
     ]);
@@ -372,30 +375,63 @@ function validateSession() {
 // ============================================================================
 
 /**
- * Hashes a password (basic implementation - use better hashing in production)
- * @param {string} password - Plain text password
- * @returns {string} Hashed password
+ * Generates a unique random salt for password hashing
+ * @returns {string} Random salt
  */
-function hashPassword(password) {
-  // In production, use proper password hashing (bcrypt, scrypt, etc.)
-  // This is a simplified version
-  const salt = 'IPSAS_SALT_2024'; // Use random salt per user in production
-  return Utilities.computeDigest(
+function generateSalt() {
+  const uuid = Utilities.getUuid();
+  const timestamp = new Date().getTime();
+  return Utilities.base64Encode(uuid + timestamp);
+}
+
+/**
+ * Hashes a password with a unique salt
+ * @param {string} password - Plain text password
+ * @param {string} salt - Unique salt (if not provided, generates new one)
+ * @returns {Object} Object containing hash and salt
+ */
+function hashPassword(password, salt) {
+  // Generate new salt if not provided
+  if (!salt) {
+    salt = generateSalt();
+  }
+
+  const hash = Utilities.computeDigest(
     Utilities.DigestAlgorithm.SHA_256,
     password + salt
   ).map(function(byte) {
     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
   }).join('');
+
+  // Return both hash and salt
+  return {
+    hash: hash,
+    salt: salt
+  };
 }
 
 /**
- * Verifies a password
+ * Verifies a password against a stored hash
  * @param {string} password - Plain text password
- * @param {string} hash - Stored hash
+ * @param {string} storedHash - Stored hash
+ * @param {string} salt - User's unique salt
  * @returns {boolean} True if password matches
  */
-function verifyPassword(password, hash) {
-  return hashPassword(password) === hash;
+function verifyPassword(password, storedHash, salt) {
+  if (!salt) {
+    // Backward compatibility: if no salt provided, use old static salt
+    const legacySalt = 'IPSAS_SALT_2024';
+    const legacyHash = Utilities.computeDigest(
+      Utilities.DigestAlgorithm.SHA_256,
+      password + legacySalt
+    ).map(function(byte) {
+      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
+    return legacyHash === storedHash;
+  }
+
+  const result = hashPassword(password, salt);
+  return result.hash === storedHash;
 }
 
 /**
@@ -412,16 +448,22 @@ function resetPassword(email) {
 
     // Generate temporary password
     const tempPassword = Utilities.getUuid().substring(0, 8);
-    const newHash = hashPassword(tempPassword);
+    const passwordData = hashPassword(tempPassword);
 
-    // Update password
+    // Update password and salt
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('Users');
     const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const hashCol = headers.indexOf('PasswordHash') + 1;
+    const saltCol = headers.indexOf('PasswordSalt') + 1;
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][1] === email) { // Email column
-        sheet.getRange(i + 1, 8).setValue(newHash); // PasswordHash column
+        sheet.getRange(i + 1, hashCol).setValue(passwordData.hash);
+        if (saltCol > 0) {
+          sheet.getRange(i + 1, saltCol).setValue(passwordData.salt);
+        }
         break;
       }
     }

@@ -141,9 +141,9 @@ function generateCashFlowStatement(entityId, periodId) {
     };
 
     // Calculate nets
-    statement.operating.net = statement.operating.receipts + statement.operating.payments;
-    statement.investing.net = statement.investing.receipts + statement.investing.payments;
-    statement.financing.net = statement.financing.receipts + statement.financing.payments;
+    statement.operating.net = statement.operating.receipts - statement.operating.payments;
+    statement.investing.net = statement.investing.receipts - statement.investing.payments;
+    statement.financing.net = statement.financing.receipts - statement.financing.payments;
 
     // Calculate totals
     statement.netIncrease = statement.operating.net + statement.investing.net + statement.financing.net;
@@ -174,7 +174,7 @@ function generateCashFlowStatement(entityId, periodId) {
 function calculateCurrentAssets(data) {
   const cash = getFieldValue(data, 'NOTE_30', 'totalCurrent', 0);
   const receivables = getFieldValue(data, 'NOTE_32', 'totalCurrent', 0);
-  const inventories = getFieldValue(data, 'NOTE_38', 'totalCurrent', 0);
+  const inventories = getFieldValue(data, 'NOTE_34', 'totalCurrent', 0);
 
   return {
     cash: cash,
