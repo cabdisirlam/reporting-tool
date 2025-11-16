@@ -2,10 +2,12 @@
  * CashFlow.gs - Cash Flow Statement Functions
  *
  * Handles:
- * - Cash flow statement preparation
+ * - Cash flow statement preparation (DIRECT method only per IPSAS)
  * - Cash flow categorization
  * - Cash flow reconciliation
- * - Direct and indirect methods
+ *
+ * Note: PSASB has prescribed the direct method of cash flow presentation for all entities.
+ * The indirect method is no longer supported.
  */
 
 // ============================================================================
@@ -29,11 +31,11 @@ function saveCashFlowData(params) {
       };
     }
 
-    // Validate cash flow method
-    if (!cashFlowData.method || !['DIRECT', 'INDIRECT'].includes(cashFlowData.method)) {
+    // Validate cash flow method - IPSAS requires DIRECT method only
+    if (!cashFlowData.method || cashFlowData.method !== 'DIRECT') {
       return {
         success: false,
-        error: 'Invalid cash flow method'
+        error: 'Only DIRECT cash flow method is allowed per IPSAS requirements'
       };
     }
 
@@ -97,19 +99,19 @@ function calculateCashFlowTotals(cfData) {
   calculated.operating = calculated.operating || {};
   calculated.operating.receipts = parseFloat(calculated.operating.receipts) || 0;
   calculated.operating.payments = parseFloat(calculated.operating.payments) || 0;
-  calculated.operating.net = calculated.operating.receipts + calculated.operating.payments;
+  calculated.operating.net = calculated.operating.receipts - calculated.operating.payments;
 
   // Investing activities
   calculated.investing = calculated.investing || {};
   calculated.investing.receipts = parseFloat(calculated.investing.receipts) || 0;
   calculated.investing.payments = parseFloat(calculated.investing.payments) || 0;
-  calculated.investing.net = calculated.investing.receipts + calculated.investing.payments;
+  calculated.investing.net = calculated.investing.receipts - calculated.investing.payments;
 
   // Financing activities
   calculated.financing = calculated.financing || {};
   calculated.financing.receipts = parseFloat(calculated.financing.receipts) || 0;
   calculated.financing.payments = parseFloat(calculated.financing.payments) || 0;
-  calculated.financing.net = calculated.financing.receipts + calculated.financing.payments;
+  calculated.financing.net = calculated.financing.receipts - calculated.financing.payments;
 
   // Net increase/(decrease)
   calculated.netIncrease = calculated.operating.net +
@@ -157,30 +159,18 @@ function prepareCashFlowDirect(entityData) {
 }
 
 /**
- * Prepares cash flow using indirect method
+ * DEPRECATED: Indirect method is no longer allowed per IPSAS requirements
+ * PSASB has prescribed the direct method of cash flow presentation for all entities
+ *
+ * This function is kept for reference only and will return an error if called
  * @param {Object} entityData - Entity data
- * @returns {Object} Cash flow statement
+ * @returns {Object} Error message
  */
 function prepareCashFlowIndirect(entityData) {
+  Logger.log('WARNING: Indirect cash flow method is deprecated and not allowed per IPSAS');
   return {
-    method: 'INDIRECT',
-    operating: {
-      surplusDeficit: 0,
-      adjustments: {
-        depreciation: 0,
-        provisionsMovement: 0,
-        receivablesMovement: 0,
-        payablesMovement: 0,
-        inventoriesMovement: 0,
-        total: 0
-      },
-      net: 0
-    },
-    investing: prepareInvestingActivities(entityData),
-    financing: prepareFinancingActivities(entityData),
-    netIncrease: 0,
-    openingCash: 0,
-    closingCash: 0
+    success: false,
+    error: 'Indirect cash flow method is not allowed. PSASB has prescribed the direct method for all entities.'
   };
 }
 
