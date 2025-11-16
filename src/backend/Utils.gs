@@ -436,18 +436,16 @@ function createSuccessResponse(data, message) {
  */
 function createUsersSheet(ss) {
   const sheet = ss.insertSheet('Users');
-
   const headers = [
     'UserID', 'Email', 'Name', 'Role', 'EntityID', 'EntityName',
     'Status', 'PasswordHash', 'PasswordSalt', 'CreatedDate', 'CreatedBy'
   ];
-
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
   sheet.setFrozenRows(1);
 
   // Sample admin user
-  const adminPassword = hashPassword('admin123');
+  const adminHash = hashPassword('admin123'); // This returns {hash: "...", salt: "..."}
   sheet.appendRow([
     'USR_ADMIN',
     'admin@treasury.go.ke',
@@ -456,12 +454,11 @@ function createUsersSheet(ss) {
     '',
     '',
     'ACTIVE',
-    adminPassword.hash,
-    adminPassword.salt,
+    adminHash.hash,     // Correctly save just the hash
+    adminHash.salt,     // Correctly save the salt
     new Date(),
     'system'
   ]);
-
   sheet.autoResizeColumns(1, headers.length);
 }
 
