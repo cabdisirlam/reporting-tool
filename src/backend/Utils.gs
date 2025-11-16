@@ -445,7 +445,7 @@ function createUsersSheet(ss) {
   sheet.setFrozenRows(1);
 
   // Sample admin user
-  const adminHash = hashPassword('admin123'); // This returns {hash: "...", salt: "..."}
+  const adminHash = hashPIN('admin123'); // This returns {hash: "...", salt: "..."}
   sheet.appendRow([
     'USR_ADMIN',
     'admin@treasury.go.ke',
