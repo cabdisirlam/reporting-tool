@@ -153,23 +153,35 @@ function getUserByEmail(email) {
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
 
-    // Find email column
-    const emailCol = headers.indexOf('Email');
+    // Find column indices
+    const emailColIndex = headers.indexOf('Email');
+    const nameColIndex = headers.indexOf('Name');
+    const roleColIndex = headers.indexOf('Role');
+    const entityIdColIndex = headers.indexOf('EntityID');
+    const entityNameColIndex = headers.indexOf('EntityName');
+    const statusColIndex = headers.indexOf('Status');
+    const pinHashColIndex = headers.indexOf('PINHash');
+    const pinSaltColIndex = headers.indexOf('PINSalt');
+
+    // Validate required columns exist
+    if (emailColIndex === -1) {
+      Logger.log('Email column not found in Users sheet');
+      return null;
+    }
 
     // Find user row
     for (let i = 1; i < data.length; i++) {
-      if (data[i][emailCol] === email) {
-        const saltIndex = headers.indexOf('PINSalt');
+      if (data[i][emailColIndex] === email) {
         return {
           id: data[i][0],
-          email: data[i][emailCol],
-          name: data[i][headers.indexOf('Name')],
-          role: data[i][headers.indexOf('Role')],
-          entityId: data[i][headers.indexOf('EntityID')],
-          entityName: data[i][headers.indexOf('EntityName')],
-          status: data[i][headers.indexOf('Status')],
-          pinHash: data[i][headers.indexOf('PINHash')],
-          pinSalt: saltIndex >= 0 ? data[i][saltIndex] : null
+          email: data[i][emailColIndex],
+          name: nameColIndex >= 0 ? data[i][nameColIndex] : '',
+          role: roleColIndex >= 0 ? data[i][roleColIndex] : '',
+          entityId: entityIdColIndex >= 0 ? data[i][entityIdColIndex] : '',
+          entityName: entityNameColIndex >= 0 ? data[i][entityNameColIndex] : '',
+          status: statusColIndex >= 0 ? data[i][statusColIndex] : 'ACTIVE',
+          pinHash: pinHashColIndex >= 0 ? data[i][pinHashColIndex] : '',
+          pinSalt: pinSaltColIndex >= 0 ? data[i][pinSaltColIndex] : null
         };
       }
     }
@@ -196,16 +208,24 @@ function getUserById(userId) {
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
 
+    // Find column indices
+    const emailColIndex = headers.indexOf('Email');
+    const nameColIndex = headers.indexOf('Name');
+    const roleColIndex = headers.indexOf('Role');
+    const entityIdColIndex = headers.indexOf('EntityID');
+    const entityNameColIndex = headers.indexOf('EntityName');
+    const statusColIndex = headers.indexOf('Status');
+
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === userId) {
         return {
           id: data[i][0],
-          email: data[i][headers.indexOf('Email')],
-          name: data[i][headers.indexOf('Name')],
-          role: data[i][headers.indexOf('Role')],
-          entityId: data[i][headers.indexOf('EntityID')],
-          entityName: data[i][headers.indexOf('EntityName')],
-          status: data[i][headers.indexOf('Status')]
+          email: emailColIndex >= 0 ? data[i][emailColIndex] : '',
+          name: nameColIndex >= 0 ? data[i][nameColIndex] : '',
+          role: roleColIndex >= 0 ? data[i][roleColIndex] : '',
+          entityId: entityIdColIndex >= 0 ? data[i][entityIdColIndex] : '',
+          entityName: entityNameColIndex >= 0 ? data[i][entityNameColIndex] : '',
+          status: statusColIndex >= 0 ? data[i][statusColIndex] : 'ACTIVE'
         };
       }
     }
@@ -234,16 +254,24 @@ function getAllUsers() {
     const headers = data[0];
     const users = [];
 
+    // Find column indices
+    const emailColIndex = headers.indexOf('Email');
+    const nameColIndex = headers.indexOf('Name');
+    const roleColIndex = headers.indexOf('Role');
+    const entityIdColIndex = headers.indexOf('EntityID');
+    const entityNameColIndex = headers.indexOf('EntityName');
+    const statusColIndex = headers.indexOf('Status');
+
     // Map data to objects
     for (let i = 1; i < data.length; i++) {
       users.push({
         id: data[i][0],
-        email: data[i][headers.indexOf('Email')],
-        name: data[i][headers.indexOf('Name')],
-        role: data[i][headers.indexOf('Role')],
-        entityId: data[i][headers.indexOf('EntityID')],
-        entityName: data[i][headers.indexOf('EntityName')],
-        status: data[i][headers.indexOf('Status')]
+        email: emailColIndex >= 0 ? data[i][emailColIndex] : '',
+        name: nameColIndex >= 0 ? data[i][nameColIndex] : '',
+        role: roleColIndex >= 0 ? data[i][roleColIndex] : '',
+        entityId: entityIdColIndex >= 0 ? data[i][entityIdColIndex] : '',
+        entityName: entityNameColIndex >= 0 ? data[i][entityNameColIndex] : '',
+        status: statusColIndex >= 0 ? data[i][statusColIndex] : 'ACTIVE'
       });
     }
 
@@ -559,12 +587,34 @@ function changePIN(data) {
     const sheet = ss.getSheetByName('Users');
     const data_range = sheet.getDataRange().getValues();
     const headers = data_range[0];
-    const hashCol = headers.indexOf('PINHash') + 1;
-    const saltCol = headers.indexOf('PINSalt') + 1;
-    const emailCol = headers.indexOf('Email') + 1;
+
+    // Find column indices
+    const hashColIndex = headers.indexOf('PINHash');
+    const saltColIndex = headers.indexOf('PINSalt');
+    const emailColIndex = headers.indexOf('Email');
+
+    // Validate required columns exist
+    if (hashColIndex === -1) {
+      return {
+        success: false,
+        error: 'PINHash column not found in Users sheet'
+      };
+    }
+
+    if (emailColIndex === -1) {
+      return {
+        success: false,
+        error: 'Email column not found in Users sheet'
+      };
+    }
+
+    // Convert to 1-based column numbers for getRange
+    const hashCol = hashColIndex + 1;
+    const saltCol = saltColIndex >= 0 ? saltColIndex + 1 : -1;
+    const emailCol = emailColIndex + 1;
 
     for (let i = 1; i < data_range.length; i++) {
-      if (data_range[i][emailCol - 1] === email) {
+      if (data_range[i][emailColIndex] === email) {
         sheet.getRange(i + 1, hashCol).setValue(pinData.hash);
         if (saltCol > 0) {
           sheet.getRange(i + 1, saltCol).setValue(pinData.salt);
@@ -610,11 +660,33 @@ function resetPIN(email) {
     const sheet = ss.getSheetByName('Users');
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
-    const hashCol = headers.indexOf('PINHash') + 1;
-    const saltCol = headers.indexOf('PINSalt') + 1;
+
+    // Find column indices
+    const hashColIndex = headers.indexOf('PINHash');
+    const saltColIndex = headers.indexOf('PINSalt');
+    const emailColIndex = headers.indexOf('Email');
+
+    // Validate required columns exist
+    if (hashColIndex === -1) {
+      return {
+        success: false,
+        error: 'PINHash column not found in Users sheet'
+      };
+    }
+
+    if (emailColIndex === -1) {
+      return {
+        success: false,
+        error: 'Email column not found in Users sheet'
+      };
+    }
+
+    // Convert to 1-based column numbers for getRange
+    const hashCol = hashColIndex + 1;
+    const saltCol = saltColIndex >= 0 ? saltColIndex + 1 : -1;
 
     for (let i = 1; i < data.length; i++) {
-      if (data[i][1] === email) { // Email column
+      if (data[i][emailColIndex] === email) {
         sheet.getRange(i + 1, hashCol).setValue(pinData.hash);
         if (saltCol > 0) {
           sheet.getRange(i + 1, saltCol).setValue(pinData.salt);
