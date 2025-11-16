@@ -5,7 +5,7 @@
 !appsscript.json
 
 # Include the main HTML page
-!index.html
+!Index.html
 
 # Include all backend .gs code files
 !src/backend/**/*.gs

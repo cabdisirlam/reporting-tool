@@ -77,7 +77,7 @@ function doGet(e) {
     switch(page) {
       case 'index':
         // This is the main login page
-        return HtmlService.createHtmlOutputFromFile('index')
+        return HtmlService.createHtmlOutputFromFile('Index')
           .setTitle(CONFIG.APP_NAME)
           .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png');
 
@@ -205,7 +205,7 @@ function serveAdminPanel(user) {
 
 function redirectToLogin() {
   // Redirect to the main index page, which IS the login page
-  return HtmlService.createHtmlOutputFromFile('index')
+  return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Login Required - ' + CONFIG.APP_NAME);
 }
 
