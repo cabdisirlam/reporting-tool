@@ -97,8 +97,8 @@
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="Enter your password">
+                <label for="pin">PIN (6 digits)</label>
+                <input type="text" id="pin" name="pin" required placeholder="Enter your 6-digit PIN" pattern="\d{6}" maxlength="6" inputmode="numeric">
             </div>
 
             <button type="submit" class="btn-login" id="loginButton">
@@ -106,7 +106,7 @@
             </button>
 
             <div class="forgot-password">
-                <a href="#" onclick="handleForgotPassword()">Forgot Password?</a>
+                <a href="#" onclick="handleForgotPIN()">Forgot PIN?</a>
             </div>
         </form>
     </div>
@@ -116,9 +116,15 @@
             event.preventDefault();
 
             const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const pin = document.getElementById('pin').value;
             const errorDiv = document.getElementById('errorMessage');
             const loginBtn = document.getElementById('loginButton');
+
+            // Validate PIN format
+            if (!/^\d{6}$/.test(pin)) {
+                showError('PIN must be exactly 6 digits');
+                return;
+            }
 
             // Clear previous errors
             errorDiv.style.display = 'none';
@@ -145,7 +151,7 @@
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'Login';
                 })
-                .handleLogin({ email: email, password: password });
+                .handleLogin({ email: email, pin: pin });
         }
 
         function showError(message) {
@@ -154,18 +160,18 @@
             errorDiv.style.display = 'block';
         }
 
-        function handleForgotPassword() {
+        function handleForgotPIN() {
             const email = prompt('Enter your email address:');
             if (email) {
                 google.script.run
                     .withSuccessHandler(function(result) {
                         if (result.success) {
-                            alert('Password reset link sent to your email.');
+                            alert('PIN reset link sent to your email.');
                         } else {
                             alert('Error: ' + result.error);
                         }
                     })
-                    .resetPassword(email);
+                    .resetPIN(email);
             }
         }
     </script>
