@@ -165,7 +165,7 @@ function generateFinancialPositionReport(data) {
       current: {
         cash: extractNoteData(data, 'NOTE_30'),
         receivables: extractNoteData(data, 'NOTE_32'),
-        inventories: extractNoteData(data, 'NOTE_38')
+        inventories: extractNoteData(data, 'NOTE_34')
       },
       nonCurrent: {
         ppe: extractNoteData(data, 'NOTE_36'),
