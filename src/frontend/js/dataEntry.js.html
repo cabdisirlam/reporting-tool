@@ -3,41 +3,115 @@
  */
 
 const DataEntry = {
-    autoSaveTimer: null,
-    currentNote: null,
-    currentEntityId: null,
-    currentPeriodId: null,
+    allNotes: [],
+    currentNoteId: null,
 
-    init() {
-        this.setupAutoSave();
+    init: function() {
+        DataEntry.loadNotesList();
     },
 
-    setupAutoSave() {
-        // Auto-save every 30 seconds
-        this.autoSaveTimer = setInterval(() => {
-            this.saveCurrentNote();
-        }, 30000);
-    },
+    loadNotesList: function() {
+        const listElement = document.getElementById('notesList');
+        listElement.innerHTML = '<li class="loading-placeholder">Loading notes...</li>';
 
-    saveCurrentNote() {
-        if (!this.currentNote) return;
-        
-        const data = this.collectFormData();
-        
         google.script.run
-            .withSuccessHandler(() => {
-                console.log('Auto-saved');
-            })
-            .saveNoteData({
-                entityId: this.currentEntityId,
-                periodId: this.currentPeriodId,
-                noteId: this.currentNote,
-                noteData: data
-            });
+            .withSuccessHandler(DataEntry.populateNotesList)
+            .withFailureHandler(DataEntry.showError)
+            .getNoteTemplates(); 
     },
 
-    collectFormData() {
-        // Collect form data
-        return {};
+    populateNotesList: function(result) {
+        if (!result.success) {
+            DataEntry.showError(result.error);
+            return;
+        }
+
+        const listElement = document.getElementById('notesList');
+        listElement.innerHTML = '';
+        DataEntry.allNotes = result.notes.filter(note => note.active);
+
+        if (DataEntry.allNotes.length === 0) {
+            listElement.innerHTML = '<li class="loading-placeholder">No notes found.</li>';
+            return;
+        }
+
+        DataEntry.allNotes.sort((a, b) => {
+            let numA = parseFloat(a.noteNumber);
+            let numB = parseFloat(b.noteNumber);
+            if (isNaN(numA)) numA = 1000; // Push non-numeric to end
+            if (isNaN(numB)) numB = 1000;
+            return numA - numB;
+        });
+
+        DataEntry.allNotes.forEach(note => {
+            const item = document.createElement('li');
+            item.className = 'notes-list-item';
+            item.dataset.noteId = note.noteId;
+            item.onclick = () => DataEntry.loadNoteForm(note.noteId);
+
+            item.innerHTML = `
+                <span class="note-number">Note ${note.noteNumber}</span>
+                <span class="note-name">${note.noteName}</span>
+            `;
+            listElement.appendChild(item);
+        });
+    },
+
+    filterNotes: function() {
+        const filter = document.getElementById('noteSearch').value.toLowerCase();
+        const items = document.querySelectorAll('.notes-list-item');
+
+        items.forEach(item => {
+            const name = item.querySelector('.note-name').textContent.toLowerCase();
+            const num = item.querySelector('.note-number').textContent.toLowerCase();
+            if (name.includes(filter) || num.includes(filter)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    },
+
+    loadNoteForm: function(noteId) {
+        document.querySelectorAll('.notes-list-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.noteId === noteId) {
+                item.classList.add('active');
+            }
+        });
+
+        const formElement = document.getElementById('noteForm');
+        formElement.innerHTML = '<div class="loading-placeholder">Loading note structure...</div>';
+        DataEntry.currentNoteId = noteId;
+
+        const note = DataEntry.allNotes.find(n => n.noteId === noteId);
+        if (!note) {
+            DataEntry.showError('Could not find note details.');
+            return;
+        }
+
+        // --- This is the key routing logic ---
+        if (note.noteId === 'NOTE_CF') {
+            window.location.href = '?page=CashFlowEntry';
+        } else if (note.noteId === 'NOTE_BUDGET') {
+            window.location.href = '?page=BudgetEntry';
+        } else if (note.noteId === 'NOTE_CINA') {
+            window.location.href = '?page=ChangesInNetAssetsEntry';
+        } else if (note.hasMovementSchedule) {
+             // Redirect to the placeholder
+             window.location.href = '?page=MovementEntry&note=' + note.noteId;
+        } else {
+             // Redirect to the placeholder
+             window.location.href = '?page=NoteEntry&note=' + note.noteId;
+        }
+    },
+
+    showError: function(error) {
+        const listElement = document.getElementById('notesList');
+        listElement.innerHTML = `<li class="loading-placeholder" style="color: red;">Error: ${error}</li>`;
+        console.error(error);
     }
 };
+
+// Initialize the module on page load
+document.addEventListener('DOMContentLoaded', DataEntry.init);

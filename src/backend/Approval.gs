@@ -191,18 +191,17 @@ function rejectSubmission(params) {
   */
 function updateSubmissionStatus(entityId, periodId, statusData) {
   try {
-    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
-    if (!periodSpreadsheetResult.success) {
-      Logger.log(`Error updating submission status: ${periodSpreadsheetResult.error}`);
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      Logger.log(`Error updating submission status: Spreadsheet not found for ${periodId}`);
       return;
     }
 
-    const ss = periodSpreadsheetResult.ss;
-    const sheetName = `SubmissionStatus_${periodId}`;
+    const sheetName = 'SubmissionStatus';
     let statusSheet = ss.getSheetByName(sheetName);
 
     if (!statusSheet) {
-      statusSheet = createSubmissionStatusSheet(periodId, ss);
+      statusSheet = createSubmissionStatusSheet(ss);
     }
 
     const data = statusSheet.getDataRange().getValues();
@@ -246,13 +245,12 @@ function updateSubmissionStatus(entityId, periodId, statusData) {
  */
 function getSubmissionStatus(entityId, periodId) {
   try {
-    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
-    if (!periodSpreadsheetResult.success) {
-      return { success: false, error: periodSpreadsheetResult.error };
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      return { success: false, error: `Spreadsheet not found for period ${periodId}` };
     }
 
-    const ss = periodSpreadsheetResult.ss;
-    const sheetName = `SubmissionStatus_${periodId}`;
+    const sheetName = 'SubmissionStatus';
     const statusSheet = ss.getSheetByName(sheetName);
 
     if (!statusSheet) {
@@ -300,13 +298,12 @@ function getSubmissionStatus(entityId, periodId) {
  */
 function getPendingApprovals(periodId) {
   try {
-    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
-    if (!periodSpreadsheetResult.success) {
-      return { success: false, error: periodSpreadsheetResult.error };
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      return { success: false, error: `Spreadsheet not found for period ${periodId}` };
     }
 
-    const ss = periodSpreadsheetResult.ss;
-    const sheetName = `SubmissionStatus_${periodId}`;
+    const sheetName = 'SubmissionStatus';
     const statusSheet = ss.getSheetByName(sheetName);
 
     if (!statusSheet) {
@@ -354,8 +351,9 @@ function getPendingApprovals(periodId) {
  * @returns {Sheet} Created sheet
  */
 function createSubmissionStatusSheet(periodId, ss) {
-  const sheetName = `SubmissionStatus_${periodId}`;
-  const sheet = ss.insertSheet(sheetName);
+  const targetSs = ss || periodId;
+  const sheetName = 'SubmissionStatus';
+  const sheet = targetSs.insertSheet(sheetName);
 
   const headers = [
     'EntityID', 'Status', 'SubmittedBy', 'SubmittedDate', 'SubmitterComments',
