@@ -1063,6 +1063,293 @@ function requestClarification(params) {
 }
 
 /**
+ * Gets available reports list with metadata
+ * @param {Object} params - Optional parameters
+ * @returns {Object} List of available reports
+ */
+function getAvailableReports(params) {
+  try {
+    const user = params && params.userId ? getUserById(params.userId) : null;
+    const isAdmin = user && (user.role === CONFIG.ROLES.ADMIN || user.role === CONFIG.ROLES.APPROVER);
+
+    const reports = [
+      // Entity Reports
+      {
+        id: 'statement_position',
+        name: 'Statement of Financial Position',
+        description: 'Assets, Liabilities, and Net Assets',
+        category: 'financial_statements',
+        requiresEntity: true,
+        requiresPeriod: true,
+        formats: ['PDF', 'Excel'],
+        icon: '📊'
+      },
+      {
+        id: 'statement_performance',
+        name: 'Statement of Financial Performance',
+        description: 'Revenue, Expenses, and Surplus/Deficit',
+        category: 'financial_statements',
+        requiresEntity: true,
+        requiresPeriod: true,
+        formats: ['PDF', 'Excel'],
+        icon: '📈'
+      },
+      {
+        id: 'statement_cashflow',
+        name: 'Statement of Cash Flows',
+        description: 'Operating, Investing, and Financing Activities',
+        category: 'financial_statements',
+        requiresEntity: true,
+        requiresPeriod: true,
+        formats: ['PDF', 'Excel'],
+        icon: '💰'
+      },
+      {
+        id: 'statement_changes',
+        name: 'Statement of Changes in Net Assets',
+        description: 'Changes in Equity Components',
+        category: 'financial_statements',
+        requiresEntity: true,
+        requiresPeriod: true,
+        formats: ['PDF', 'Excel'],
+        icon: '📉'
+      },
+      {
+        id: 'complete_financial',
+        name: 'Complete Financial Statements',
+        description: 'All Four Statements Combined',
+        category: 'financial_statements',
+        requiresEntity: true,
+        requiresPeriod: true,
+        formats: ['PDF', 'Excel'],
+        icon: '📑'
+      },
+      {
+        id: 'notes_disclosure',
+        name: 'Notes to Financial Statements',
+        description: 'All 53 IPSAS Notes',
+        category: 'financial_statements',
+        requiresEntity: true,
+        requiresPeriod: true,
+        formats: ['PDF', 'Excel'],
+        icon: '📝'
+      },
+      {
+        id: 'budget_comparison',
+        name: 'Budget vs Actual Report',
+        description: 'Budget Performance Analysis',
+        category: 'analysis',
+        requiresEntity: true,
+        requiresPeriod: true,
+        formats: ['PDF', 'Excel', 'CSV'],
+        icon: '💵'
+      }
+    ];
+
+    // Add consolidated reports for admins/approvers only
+    if (isAdmin) {
+      reports.push(
+        {
+          id: 'consolidated_position',
+          name: 'Consolidated Statement of Position',
+          description: 'All Entities Combined',
+          category: 'consolidated',
+          requiresEntity: false,
+          requiresPeriod: true,
+          formats: ['PDF', 'Excel'],
+          icon: '🏛️',
+          adminOnly: true
+        },
+        {
+          id: 'consolidated_performance',
+          name: 'Consolidated Statement of Performance',
+          description: 'National-Level Performance',
+          category: 'consolidated',
+          requiresEntity: false,
+          requiresPeriod: true,
+          formats: ['PDF', 'Excel'],
+          icon: '📊',
+          adminOnly: true
+        },
+        {
+          id: 'sector_analysis',
+          name: 'Sector Analysis Report',
+          description: 'By SAGA/County/MDA',
+          category: 'consolidated',
+          requiresEntity: false,
+          requiresPeriod: true,
+          formats: ['PDF', 'Excel', 'CSV'],
+          icon: '🏢',
+          adminOnly: true
+        },
+        {
+          id: 'submission_progress',
+          name: 'Submission Progress Report',
+          description: 'Entity Submission Status',
+          category: 'administration',
+          requiresEntity: false,
+          requiresPeriod: true,
+          formats: ['PDF', 'Excel', 'CSV'],
+          icon: '✅',
+          adminOnly: true
+        }
+      );
+    }
+
+    return {
+      success: true,
+      reports,
+      categories: [
+        { id: 'financial_statements', name: 'Financial Statements', icon: '📊' },
+        { id: 'analysis', name: 'Analysis Reports', icon: '📈' },
+        { id: 'consolidated', name: 'Consolidated Reports', icon: '🏛️' },
+        { id: 'administration', name: 'Administration', icon: '⚙️' }
+      ]
+    };
+  } catch (error) {
+    Logger.log('Error getting available reports: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Generates a report based on parameters
+ * @param {Object} params - Report parameters
+ * @returns {Object} Generated report data
+ */
+function generateReport(params) {
+  try {
+    const { reportId, entityId, periodId, format } = params;
+
+    // Get entity and period data if required
+    let entity = null;
+    let period = null;
+
+    if (entityId) {
+      const entityResult = getEntityById(entityId);
+      if (!entityResult.success) {
+        return { success: false, error: 'Entity not found' };
+      }
+      entity = entityResult.entity;
+    }
+
+    if (periodId) {
+      const periodResult = getPeriodById(periodId);
+      if (!periodResult.success) {
+        return { success: false, error: 'Period not found' };
+      }
+      period = periodResult.period;
+    }
+
+    // Generate report based on type
+    let reportData = null;
+    switch (reportId) {
+      case 'statement_position':
+        reportData = generateStatementOfFinancialPosition(entityId, periodId);
+        break;
+      case 'statement_performance':
+        reportData = generateStatementOfFinancialPerformance(entityId, periodId);
+        break;
+      case 'statement_cashflow':
+        reportData = generateCashFlowStatement(entityId, periodId);
+        break;
+      case 'statement_changes':
+        reportData = generateStatementOfChangesInNetAssets(entityId, periodId);
+        break;
+      case 'complete_financial':
+        reportData = generateCompleteFinancialStatements(entityId, periodId);
+        break;
+      case 'notes_disclosure':
+        reportData = generateNotesDisclosure(entityId, periodId);
+        break;
+      case 'budget_comparison':
+        reportData = generateBudgetComparisonReport(entityId, periodId);
+        break;
+      case 'consolidated_position':
+        reportData = generateConsolidatedPosition(periodId);
+        break;
+      case 'consolidated_performance':
+        reportData = generateConsolidatedPerformance(periodId);
+        break;
+      case 'sector_analysis':
+        reportData = generateSectorAnalysis(periodId);
+        break;
+      case 'submission_progress':
+        reportData = generateSubmissionProgressReport(periodId);
+        break;
+      default:
+        return { success: false, error: 'Unknown report type' };
+    }
+
+    if (!reportData || !reportData.success) {
+      return { success: false, error: reportData ? reportData.error : 'Report generation failed' };
+    }
+
+    return {
+      success: true,
+      report: {
+        ...reportData.statement || reportData.report,
+        entity,
+        period,
+        generatedDate: new Date(),
+        format
+      }
+    };
+  } catch (error) {
+    Logger.log('Error generating report: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets complete financial statements for display
+ * @param {Object} params - Parameters with entityId and periodId
+ * @returns {Object} All four financial statements
+ */
+function getCompleteFinancialStatements(params) {
+  try {
+    const { entityId, periodId } = params;
+
+    const entityResult = getEntityById(entityId);
+    const periodResult = getPeriodById(periodId);
+
+    if (!entityResult.success || !periodResult.success) {
+      return { success: false, error: 'Entity or period not found' };
+    }
+
+    // Generate all four statements
+    const position = generateStatementOfFinancialPosition(entityId, periodId);
+    const performance = generateStatementOfFinancialPerformance(entityId, periodId);
+    const cashflow = generateCashFlowStatement(entityId, periodId);
+    const changes = generateStatementOfChangesInNetAssets(entityId, periodId);
+
+    return {
+      success: true,
+      entity: entityResult.entity,
+      period: periodResult.period,
+      statements: {
+        position: position.success ? position.statement : null,
+        performance: performance.success ? performance.statement : null,
+        cashflow: cashflow.success ? cashflow.statement : null,
+        changes: changes.success ? changes.statement : null
+      }
+    };
+  } catch (error) {
+    Logger.log('Error getting complete statements: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
  * Gets admin dashboard data
  * Shows system-wide statistics
  * @returns {Object} Dashboard data for administrators
