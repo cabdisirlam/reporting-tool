@@ -1483,3 +1483,336 @@ function getAllUsers(filters) {
     };
   }
 }
+
+// ============================================================================
+// ATTACHMENT MANAGEMENT FUNCTIONS
+// ============================================================================
+
+/**
+ * Gets or creates the attachments folder structure in Google Drive
+ * Structure: Attachments/{EntityID}/{PeriodID}/{NoteID}/
+ * @param {string} entityId - Entity ID
+ * @param {string} periodId - Period ID
+ * @param {string} noteId - Note ID (optional)
+ * @returns {Folder} Google Drive folder
+ */
+function getAttachmentsFolder(entityId, periodId, noteId) {
+  try {
+    // Get or create root Attachments folder
+    let rootFolder;
+    const folders = DriveApp.getFoldersByName('IPSAS_Attachments');
+    if (folders.hasNext()) {
+      rootFolder = folders.next();
+    } else {
+      rootFolder = DriveApp.createFolder('IPSAS_Attachments');
+    }
+
+    // Get or create entity folder
+    let entityFolder;
+    const entityFolders = rootFolder.getFoldersByName(entityId);
+    if (entityFolders.hasNext()) {
+      entityFolder = entityFolders.next();
+    } else {
+      entityFolder = rootFolder.createFolder(entityId);
+    }
+
+    // Get or create period folder
+    let periodFolder;
+    const periodFolders = entityFolder.getFoldersByName(periodId);
+    if (periodFolders.hasNext()) {
+      periodFolder = periodFolders.next();
+    } else {
+      periodFolder = entityFolder.createFolder(periodId);
+    }
+
+    // If noteId specified, get or create note folder
+    if (noteId) {
+      let noteFolder;
+      const noteFolders = periodFolder.getFoldersByName(noteId);
+      if (noteFolders.hasNext()) {
+        noteFolder = noteFolders.next();
+      } else {
+        noteFolder = periodFolder.createFolder(noteId);
+      }
+      return noteFolder;
+    }
+
+    return periodFolder;
+  } catch (error) {
+    Logger.log('Error getting attachments folder: ' + error.toString());
+    throw error;
+  }
+}
+
+/**
+ * Uploads an attachment file to Google Drive
+ * @param {Object} params - Upload parameters
+ * @param {string} params.entityId - Entity ID
+ * @param {string} params.periodId - Period ID
+ * @param {string} params.noteId - Note ID
+ * @param {string} params.fileName - File name
+ * @param {string} params.fileData - Base64 encoded file data
+ * @param {string} params.mimeType - MIME type
+ * @returns {Object} Result with file ID and URL
+ */
+function uploadAttachment(params) {
+  try {
+    const { entityId, periodId, noteId, fileName, fileData, mimeType } = params;
+
+    if (!entityId || !periodId || !fileName || !fileData || !mimeType) {
+      return {
+        success: false,
+        error: 'Missing required parameters'
+      };
+    }
+
+    // Get the target folder
+    const folder = getAttachmentsFolder(entityId, periodId, noteId);
+
+    // Decode base64 data
+    const blob = Utilities.newBlob(Utilities.base64Decode(fileData), mimeType, fileName);
+
+    // Create the file in Drive
+    const file = folder.createFile(blob);
+
+    // Set file properties for tracking
+    file.setDescription(`Entity: ${entityId}, Period: ${periodId}, Note: ${noteId || 'General'}, Uploaded: ${new Date().toISOString()}`);
+
+    // Store metadata in a tracking sheet
+    storeAttachmentMetadata({
+      fileId: file.getId(),
+      fileName: fileName,
+      entityId: entityId,
+      periodId: periodId,
+      noteId: noteId,
+      mimeType: mimeType,
+      size: blob.getBytes().length,
+      uploadedBy: Session.getActiveUser().getEmail(),
+      uploadedDate: new Date()
+    });
+
+    return {
+      success: true,
+      fileId: file.getId(),
+      url: file.getUrl(),
+      name: fileName
+    };
+  } catch (error) {
+    Logger.log('Error uploading attachment: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Stores attachment metadata in the tracking sheet
+ * @param {Object} metadata - File metadata
+ */
+function storeAttachmentMetadata(metadata) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    let sheet = ss.getSheetByName('Attachments');
+
+    // Create sheet if it doesn't exist
+    if (!sheet) {
+      sheet = ss.insertSheet('Attachments');
+      sheet.appendRow([
+        'FileID',
+        'FileName',
+        'EntityID',
+        'PeriodID',
+        'NoteID',
+        'MimeType',
+        'Size',
+        'UploadedBy',
+        'UploadedDate'
+      ]);
+    }
+
+    // Add metadata row
+    sheet.appendRow([
+      metadata.fileId,
+      metadata.fileName,
+      metadata.entityId,
+      metadata.periodId,
+      metadata.noteId || '',
+      metadata.mimeType,
+      metadata.size,
+      metadata.uploadedBy,
+      metadata.uploadedDate
+    ]);
+  } catch (error) {
+    Logger.log('Error storing attachment metadata: ' + error.toString());
+  }
+}
+
+/**
+ * Gets list of attachments for an entity/period/note
+ * @param {Object} params - Query parameters
+ * @param {string} params.entityId - Entity ID
+ * @param {string} params.periodId - Period ID
+ * @param {string} params.noteId - Note ID (optional)
+ * @returns {Object} Result with attachments list
+ */
+function getAttachments(params) {
+  try {
+    const { entityId, periodId, noteId } = params;
+
+    if (!entityId || !periodId) {
+      return {
+        success: false,
+        error: 'Missing entityId or periodId'
+      };
+    }
+
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('Attachments');
+
+    if (!sheet) {
+      return {
+        success: true,
+        attachments: []
+      };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const attachments = [];
+
+    // Find column indices
+    const fileIdCol = headers.indexOf('FileID');
+    const fileNameCol = headers.indexOf('FileName');
+    const entityIdCol = headers.indexOf('EntityID');
+    const periodIdCol = headers.indexOf('PeriodID');
+    const noteIdCol = headers.indexOf('NoteID');
+    const mimeTypeCol = headers.indexOf('MimeType');
+    const sizeCol = headers.indexOf('Size');
+    const uploadedByCol = headers.indexOf('UploadedBy');
+    const uploadedDateCol = headers.indexOf('UploadedDate');
+
+    // Filter and map attachments
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+
+      // Check if this attachment matches the criteria
+      if (row[entityIdCol] !== entityId) continue;
+      if (row[periodIdCol] !== periodId) continue;
+      if (noteId && row[noteIdCol] !== noteId) continue;
+
+      // Try to get the file to verify it still exists
+      try {
+        const file = DriveApp.getFileById(row[fileIdCol]);
+
+        attachments.push({
+          id: row[fileIdCol],
+          name: row[fileNameCol],
+          type: row[mimeTypeCol],
+          size: row[sizeCol],
+          uploadedBy: row[uploadedByCol],
+          uploadedDate: row[uploadedDateCol],
+          url: file.getUrl()
+        });
+      } catch (fileError) {
+        // File doesn't exist anymore, skip it
+        Logger.log('File not found: ' + row[fileIdCol]);
+      }
+    }
+
+    return {
+      success: true,
+      attachments: attachments
+    };
+  } catch (error) {
+    Logger.log('Error getting attachments: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets download URL for an attachment
+ * @param {Object} params - Parameters
+ * @param {string} params.fileId - File ID
+ * @returns {Object} Result with download URL
+ */
+function getAttachmentDownloadUrl(params) {
+  try {
+    const { fileId } = params;
+
+    if (!fileId) {
+      return {
+        success: false,
+        error: 'Missing fileId'
+      };
+    }
+
+    const file = DriveApp.getFileById(fileId);
+
+    return {
+      success: true,
+      url: file.getUrl(),
+      downloadUrl: file.getDownloadUrl()
+    };
+  } catch (error) {
+    Logger.log('Error getting download URL: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Deletes an attachment
+ * @param {Object} params - Parameters
+ * @param {string} params.fileId - File ID
+ * @returns {Object} Result
+ */
+function deleteAttachment(params) {
+  try {
+    const { fileId } = params;
+
+    if (!fileId) {
+      return {
+        success: false,
+        error: 'Missing fileId'
+      };
+    }
+
+    // Delete from Drive
+    const file = DriveApp.getFileById(fileId);
+    file.setTrashed(true);
+
+    // Remove from tracking sheet
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('Attachments');
+
+    if (sheet) {
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+      const fileIdCol = headers.indexOf('FileID');
+
+      // Find and delete the row
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][fileIdCol] === fileId) {
+          sheet.deleteRow(i + 1);
+          break;
+        }
+      }
+    }
+
+    return {
+      success: true
+    };
+  } catch (error) {
+    Logger.log('Error deleting attachment: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}

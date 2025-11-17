@@ -137,6 +137,156 @@
             border-radius: 4px;
             margin-bottom: 20px;
         }
+
+        /* Document Upload Styles */
+        .attachments-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .attachments-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            background: white;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.drag-over {
+            border-color: #1a73e8;
+            background: #f0f7ff;
+        }
+
+        .upload-zone-icon {
+            font-size: 48px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .upload-zone-text {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .upload-zone-hint {
+            font-size: 12px;
+            color: #999;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .file-icon {
+            font-size: 24px;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .file-meta {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-icon:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #fef0f0;
+            color: #d32f2f;
+        }
+
+        .btn-danger:hover {
+            background: #fdd;
+        }
+
+        .upload-progress {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1a73e8, #4285f4);
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -284,6 +434,24 @@
 
             html += '</tbody></table>';
 
+            // Add attachments section
+            html += '<div class="attachments-section">';
+            html += '<div class="attachments-header">';
+            html += '📎 Supporting Documents';
+            html += '</div>';
+            html += '<div class="upload-zone" id="uploadZone" onclick="document.getElementById(\'fileInput\').click()">';
+            html += '<div class="upload-zone-icon">📁</div>';
+            html += '<div class="upload-zone-text">Click to browse or drag and drop files here</div>';
+            html += '<div class="upload-zone-hint">Supported formats: PDF, Excel, Word, Images (Max 10MB per file)</div>';
+            html += '</div>';
+            html += '<input type="file" id="fileInput" multiple accept=".pdf,.xlsx,.xls,.docx,.doc,.jpg,.jpeg,.png">';
+            html += '<div class="upload-progress" id="uploadProgress">';
+            html += '<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>';
+            html += '<div class="progress-text" id="progressText">Uploading...</div>';
+            html += '</div>';
+            html += '<div class="file-list" id="fileList"></div>';
+            html += '</div>';
+
             html += '<div class="btn-group">';
             html += '<button class="btn btn-primary" onclick="saveNoteData()">Save Draft</button>';
             html += '<button class="btn btn-primary" onclick="submitNoteData()">Submit for Approval</button>';
@@ -291,6 +459,12 @@
             html += '</div>';
 
             document.getElementById('noteContent').innerHTML = html;
+
+            // Setup file upload handlers
+            setupFileUploadHandlers();
+
+            // Load existing attachments
+            loadAttachments();
         }
 
         function saveNoteData() {
@@ -404,6 +578,261 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // File Upload Functionality
+        let uploadedFiles = [];
+
+        function setupFileUploadHandlers() {
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+
+            if (!uploadZone || !fileInput) return;
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Highlight drop zone when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    uploadZone.classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => {
+                    uploadZone.classList.remove('drag-over');
+                }, false);
+            });
+
+            // Handle dropped files
+            uploadZone.addEventListener('drop', handleDrop, false);
+
+            // Handle file input change
+            fileInput.addEventListener('change', handleFileSelect, false);
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const allowedTypes = [
+                'application/pdf',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/msword',
+                'image/jpeg',
+                'image/png'
+            ];
+
+            Array.from(files).forEach(file => {
+                // Validate file size
+                if (file.size > maxSize) {
+                    showError(`File ${file.name} exceeds 10MB limit`);
+                    return;
+                }
+
+                // Validate file type
+                if (!allowedTypes.includes(file.type)) {
+                    showError(`File type not supported for ${file.name}`);
+                    return;
+                }
+
+                // Upload file
+                uploadFile(file);
+            });
+        }
+
+        function uploadFile(file) {
+            const progress = document.getElementById('uploadProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            progress.style.display = 'block';
+            progressText.textContent = `Uploading ${file.name}...`;
+            progressFill.style.width = '0%';
+
+            // Simulate progress (in real implementation, use server-side chunked upload)
+            let uploadProgress = 0;
+            const progressInterval = setInterval(() => {
+                uploadProgress += 10;
+                progressFill.style.width = uploadProgress + '%';
+                if (uploadProgress >= 90) {
+                    clearInterval(progressInterval);
+                }
+            }, 100);
+
+            // Read file as base64 for upload
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result.split(',')[1];
+
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        clearInterval(progressInterval);
+                        progressFill.style.width = '100%';
+
+                        if (result.success) {
+                            uploadedFiles.push({
+                                id: result.fileId,
+                                name: file.name,
+                                size: file.size,
+                                type: file.type,
+                                uploadedDate: new Date().toISOString(),
+                                url: result.url
+                            });
+
+                            renderFileList();
+                            showSuccess(`${file.name} uploaded successfully`);
+
+                            setTimeout(() => {
+                                progress.style.display = 'none';
+                            }, 1000);
+                        } else {
+                            showError(`Failed to upload ${file.name}: ${result.error}`);
+                            progress.style.display = 'none';
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        clearInterval(progressInterval);
+                        showError(`Upload error: ${error.message}`);
+                        progress.style.display = 'none';
+                    })
+                    .uploadAttachment({
+                        entityId: '<?= session.entityId ?>',
+                        periodId: '<?= session.periodId ?>',
+                        noteId: currentNote ? currentNote.noteId : null,
+                        fileName: file.name,
+                        fileData: base64Data,
+                        mimeType: file.type
+                    });
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function loadAttachments() {
+            if (!currentNote) return;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success && result.attachments) {
+                        uploadedFiles = result.attachments;
+                        renderFileList();
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Failed to load attachments:', error);
+                })
+                .getAttachments({
+                    entityId: '<?= session.entityId ?>',
+                    periodId: '<?= session.periodId ?>',
+                    noteId: currentNote.noteId
+                });
+        }
+
+        function renderFileList() {
+            const fileList = document.getElementById('fileList');
+            if (!fileList) return;
+
+            if (uploadedFiles.length === 0) {
+                fileList.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            uploadedFiles.forEach((file, index) => {
+                const icon = getFileIcon(file.type);
+                const sizeStr = formatFileSize(file.size);
+
+                html += `<div class="file-item">
+                    <div class="file-info">
+                        <div class="file-icon">${icon}</div>
+                        <div class="file-details">
+                            <div class="file-name">${escapeHtml(file.name)}</div>
+                            <div class="file-meta">${sizeStr} • ${formatDate(file.uploadedDate)}</div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        ${file.url ? `<button class="btn-icon" onclick="downloadFile('${file.id}', '${escapeHtml(file.name)}')">📥 Download</button>` : ''}
+                        <button class="btn-icon btn-danger" onclick="deleteFile(${index}, '${file.id}')">🗑️ Delete</button>
+                    </div>
+                </div>`;
+            });
+
+            fileList.innerHTML = html;
+        }
+
+        function getFileIcon(mimeType) {
+            if (mimeType.includes('pdf')) return '📄';
+            if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊';
+            if (mimeType.includes('word') || mimeType.includes('document')) return '📝';
+            if (mimeType.includes('image')) return '🖼️';
+            return '📎';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        function downloadFile(fileId, fileName) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success && result.url) {
+                        window.open(result.url, '_blank');
+                    } else {
+                        showError('Failed to download file');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Download error: ' + error.message);
+                })
+                .getAttachmentDownloadUrl({ fileId: fileId });
+        }
+
+        function deleteFile(index, fileId) {
+            if (!confirm('Delete this file?')) return;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        uploadedFiles.splice(index, 1);
+                        renderFileList();
+                        showSuccess('File deleted successfully');
+                    } else {
+                        showError('Failed to delete file: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Delete error: ' + error.message);
+                })
+                .deleteAttachment({ fileId: fileId });
         }
     </script>
 </body>
