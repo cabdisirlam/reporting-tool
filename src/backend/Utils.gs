@@ -490,7 +490,7 @@ function createPeriodConfigSheet(ss) {
   const sheet = ss.insertSheet('PeriodConfig');
 
   const headers = [
-    'PeriodID', 'PeriodName', 'FiscalYear', 'Quarter', 'StartDate',
+    'PeriodID', 'PeriodName', 'SpreadsheetID', 'FiscalYear', 'Quarter', 'StartDate',
     'EndDate', 'DeadlineDate', 'Status', 'CreatedDate'
   ];
 
@@ -565,7 +565,8 @@ function createSubmissionStatusSheet(periodId, ss) {
   const sheet = ss.insertSheet(sheetName);
 
   const headers = [
-    'EntityID', 'Status', 'SubmittedDate', 'SubmittedBy', 'ApprovedDate', 'ApprovedBy', 'Comments'
+    'EntityID', 'Status', 'SubmittedBy', 'SubmittedDate', 'SubmitterComments',
+    'ReviewedBy', 'ReviewedDate', 'ReviewerComments', 'LastUpdated'
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
