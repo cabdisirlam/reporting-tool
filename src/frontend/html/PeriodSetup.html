@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initial Period Setup - TNSC</title>
+    <style>
+        <?!= include('css/main.css.html'); ?>
+
+        body {
+            background: linear-gradient(135deg, #C74634 0%, #A63929 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .setup-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--oracle-red);
+        }
+
+        .setup-header h1 {
+            color: var(--oracle-red);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .setup-header p {
+            color: var(--oracle-black);
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #0c5460;
+            border-radius: 4px;
+        }
+
+        .alert-info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-field {
+            margin-bottom: 20px;
+        }
+
+        .form-field label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--oracle-black);
+        }
+
+        .form-field input,
+        .form-field select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background: #f7fafc;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: var(--oracle-red);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(199, 70, 52, 0.1);
+        }
+
+        .form-field small {
+            display: block;
+            margin-top: 6px;
+            color: #718096;
+            font-size: 13px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--oracle-red) 0%, #A63929 100%);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(199, 70, 52, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--oracle-black);
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #155724;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #721c24;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <h1>TNSC</h1>
+            <p>Initial Period Setup Required</p>
+        </div>
+
+        <div class="alert-info">
+            <strong>Welcome, <?= user.name ?>!</strong>
+            Before you can start using the system, you need to create the first reporting period.
+            This will set up the necessary worksheets and data structures for consolidation.
+        </div>
+
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="periodSetupForm">
+            <div class="form-field">
+                <label for="fiscalYear">Fiscal Year *</label>
+                <input
+                    type="number"
+                    id="fiscalYear"
+                    name="fiscalYear"
+                    min="2020"
+                    max="2050"
+                    value="2024"
+                    required
+                >
+                <small>Enter the fiscal year for the reporting period</small>
+            </div>
+
+            <div class="form-field">
+                <label for="quarter">Period Type *</label>
+                <select id="quarter" name="quarter" required>
+                    <option value="Q1">Quarter 1 (Q1)</option>
+                    <option value="Q2">Quarter 2 (Q2)</option>
+                    <option value="Q3">Quarter 3 (Q3)</option>
+                    <option value="Q4">Quarter 4 (Q4)</option>
+                    <option value="ANNUAL">Annual</option>
+                </select>
+                <small>Select the reporting period type</small>
+            </div>
+
+            <div class="form-field">
+                <label for="startDate">Start Date *</label>
+                <input
+                    type="date"
+                    id="startDate"
+                    name="startDate"
+                    required
+                >
+                <small>First day of the reporting period</small>
+            </div>
+
+            <div class="form-field">
+                <label for="endDate">End Date *</label>
+                <input
+                    type="date"
+                    id="endDate"
+                    name="endDate"
+                    required
+                >
+                <small>Last day of the reporting period</small>
+            </div>
+
+            <div class="form-field">
+                <label for="deadlineDate">Submission Deadline *</label>
+                <input
+                    type="date"
+                    id="deadlineDate"
+                    name="deadlineDate"
+                    required
+                >
+                <small>Deadline for entities to submit their data</small>
+            </div>
+
+            <div class="btn-container">
+                <button type="button" class="btn-secondary" onclick="logout()">Logout</button>
+                <button type="submit" class="btn-primary" id="submitBtn">Create Period & Continue</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Set default dates based on current date
+        window.onload = function() {
+            const today = new Date();
+            const year = today.getFullYear();
+
+            // Set default start date to beginning of current year
+            document.getElementById('startDate').value = year + '-01-01';
+
+            // Set default end date to end of Q1
+            document.getElementById('endDate').value = year + '-03-31';
+
+            // Set default deadline to 1 month after end date
+            document.getElementById('deadlineDate').value = year + '-04-30';
+        };
+
+        // Auto-update dates when quarter changes
+        document.getElementById('quarter').addEventListener('change', function() {
+            const year = document.getElementById('fiscalYear').value;
+            const quarter = this.value;
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const deadlineInput = document.getElementById('deadlineDate');
+
+            let startDate, endDate, deadline;
+
+            switch(quarter) {
+                case 'Q1':
+                    startDate = year + '-01-01';
+                    endDate = year + '-03-31';
+                    deadline = year + '-04-30';
+                    break;
+                case 'Q2':
+                    startDate = year + '-04-01';
+                    endDate = year + '-06-30';
+                    deadline = year + '-07-31';
+                    break;
+                case 'Q3':
+                    startDate = year + '-07-01';
+                    endDate = year + '-09-30';
+                    deadline = year + '-10-31';
+                    break;
+                case 'Q4':
+                    startDate = year + '-10-01';
+                    endDate = year + '-12-31';
+                    deadline = (parseInt(year) + 1) + '-01-31';
+                    break;
+                case 'ANNUAL':
+                    startDate = year + '-01-01';
+                    endDate = year + '-12-31';
+                    deadline = (parseInt(year) + 1) + '-01-31';
+                    break;
+            }
+
+            startDateInput.value = startDate;
+            endDateInput.value = endDate;
+            deadlineInput.value = deadline;
+        });
+
+        // Handle form submission
+        document.getElementById('periodSetupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+
+            // Hide messages
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            // Get form values
+            const fiscalYear = document.getElementById('fiscalYear').value;
+            const quarter = document.getElementById('quarter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const deadlineDate = document.getElementById('deadlineDate').value;
+
+            // Validate dates
+            if (new Date(startDate) >= new Date(endDate)) {
+                errorMsg.textContent = 'End date must be after start date.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            if (new Date(deadlineDate) <= new Date(endDate)) {
+                errorMsg.textContent = 'Deadline must be after end date.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Period...';
+
+            // Generate period name
+            const periodName = `FY${fiscalYear} ${quarter}`;
+
+            // Call backend to create period
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        successMsg.textContent = 'Period created successfully! Opening period for data entry...';
+                        successMsg.style.display = 'block';
+
+                        // Also open the period so it's ready for use
+                        google.script.run
+                            .withSuccessHandler(function(openResult) {
+                                if (openResult.success) {
+                                    successMsg.textContent = 'Period created and opened successfully! Redirecting...';
+                                    // Redirect to admin panel after 2 seconds
+                                    setTimeout(function() {
+                                        window.location.href = '?page=AdminPanel';
+                                    }, 2000);
+                                } else {
+                                    successMsg.textContent = 'Period created but could not be opened. Please open it manually. Redirecting...';
+                                    setTimeout(function() {
+                                        window.location.href = '?page=AdminPanel';
+                                    }, 3000);
+                                }
+                            })
+                            .openPeriod(result.periodId);
+                    } else {
+                        errorMsg.textContent = 'Error: ' + result.error;
+                        errorMsg.style.display = 'block';
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Create Period & Continue';
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    errorMsg.textContent = 'An error occurred: ' + error.message;
+                    errorMsg.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Period & Continue';
+                })
+                .createPeriod({
+                    periodName: periodName,
+                    fiscalYear: fiscalYear,
+                    quarter: quarter,
+                    startDate: startDate,
+                    endDate: endDate,
+                    deadlineDate: deadlineDate
+                });
+        });
+
+        function logout() {
+            google.script.run
+                .withSuccessHandler(function() {
+                    window.location.href = '?page=index';
+                })
+                .logout();
+        }
+    </script>
+</body>
+</html>

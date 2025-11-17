@@ -107,6 +107,18 @@ function doGet(e) {
         }
         return serveAdminPanel(user);
 
+      case 'PeriodSetup':
+        if (!user) return redirectToLogin();
+        // Only admins can access period setup
+        if (user.role !== CONFIG.ROLES.ADMIN) {
+          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can set up periods.</p>');
+        }
+        return servePeriodSetup(user);
+
+      case 'SystemNotReady':
+        if (!user) return redirectToLogin();
+        return serveSystemNotReady(user);
+
       default:
         // Handle other pages if they exist
         if (page === 'ApprovalDashboard' || page === 'BudgetEntry' || page === 'CashFlowEntry') {
@@ -200,6 +212,22 @@ function serveAdminPanel(user) {
   template.user = user;
   return template.evaluate()
     .setTitle('Admin Panel - ' + CONFIG.APP_NAME)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function servePeriodSetup(user) {
+  const template = HtmlService.createTemplateFromFile('src/frontend/html/PeriodSetup');
+  template.user = user;
+  return template.evaluate()
+    .setTitle('Period Setup - ' + CONFIG.APP_NAME)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function serveSystemNotReady(user) {
+  const template = HtmlService.createTemplateFromFile('src/frontend/html/SystemNotReady');
+  template.user = user;
+  return template.evaluate()
+    .setTitle('System Setup In Progress - ' + CONFIG.APP_NAME)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Setup In Progress - TNSC</title>
+    <style>
+        <?!= include('css/main.css.html'); ?>
+
+        body {
+            background: linear-gradient(135deg, #C74634 0%, #A63929 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .message-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .icon-container {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--oracle-red) 0%, #A63929 100%);
+            border-radius: 50%;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-container svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        h1 {
+            color: var(--oracle-red);
+            font-size: 1.75rem;
+            margin-bottom: 15px;
+        }
+
+        .message-text {
+            color: var(--oracle-black);
+            opacity: 0.8;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .user-info {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+        }
+
+        .user-info p {
+            margin: 5px 0;
+            color: var(--oracle-black);
+            font-size: 14px;
+        }
+
+        .user-info strong {
+            color: var(--oracle-red);
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--oracle-red) 0%, #A63929 100%);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(199, 70, 52, 0.3);
+        }
+
+        .btn-secondary {
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--oracle-black);
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--oracle-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="message-container">
+        <div class="icon-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+        </div>
+
+        <h1>System Setup In Progress</h1>
+
+        <p class="message-text">
+            The TNSC consolidation system is being configured by the administrator.
+            Reporting periods and worksheets need to be set up before you can access the system.
+        </p>
+
+        <div class="user-info">
+            <p><strong>Logged in as:</strong> <?= user.name ?></p>
+            <p><strong>Role:</strong> <?= user.role ?></p>
+            <?php if (user.entityName) { ?>
+            <p><strong>Entity:</strong> <?= user.entityName ?></p>
+            <?php } ?>
+        </div>
+
+        <p class="message-text">
+            <strong>What to do next:</strong><br>
+            Please contact your system administrator to complete the initial setup.
+            Once the reporting periods are configured, you will be able to access your dashboard.
+        </p>
+
+        <div class="spinner"></div>
+
+        <div class="btn-container">
+            <button class="btn-secondary" onclick="logout()">Logout</button>
+            <button class="btn-primary" onclick="checkAgain()">Check Again</button>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            google.script.run
+                .withSuccessHandler(function() {
+                    window.location.href = '?page=index';
+                })
+                .logout();
+        }
+
+        function checkAgain() {
+            // Reload the page - if periods have been created, user will be redirected
+            window.location.reload();
+        }
+
+        // Auto-check every 30 seconds
+        setInterval(function() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.periodsExist) {
+                        // Periods have been created, redirect to appropriate page
+                        window.location.reload();
+                    }
+                })
+                .checkPeriodsExist();
+        }, 30000);
+    </script>
+</body>
+</html>
