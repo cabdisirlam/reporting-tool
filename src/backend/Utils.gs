@@ -564,6 +564,8 @@ function createEntityNoteDataSheet(periodId, ss) {
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
   sheet.setFrozenRows(1);
   sheet.autoResizeColumns(1, headers.length);
+
+  return sheet; // Fix: Return the created sheet
 }
 
 /**
