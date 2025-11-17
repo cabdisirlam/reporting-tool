@@ -266,8 +266,8 @@
                 </div>
             </section>
 
-            <!-- Info Section -->
-            <section class="info-section">
+            <!-- Info Section - Hidden on login page, only shown on dashboards -->
+            <section class="info-section" style="display: none;">
                 <div class="info-grid">
                     <div class="info-card">
                         <div class="info-label">Current Period</div>
@@ -529,10 +529,10 @@
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result.success) {
-                        alert('PIN changed successfully! Please login with your new PIN.');
+                        alert('PIN changed successfully! Redirecting to your dashboard...');
                         hidePinChangeModal();
-                        // Optionally redirect or reload
-                        window.location.href = '?page=index';
+                        // Redirect to the appropriate page based on user role
+                        window.location.href = '?page=' + result.redirectTo;
                     } else {
                         alert('PIN change failed: ' + result.error);
                         submitBtn.disabled = false;
@@ -560,56 +560,6 @@
 
         // Set dynamic copyright year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-        // Load dynamic dashboard data on page load
-        window.addEventListener('DOMContentLoaded', function() {
-            loadDashboardData();
-        });
-
-        function loadDashboardData() {
-            // Load current period and submission stats
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success && result.period) {
-                        // Update current period
-                        document.getElementById('currentPeriod').textContent = result.period.periodName || 'N/A';
-
-                        // Update submission deadline
-                        if (result.period.deadlineDate) {
-                            const deadline = new Date(result.period.deadlineDate);
-                            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                            document.getElementById('submissionDeadline').textContent =
-                                deadline.toLocaleDateString('en-US', options);
-                        } else {
-                            document.getElementById('submissionDeadline').textContent = 'N/A';
-                        }
-
-                        // Update entities submitted
-                        if (result.stats) {
-                            const percentage = result.stats.total > 0
-                                ? Math.round((result.stats.submitted / result.stats.total) * 100)
-                                : 0;
-                            document.getElementById('entitiesSubmitted').innerHTML =
-                                `<span class="submission-count">${result.stats.submitted}/${result.stats.total}</span> ` +
-                                `<span class="submission-percent">(${percentage}%)</span>`;
-                        } else {
-                            document.getElementById('entitiesSubmitted').textContent = 'N/A';
-                        }
-                    } else {
-                        // No active period found
-                        document.getElementById('currentPeriod').textContent = 'No active period';
-                        document.getElementById('submissionDeadline').textContent = 'N/A';
-                        document.getElementById('entitiesSubmitted').textContent = '0/0 (0%)';
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    console.error('Error loading dashboard data:', error);
-                    document.getElementById('currentPeriod').textContent = 'Error loading';
-                    document.getElementById('submissionDeadline').textContent = 'Error loading';
-                    document.getElementById('entitiesSubmitted').textContent = 'Error loading';
-                })
-                .getDashboardData();
-        }
     </script>
 </body>
 </html>

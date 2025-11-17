@@ -626,9 +626,16 @@ function changePIN(data) {
     // Log activity
     logActivity(email, 'PIN_CHANGE', 'User changed PIN');
 
+    // Get updated user data and create session
+    const updatedUser = getUserByEmail(email);
+    const session = createUserSession(updatedUser);
+    const redirectTo = getDefaultPageForRole(updatedUser.role);
+
     return {
       success: true,
-      message: 'PIN changed successfully'
+      message: 'PIN changed successfully',
+      redirectTo: redirectTo,
+      sessionToken: session.sessionToken
     };
   } catch (error) {
     Logger.log('Error changing PIN: ' + error.toString());
