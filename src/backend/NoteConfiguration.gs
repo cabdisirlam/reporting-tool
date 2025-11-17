@@ -13,44 +13,68 @@
 // ============================================================================
 
 /**
- * Gets all note templates
+ * Gets all note templates.
+ * This function is CACHED for 1 hour to improve performance.
  * @returns {Array} List of note templates
  */
 function getNoteTemplates() {
   try {
+    const cache = CacheService.getScriptCache();
+    const cacheKey = 'noteTemplates';
+
+    // 1. Try to get from cache
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      Logger.log('getNoteTemplates: Found in cache.');
+      return JSON.parse(cachedData);
+    }
+
+    Logger.log('getNoteTemplates: Not in cache, fetching from sheet.');
+
+    // 2. If not in cache, get from Spreadsheet
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('NoteTemplates');
-
     if (!sheet) {
       return { success: false, error: 'NoteTemplates sheet not found' };
     }
 
     const data = sheet.getDataRange().getValues();
+    const headers = data[0];
     const notes = [];
+
+    // Find column indices
+    const noteIdCol = headers.indexOf('NoteID');
+    const noteNumCol = headers.indexOf('NoteNumber');
+    const noteNameCol = headers.indexOf('NoteName');
+    const categoryCol = headers.indexOf('Category');
+    const statementTypeCol = headers.indexOf('StatementType');
+    const hasMovementCol = headers.indexOf('HasMovementSchedule');
+    const requiredCol = headers.indexOf('Required');
+    const activeCol = headers.indexOf('Active');
 
     for (let i = 1; i < data.length; i++) {
       notes.push({
-        noteId: data[i][0],
-        noteNumber: data[i][1],
-        noteName: data[i][2],
-        category: data[i][3],
-        statementType: data[i][4],
-        hasMovementSchedule: data[i][5],
-        required: data[i][6],
-        active: data[i][7]
+        noteId: data[i][noteIdCol],
+        noteNumber: data[i][noteNumCol],
+        noteName: data[i][noteNameCol],
+        category: data[i][categoryCol],
+        statementType: data[i][statementTypeCol],
+        hasMovementSchedule: data[i][hasMovementCol],
+        required: data[i][requiredCol],
+        active: data[i][activeCol]
       });
     }
 
-    return {
-      success: true,
-      notes: notes
-    };
+    const result = { success: true, notes: notes };
+
+    // 3. Store in cache for next time (expires in 1 hour)
+    cache.put(cacheKey, JSON.stringify(result), 3600);
+
+    return result;
+
   } catch (error) {
     Logger.log('Error getting note templates: ' + error.toString());
-    return {
-      success: false,
-      error: error.toString()
-    };
+    return { success: false, error: error.toString() };
   }
 }
 

@@ -1,87 +1,55 @@
 /**
  * Auth.gs - User Authentication and Authorization
- *
- * Handles:
- * - User login/logout
- * - Session management
- * - Role-based access control
- * - User verification
+ * (Now with user data caching to prevent 429 errors)
  */
 
 // ============================================================================
 // AUTHENTICATION
 // ============================================================================
 
-/**
- * Handles user login
- * @param {Object} credentials - Email and PIN
- * @returns {Object} Login result with user info or error
- */
 function handleLogin(credentials) {
   try {
     const email = credentials.email;
     const pin = credentials.pin;
 
-    // Validate input
     if (!email || !pin) {
-      return {
-        success: false,
-        error: 'Email and PIN are required'
-      };
+      return { success: false, error: 'Email and PIN are required' };
     }
-
-    // Validate PIN format (exactly 6 digits)
     if (!/^\d{6}$/.test(pin)) {
-      return {
-        success: false,
-        error: 'PIN must be exactly 6 digits'
-      };
+      return { success: false, error: 'PIN must be exactly 6 digits' };
     }
 
-    // Get user from database
+    // 1. Get user from database (FIRST SPREADSHEET CALL)
     const user = getUserByEmail(email);
-
     if (!user) {
-      return {
-        success: false,
-        error: 'User not found. Please contact your administrator.'
-      };
+      return { success: false, error: 'User not found. Please contact your administrator.' };
     }
-
-    // Check if user is active
     if (user.status !== 'ACTIVE') {
-      return {
-        success: false,
-        error: 'Your account has been disabled. Please contact your administrator.'
-      };
+      return { success: false, error: 'Your account has been disabled. Please contact your administrator.' };
     }
 
-    // Verify PIN
+    // 2. Verify PIN
     if (!verifyPIN(pin, user.pinHash, user.pinSalt)) {
-      // Log failed attempt
-      logLoginAttempt(email, false);
-
-      return {
-        success: false,
-        error: 'Invalid PIN'
-      };
+      logLoginAttempt(email, false); // (SECOND SPREADSHEET CALL)
+      return { success: false, error: 'Invalid PIN' };
     }
 
-    // Check if user needs to change PIN
+    // 3. Check for temporary PIN
     const requirePINChange = isTemporaryPIN(pin, user.pinHash, user.pinSalt);
 
-    // Create session only if PIN change is not required
-    let session = null;
+    // 4. Create session and CACHE user data
     if (!requirePINChange) {
-      session = createUserSession(user);
+      createUserSession(user); // Caches user data in PropertiesService
       Logger.log('handleLogin: Session created for user: ' + user.email);
     } else {
       Logger.log('handleLogin: PIN change required for user: ' + user.email);
     }
 
-    // Log successful login
+    // 5. Log successful login (THIRD SPREADSHEET CALL)
     logLoginAttempt(email, true);
 
+    // 6. Get redirect page (FOURTH SPREADSHEET CALL, via checkPeriodsExist)
+    // THIS IS THE FIX FOR THE "ANNOYING ADMIN PROMPT"
     const redirectPage = getDefaultPageForRole(user.role);
     Logger.log('handleLogin: Redirecting to: ' + redirectPage);
 
@@ -95,45 +63,34 @@ function handleLogin(credentials) {
         entityId: user.entityId,
         entityName: user.entityName
       },
-      session: session,
       redirectTo: redirectPage,
-      requirePINChange: requirePINChange
+      requirePINChange: requirePINChange,
     };
 
   } catch (error) {
     Logger.log('Login error: ' + error.toString());
-    return {
-      success: false,
-      error: 'An error occurred during login. Please try again.'
-    };
+    return { success: false, error: 'An error occurred during login. Please try again.' };
   }
 }
 
-/**
- * Handles user logout
- */
 function handleLogout() {
   try {
-    const userEmail = Session.getActiveUser().getEmail();
-
-    // Clear session
     const userProperties = PropertiesService.getUserProperties();
+    const user = JSON.parse(userProperties.getProperty('userCache') || '{}');
+    const email = user.email || Session.getActiveUser().getEmail();
+
+    // Clear session and user cache
     userProperties.deleteProperty('sessionToken');
     userProperties.deleteProperty('userId');
+    userProperties.deleteProperty('sessionCreated');
+    userProperties.deleteProperty('userCache');
 
-    // Log logout
-    logActivity(userEmail, 'LOGOUT', 'User logged out');
+    logActivity(email, 'LOGOUT', 'User logged out');
 
-    return {
-      success: true,
-      message: 'Logged out successfully'
-    };
+    return { success: true, message: 'Logged out successfully' };
   } catch (error) {
     Logger.log('Logout error: ' + error.toString());
-    return {
-      success: false,
-      error: error.toString()
-    };
+    return { success: false, error: error.toString() };
   }
 }
 
@@ -141,16 +98,10 @@ function handleLogout() {
 // USER MANAGEMENT
 // ============================================================================
 
-/**
- * Gets user by email address
- * @param {string} email - User email
- * @returns {Object|null} User object or null
- */
 function getUserByEmail(email) {
   try {
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('Users');
-
     if (!sheet) {
       Logger.log('Users sheet not found');
       return null;
@@ -158,8 +109,6 @@ function getUserByEmail(email) {
 
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
-
-    // Find column indices
     const emailColIndex = headers.indexOf('Email');
     const nameColIndex = headers.indexOf('Name');
     const roleColIndex = headers.indexOf('Role');
@@ -169,13 +118,11 @@ function getUserByEmail(email) {
     const pinHashColIndex = headers.indexOf('PINHash');
     const pinSaltColIndex = headers.indexOf('PINSalt');
 
-    // Validate required columns exist
     if (emailColIndex === -1) {
       Logger.log('Email column not found in Users sheet');
       return null;
     }
 
-    // Find user row
     for (let i = 1; i < data.length; i++) {
       if (data[i][emailColIndex] === email) {
         return {
@@ -191,8 +138,8 @@ function getUserByEmail(email) {
         };
       }
     }
-
     return null;
+
   } catch (error) {
     Logger.log('Error getting user: ' + error.toString());
     return null;
@@ -200,21 +147,30 @@ function getUserByEmail(email) {
 }
 
 /**
- * Gets user by ID
- * @param {string} userId - User ID
- * @returns {Object|null} User object or null
+ * Gets user by ID.
+ * THIS IS NOW CACHED. It only hits the sheet if the cache is empty.
  */
 function getUserById(userId) {
+  // 1. Try to get from cache first
+  const userCache = PropertiesService.getUserProperties().getProperty('userCache');
+  if (userCache) {
+    const user = JSON.parse(userCache);
+    // Make sure cache is for the correct user
+    if (user.id === userId) {
+      Logger.log('getUserById: Found user in cache.');
+      return user;
+    }
+  }
+
+  // 2. If not in cache, get from Spreadsheet (SLOW)
+  Logger.log('getUserById: User not in cache, fetching from sheet.');
   try {
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('Users');
-
     if (!sheet) return null;
 
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
-
-    // Find column indices
     const emailColIndex = headers.indexOf('Email');
     const nameColIndex = headers.indexOf('Name');
     const roleColIndex = headers.indexOf('Role');
@@ -224,7 +180,7 @@ function getUserById(userId) {
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === userId) {
-        return {
+        const user = {
           id: data[i][0],
           email: emailColIndex >= 0 ? data[i][emailColIndex] : '',
           name: nameColIndex >= 0 ? data[i][nameColIndex] : '',
@@ -233,20 +189,19 @@ function getUserById(userId) {
           entityName: entityNameColIndex >= 0 ? data[i][entityNameColIndex] : '',
           status: statusColIndex >= 0 ? data[i][statusColIndex] : 'ACTIVE'
         };
+        // Save to cache for next time
+        PropertiesService.getUserProperties().setProperty('userCache', JSON.stringify(user));
+        return user;
       }
     }
-
     return null;
+
   } catch (error) {
     Logger.log('Error getting user by ID: ' + error.toString());
     return null;
   }
 }
 
-/**
- * Gets all users
- * @returns {Object} Result with list of users
- */
 function getAllUsers() {
   try {
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
@@ -259,8 +214,6 @@ function getAllUsers() {
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
     const users = [];
-
-    // Find column indices
     const emailColIndex = headers.indexOf('Email');
     const nameColIndex = headers.indexOf('Name');
     const roleColIndex = headers.indexOf('Role');
@@ -268,7 +221,6 @@ function getAllUsers() {
     const entityNameColIndex = headers.indexOf('EntityName');
     const statusColIndex = headers.indexOf('Status');
 
-    // Map data to objects
     for (let i = 1; i < data.length; i++) {
       users.push({
         id: data[i][0],
@@ -281,37 +233,22 @@ function getAllUsers() {
       });
     }
 
-    return {
-      success: true,
-      users: users,
-      count: users.length
-    };
+    return { success: true, users: users, count: users.length };
+
   } catch (error) {
     Logger.log('Error getting users: ' + error.toString());
-    return {
-      success: false,
-      error: error.toString()
-    };
+    return { success: false, error: error.toString() };
   }
 }
 
-/**
- * Creates a new user
- * @param {Object} userData - User data
- * @returns {Object} Result
- */
 function createUser(userData) {
   try {
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('Users');
 
-    // Generate user ID
     const userId = 'USR_' + Utilities.getUuid().substring(0, 8).toUpperCase();
-
-    // Hash PIN with unique salt (default PIN: 123456)
     const pinData = hashPIN(userData.pin || '123456');
 
-    // Add user (includes PINSalt column)
     sheet.appendRow([
       userId,
       userData.email,
@@ -326,20 +263,13 @@ function createUser(userData) {
       Session.getActiveUser().getEmail()
     ]);
 
-    // Send welcome email
     sendWelcomeEmail(userData.email, userData.name);
 
-    return {
-      success: true,
-      userId: userId,
-      message: 'User created successfully'
-    };
+    return { success: true, userId: userId, message: 'User created successfully' };
+
   } catch (error) {
     Logger.log('Error creating user: ' + error.toString());
-    return {
-      success: false,
-      error: error.toString()
-    };
+    return { success: false, error: error.toString() };
   }
 }
 
@@ -347,12 +277,6 @@ function createUser(userData) {
 // AUTHORIZATION
 // ============================================================================
 
-/**
- * Checks if user has required role
- * @param {string} userRole - User's role
- * @param {string} requiredRole - Required role
- * @returns {boolean} True if authorized
- */
 function hasRole(userRole, requiredRole) {
   const roleHierarchy = {
     'ADMIN': 4,
@@ -360,59 +284,33 @@ function hasRole(userRole, requiredRole) {
     'DATA_ENTRY': 2,
     'VIEWER': 1
   };
-
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
 }
 
-/**
- * Checks if user can access entity data
- * @param {Object} user - User object
- * @param {string} entityId - Entity ID to access
- * @returns {boolean} True if authorized
- */
 function canAccessEntity(user, entityId) {
-  // Admins can access all entities
   if (user.role === CONFIG.ROLES.ADMIN) {
     return true;
   }
-
-  // Approvers can access all entities
   if (user.role === CONFIG.ROLES.APPROVER) {
     return true;
   }
-
-  // Data entry users can only access their assigned entity
   if (user.role === CONFIG.ROLES.DATA_ENTRY) {
     return user.entityId === entityId;
   }
-
   return false;
 }
 
-/**
- * Checks if user can edit entity data
- * @param {Object} user - User object
- * @param {string} entityId - Entity ID
- * @param {string} periodStatus - Period status
- * @returns {boolean} True if can edit
- */
 function canEditEntity(user, entityId, periodStatus) {
-  // Can't edit if period is closed or locked
   if (periodStatus === CONFIG.PERIOD_STATUS.CLOSED ||
       periodStatus === CONFIG.PERIOD_STATUS.LOCKED) {
     return false;
   }
-
-  // Admins can always edit
   if (user.role === CONFIG.ROLES.ADMIN) {
     return true;
   }
-
-  // Data entry users can edit their entity
   if (user.role === CONFIG.ROLES.DATA_ENTRY && user.entityId === entityId) {
     return true;
   }
-
   return false;
 }
 
@@ -421,25 +319,31 @@ function canEditEntity(user, entityId, periodStatus) {
 // ============================================================================
 
 /**
- * Creates a user session
+ * Creates a user session AND caches the user object
  * @param {Object} user - User object
- * @returns {string} Session token
  */
 function createUserSession(user) {
   const sessionToken = Utilities.getUuid();
   const userProperties = PropertiesService.getUserProperties();
 
-  userProperties.setProperty('sessionToken', sessionToken);
-  userProperties.setProperty('userId', user.id);
-  userProperties.setProperty('sessionCreated', new Date().toISOString());
+  // Cache all user data to prevent re-fetching on every page load
+  const userCacheData = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    entityId: user.entityId,
+    entityName: user.entityName
+  };
 
-  return sessionToken;
+  userProperties.setProperties({
+    'sessionToken': sessionToken,
+    'userId': user.id,
+    'sessionCreated': new Date().toISOString(),
+    'userCache': JSON.stringify(userCacheData) // <-- THE CACHE
+  });
 }
 
-/**
- * Validates session
- * @returns {boolean} True if session is valid
- */
 function validateSession() {
   try {
     const userProperties = PropertiesService.getUserProperties();
@@ -457,7 +361,6 @@ function validateSession() {
     const hoursDiff = (now - created) / (1000 * 60 * 60);
 
     if (hoursDiff > 24) {
-      // Session expired
       Logger.log('validateSession: Session expired (age: ' + hoursDiff + ' hours)');
       userProperties.deleteAllProperties();
       return false;
@@ -465,6 +368,7 @@ function validateSession() {
 
     Logger.log('validateSession: Session valid (age: ' + hoursDiff.toFixed(2) + ' hours)');
     return true;
+
   } catch (error) {
     Logger.log('validateSession: Error: ' + error.toString());
     return false;
@@ -475,24 +379,13 @@ function validateSession() {
 // PIN MANAGEMENT
 // ============================================================================
 
-/**
- * Generates a unique random salt for PIN hashing
- * @returns {string} Random salt
- */
 function generateSalt() {
   const uuid = Utilities.getUuid();
   const timestamp = new Date().getTime();
   return Utilities.base64Encode(uuid + timestamp);
 }
 
-/**
- * Hashes a PIN with a unique salt
- * @param {string} pin - Plain text PIN (6 digits)
- * @param {string} salt - Unique salt (if not provided, generates new one)
- * @returns {Object} Object containing hash and salt
- */
 function hashPIN(pin, salt) {
-  // Generate new salt if not provided
   if (!salt) {
     salt = generateSalt();
   }
@@ -504,23 +397,12 @@ function hashPIN(pin, salt) {
     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
   }).join('');
 
-  // Return both hash and salt
-  return {
-    hash: hash,
-    salt: salt
-  };
+  return { hash: hash, salt: salt };
 }
 
-/**
- * Verifies a PIN against a stored hash
- * @param {string} pin - Plain text PIN
- * @param {string} storedHash - Stored hash
- * @param {string} salt - User's unique salt
- * @returns {boolean} True if PIN matches
- */
 function verifyPIN(pin, storedHash, salt) {
   if (!salt) {
-    // Backward compatibility: if no salt provided, use old static salt
+    // Legacy support
     const legacySalt = 'IPSAS_SALT_2024';
     const legacyHash = Utilities.computeDigest(
       Utilities.DigestAlgorithm.SHA_256,
@@ -535,97 +417,48 @@ function verifyPIN(pin, storedHash, salt) {
   return result.hash === storedHash;
 }
 
-/**
- * Checks if the current PIN is a temporary PIN that needs to be changed
- * @param {string} pin - Plain text PIN
- * @param {string} storedHash - Stored hash
- * @param {string} salt - User's unique salt
- * @returns {boolean} True if PIN is temporary
- */
 function isTemporaryPIN(pin, storedHash, salt) {
-  // Check if PIN is the default "123456"
   if (pin === '123456') {
     return true;
   }
-
   return false;
 }
 
-/**
- * Changes user PIN
- * @param {Object} data - Contains email, currentPIN, and newPIN
- * @returns {Object} Result
- */
 function changePIN(data) {
   try {
     const { email, currentPIN, newPIN } = data;
-
-    // Validate input
     if (!email || !currentPIN || !newPIN) {
-      return {
-        success: false,
-        error: 'Email, current PIN, and new PIN are required'
-      };
+      return { success: false, error: 'Email, current PIN, and new PIN are required' };
     }
-
-    // Validate new PIN format (exactly 6 digits)
     if (!/^\d{6}$/.test(newPIN)) {
-      return {
-        success: false,
-        error: 'New PIN must be exactly 6 digits'
-      };
+      return { success: false, error: 'New PIN must be exactly 6 digits' };
     }
 
-    // Get user from database
     const user = getUserByEmail(email);
     if (!user) {
-      return {
-        success: false,
-        error: 'User not found'
-      };
+      return { success: false, error: 'User not found' };
     }
-
-    // Verify current PIN
     if (!verifyPIN(currentPIN, user.pinHash, user.pinSalt)) {
-      return {
-        success: false,
-        error: 'Current PIN is incorrect'
-      };
+      return { success: false, error: 'Current PIN is incorrect' };
     }
 
-    // Hash new PIN with new salt
     const pinData = hashPIN(newPIN);
 
-    // Update PIN and salt in database
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('Users');
     const data_range = sheet.getDataRange().getValues();
     const headers = data_range[0];
 
-    // Find column indices
     const hashColIndex = headers.indexOf('PINHash');
     const saltColIndex = headers.indexOf('PINSalt');
     const emailColIndex = headers.indexOf('Email');
 
-    // Validate required columns exist
-    if (hashColIndex === -1) {
-      return {
-        success: false,
-        error: 'PINHash column not found in Users sheet'
-      };
+    if (hashColIndex === -1 || emailColIndex === -1) {
+      return { success: false, error: 'User sheet is missing required columns (PINHash or Email)' };
     }
 
-    if (emailColIndex === -1) {
-      return {
-        success: false,
-        error: 'Email column not found in Users sheet'
-      };
-    }
-
-    // Convert to 1-based column numbers for getRange
     const hashCol = hashColIndex + 1;
     const saltCol = saltColIndex >= 0 ? saltColIndex + 1 : -1;
-    const emailCol = emailColIndex + 1;
 
     for (let i = 1; i < data_range.length; i++) {
       if (data_range[i][emailColIndex] === email) {
@@ -637,34 +470,24 @@ function changePIN(data) {
       }
     }
 
-    // Log activity
     logActivity(email, 'PIN_CHANGE', 'User changed PIN');
 
-    // Get updated user data and create session
     const updatedUser = getUserByEmail(email);
-    const session = createUserSession(updatedUser);
+    createUserSession(updatedUser); // Create new session with updated data
     const redirectTo = getDefaultPageForRole(updatedUser.role);
 
     return {
       success: true,
       message: 'PIN changed successfully',
       redirectTo: redirectTo,
-      sessionToken: session.sessionToken
     };
+
   } catch (error) {
     Logger.log('Error changing PIN: ' + error.toString());
-    return {
-      success: false,
-      error: 'An error occurred while changing PIN: ' + error.toString()
-    };
+    return { success: false, error: 'An error occurred while changing PIN: ' + error.toString() };
   }
 }
 
-/**
- * Resets user PIN
- * @param {string} email - User email
- * @returns {Object} Result
- */
 function resetPIN(email) {
   try {
     const user = getUserByEmail(email);
@@ -672,37 +495,22 @@ function resetPIN(email) {
       return { success: false, error: 'User not found' };
     }
 
-    // Generate temporary PIN (6 random digits)
     const tempPIN = Math.floor(100000 + Math.random() * 900000).toString();
     const pinData = hashPIN(tempPIN);
 
-    // Update PIN and salt
     const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
     const sheet = ss.getSheetByName('Users');
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
 
-    // Find column indices
     const hashColIndex = headers.indexOf('PINHash');
     const saltColIndex = headers.indexOf('PINSalt');
     const emailColIndex = headers.indexOf('Email');
 
-    // Validate required columns exist
-    if (hashColIndex === -1) {
-      return {
-        success: false,
-        error: 'PINHash column not found in Users sheet'
-      };
+    if (hashColIndex === -1 || emailColIndex === -1) {
+      return { success: false, error: 'User sheet is missing required columns' };
     }
 
-    if (emailColIndex === -1) {
-      return {
-        success: false,
-        error: 'Email column not found in Users sheet'
-      };
-    }
-
-    // Convert to 1-based column numbers for getRange
     const hashCol = hashColIndex + 1;
     const saltCol = saltColIndex >= 0 ? saltColIndex + 1 : -1;
 
@@ -716,19 +524,12 @@ function resetPIN(email) {
       }
     }
 
-    // Send email with new PIN
     sendPINResetEmail(email, user.name, tempPIN);
+    return { success: true, message: 'PIN reset email sent' };
 
-    return {
-      success: true,
-      message: 'PIN reset email sent'
-    };
   } catch (error) {
     Logger.log('Error resetting PIN: ' + error.toString());
-    return {
-      success: false,
-      error: error.toString()
-    };
+    return { success: false, error: error.toString() };
   }
 }
 
@@ -736,22 +537,14 @@ function resetPIN(email) {
 // UTILITY FUNCTIONS
 // ============================================================================
 
-/**
- * Gets default page based on user role
- * @param {string} role - User role
- * @returns {string} Page name
- */
 function getDefaultPageForRole(role) {
   // Check if system has periods configured
-  const periodsExist = checkPeriodsExist();
+  const periodsExist = checkPeriodsExist(); // This opens MASTER_CONFIG
 
-  // If no periods exist, redirect to setup
   if (!periodsExist) {
-    // Admin should go to period setup
     if (role === CONFIG.ROLES.ADMIN) {
       return 'PeriodSetup';
     }
-    // Non-admin users should see a waiting page
     return 'SystemNotReady';
   }
 
@@ -762,19 +555,15 @@ function getDefaultPageForRole(role) {
     case CONFIG.ROLES.APPROVER:
       return 'ApprovalDashboard';
     case CONFIG.ROLES.DATA_ENTRY:
-      return 'dataEntry';
+      return 'DataEntry';
     default:
-      return 'dashboard';
+      return 'Dashboard';
   }
 }
 
-/**
- * Checks if any periods exist in the system
- * @returns {boolean} True if periods exist, false otherwise
- */
 function checkPeriodsExist() {
   try {
-    const periodsResult = getAllPeriods();
+    const periodsResult = getAllPeriods(); // This is the heavy call
     return periodsResult.success && periodsResult.periods && periodsResult.periods.length > 0;
   } catch (error) {
     Logger.log('Error checking periods: ' + error.toString());
@@ -782,21 +571,11 @@ function checkPeriodsExist() {
   }
 }
 
-/**
- * Logs login attempt
- * @param {string} email - User email
- * @param {boolean} success - Whether login was successful
- */
 function logLoginAttempt(email, success) {
   logActivity(email, success ? 'LOGIN_SUCCESS' : 'LOGIN_FAILED',
     success ? 'User logged in' : 'Failed login attempt');
 }
 
-/**
- * Sends welcome email to new user
- * @param {string} email - User email
- * @param {string} name - User name
- */
 function sendWelcomeEmail(email, name) {
   const subject = 'Welcome to IPSAS Financial Consolidation System';
   const body = `Dear ${name},\n\n` +
@@ -807,16 +586,9 @@ function sendWelcomeEmail(email, name) {
     `System URL: ${ScriptApp.getService().getUrl()}\n\n` +
     `Best regards,\n` +
     `IPSAS System Administrator`;
-
   GmailApp.sendEmail(email, subject, body);
 }
 
-/**
- * Sends PIN reset email
- * @param {string} email - User email
- * @param {string} name - User name
- * @param {string} tempPIN - Temporary PIN
- */
 function sendPINResetEmail(email, name, tempPIN) {
   const subject = 'PIN Reset - IPSAS System';
   const body = `Dear ${name},\n\n` +
@@ -826,6 +598,5 @@ function sendPINResetEmail(email, name, tempPIN) {
     `System URL: ${ScriptApp.getService().getUrl()}\n\n` +
     `Best regards,\n` +
     `IPSAS System Administrator`;
-
   GmailApp.sendEmail(email, subject, body);
 }
