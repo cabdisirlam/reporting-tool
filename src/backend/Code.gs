@@ -116,16 +116,26 @@ function doGet(e) {
         return servePeriodSetup(user);
 
       case 'AdminSetupPrompt':
-        if (!user) return redirectToLogin();
+        if (!user) {
+          Logger.log('AdminSetupPrompt: No user found, redirecting to login');
+          return redirectToLogin();
+        }
+        Logger.log('AdminSetupPrompt: User found: ' + user.email + ', role: ' + user.role);
         // Only admins can access setup prompt
         if (user.role !== CONFIG.ROLES.ADMIN) {
+          Logger.log('AdminSetupPrompt: User is not admin, denying access');
           return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can access this page.</p>');
         }
+        Logger.log('AdminSetupPrompt: Serving admin setup prompt');
         return serveAdminSetupPrompt(user);
 
       case 'SystemNotReady':
         if (!user) return redirectToLogin();
         return serveSystemNotReady(user);
+
+      case 'diagnostics':
+        // Allow anyone to view diagnostics for troubleshooting
+        return showSystemDiagnostics();
 
       default:
         // Handle other pages if they exist
@@ -240,11 +250,27 @@ function serveSystemNotReady(user) {
 }
 
 function serveAdminSetupPrompt(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/AdminSetupPrompt');
-  template.user = user;
-  return template.evaluate()
-    .setTitle('Admin Setup - ' + CONFIG.APP_NAME)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  try {
+    Logger.log('serveAdminSetupPrompt: Creating template for user: ' + user.email);
+    const template = HtmlService.createTemplateFromFile('src/frontend/html/AdminSetupPrompt');
+    template.user = user;
+    Logger.log('serveAdminSetupPrompt: Evaluating template');
+    const output = template.evaluate()
+      .setTitle('Admin Setup - ' + CONFIG.APP_NAME)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    Logger.log('serveAdminSetupPrompt: Template evaluated successfully');
+    return output;
+  } catch (error) {
+    Logger.log('serveAdminSetupPrompt: Error: ' + error.toString());
+    Logger.log('serveAdminSetupPrompt: Stack: ' + error.stack);
+    return HtmlService.createHtmlOutput(
+      '<h1>Error Loading Admin Setup</h1>' +
+      '<p>An error occurred while loading the admin setup page.</p>' +
+      '<p><strong>Error:</strong> ' + error.toString() + '</p>' +
+      '<p>Please check the execution logs for more details.</p>' +
+      '<p><a href="?page=AdminPanel">Go to Admin Panel</a></p>'
+    ).setTitle('Error - ' + CONFIG.APP_NAME);
+  }
 }
 
 function redirectToLogin() {
@@ -258,23 +284,44 @@ function redirectToLogin() {
 // ============================================================================
 
 function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+  try {
+    Logger.log('include: Loading file: ' + filename);
+    return HtmlService.createHtmlOutputFromFile(filename).getContent();
+  } catch (error) {
+    Logger.log('include: Error loading file ' + filename + ': ' + error.toString());
+    // Return empty string or basic fallback CSS instead of failing
+    return '/* Error loading ' + filename + ': ' + error.toString() + ' */';
+  }
 }
 
 function getCurrentUser() {
-  // First, validate the PIN-based session
-  if (!validateSession()) {
+  try {
+    // First, validate the PIN-based session
+    if (!validateSession()) {
+      Logger.log('getCurrentUser: Session validation failed');
+      return null;
+    }
+
+    // Get user ID from session properties
+    const userId = PropertiesService.getUserProperties().getProperty('userId');
+    if (!userId) {
+      Logger.log('getCurrentUser: No userId found in session properties');
+      return null;
+    }
+
+    Logger.log('getCurrentUser: Found userId: ' + userId);
+    // Retrieve user by ID
+    const user = getUserById(userId);
+    if (user) {
+      Logger.log('getCurrentUser: Successfully retrieved user: ' + user.email);
+    } else {
+      Logger.log('getCurrentUser: Failed to retrieve user by ID: ' + userId);
+    }
+    return user;
+  } catch (error) {
+    Logger.log('getCurrentUser: Error: ' + error.toString());
     return null;
   }
-
-  // Get user ID from session properties
-  const userId = PropertiesService.getUserProperties().getProperty('userId');
-  if (!userId) {
-    return null;
-  }
-
-  // Retrieve user by ID
-  return getUserById(userId);
 }
 
 // ============================================================================
