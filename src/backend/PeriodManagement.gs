@@ -261,6 +261,15 @@ function getQuarterEndDate(quarter, fiscalYear) {
  */
 function createPeriod(periodData) {
   try {
+    // Only administrators can create new periods
+    const user = getCurrentUser();
+    if (!user || user.role !== CONFIG.ROLES.ADMIN) {
+      return {
+        success: false,
+        error: 'Only admins can create periods'
+      };
+    }
+
     const { periodName, fiscalYear, quarter, startDate, endDate, deadlineDate } = periodData;
 
     // Validate required fields
