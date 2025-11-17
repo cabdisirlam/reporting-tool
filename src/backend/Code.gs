@@ -299,7 +299,57 @@ function setupSystem() {
     if (response === ui.Button.YES) {
       try {
         createMasterConfigSpreadsheet();
-        ui.alert('Success', 'System setup completed successfully!', ui.ButtonSet.OK);
+
+        // Prompt for first period name
+        const periodResponse = ui.prompt(
+          'Create First Period',
+          'Enter the period name (e.g., Q1 2024-25):',
+          ui.ButtonSet.OK_CANCEL
+        );
+
+        if (periodResponse.getSelectedButton() === ui.Button.OK) {
+          const periodName = periodResponse.getResponseText().trim();
+          if (periodName) {
+            // Extract quarter and fiscal year from period name
+            // Expected format: "Q1 2024-25" or similar
+            const periodParts = periodName.match(/Q(\d)\s*(\d{4})-?(\d{2})?/i);
+            if (periodParts) {
+              const quarter = 'Q' + periodParts[1];
+              const year1 = periodParts[2];
+              const year2 = periodParts[3] || String(parseInt(year1.substr(2)) + 1).padStart(2, '0');
+              const fiscalYear = `${year1}-${year2}`;
+
+              // Calculate dates based on quarter
+              const startDate = getQuarterStartDate(quarter, fiscalYear);
+              const endDate = getQuarterEndDate(quarter, fiscalYear);
+              const deadlineDate = new Date(endDate);
+              deadlineDate.setDate(deadlineDate.getDate() + 14); // 2 weeks after period end
+
+              // Create the period
+              const periodData = {
+                periodName: periodName,
+                fiscalYear: fiscalYear,
+                quarter: quarter,
+                startDate: startDate,
+                endDate: endDate,
+                deadlineDate: Utilities.formatDate(deadlineDate, Session.getScriptTimeZone(), 'yyyy-MM-dd')
+              };
+
+              const periodResult = createPeriod(periodData);
+              if (periodResult.success) {
+                ui.alert('Success', `System setup completed! Period "${periodName}" created successfully.`, ui.ButtonSet.OK);
+              } else {
+                ui.alert('Warning', 'System setup completed, but period creation failed: ' + periodResult.error, ui.ButtonSet.OK);
+              }
+            } else {
+              ui.alert('Warning', 'System setup completed, but period name format was invalid. Please create a period manually from the admin panel.', ui.ButtonSet.OK);
+            }
+          } else {
+            ui.alert('Success', 'System setup completed! No period created. You can create periods from the admin panel.', ui.ButtonSet.OK);
+          }
+        } else {
+          ui.alert('Success', 'System setup completed! No period created. You can create periods from the admin panel.', ui.ButtonSet.OK);
+        }
       } catch (error) {
         ui.alert('Error', 'Setup failed: ' + error.toString(), ui.ButtonSet.OK);
       }
