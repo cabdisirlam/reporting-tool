@@ -298,8 +298,8 @@ function createPeriod(periodData) {
       new Date()
     ]);
 
-    // Create period spreadsheet
-    createPeriodSpreadsheet(periodId, periodName);
+    // Create period sheets within master config workbook
+    createPeriodSheets(periodId, periodName);
 
     // Log activity
     logActivity(
@@ -554,94 +554,45 @@ function closeAllOpenPeriods() {
 }
 
 /**
- * Creates period spreadsheet
+ * Creates period sheets within master config workbook
  * @param {string} periodId - Period ID
  * @param {string} periodName - Period name
- * @returns {string} Spreadsheet ID
  */
-function createPeriodSpreadsheet(periodId, periodName) {
-  Logger.log(`Creating period spreadsheet for ${periodId}...`);
+function createPeriodSheets(periodId, periodName) {
+  Logger.log(`Creating period sheets for ${periodId} in master config workbook...`);
 
-  // Create new spreadsheet with timestamp for uniqueness
-  const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmmss');
-  const ss = SpreadsheetApp.create(`IPSAS_${periodId}_${periodName}_${timestamp}`);
-  const ssId = ss.getId();
+  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
 
-  Logger.log(`Period spreadsheet ID: ${ssId}`);
+  // Create data sheets with period-specific names
+  createSubmissionStatusSheet(periodId, ss);
+  createEntityNoteDataSheet(periodId, ss);
 
-  // Store the ID in script properties
-  PropertiesService.getScriptProperties().setProperty('PERIOD_' + periodId, ssId);
-
-  // Set up spreadsheet-level formatting
-  ss.setSpreadsheetTimeZone(Session.getScriptTimeZone());
-
-  // Add a README/Info sheet
-  const infoSheet = ss.insertSheet('Period_Info', 0);
-  const infoContent = [
-    ['IPSAS Financial Consolidation System - Period Data'],
-    [''],
-    [`Period: ${periodName}`],
-    [`Period ID: ${periodId}`],
-    [''],
-    ['This spreadsheet contains all entity submissions for this reporting period.'],
-    [''],
-    ['Sheet Overview:'],
-    ['- Period_Info: This information sheet'],
-    ['- SubmissionStatus: Tracks which entities have submitted/been approved'],
-    ['- EntityNoteData: Stores all financial data entries by entity and note'],
-    [''],
-    ['Important Notes:'],
-    ['- Data is managed through the web interface'],
-    ['- Do NOT manually edit unless you know what you are doing'],
-    ['- Submission status is automatically updated'],
-    [''],
-    ['Created: ' + new Date().toString()],
-    ['Spreadsheet ID: ' + ssId]
-  ];
-
-  infoSheet.getRange(1, 1, infoContent.length, 1).setValues(infoContent);
-  infoSheet.getRange('A1').setFontWeight('bold').setFontSize(14);
-  infoSheet.getRange('A3:A4').setFontWeight('bold');
-  infoSheet.getRange('A8').setFontWeight('bold');
-  infoSheet.getRange('A13').setFontWeight('bold');
-  infoSheet.setColumnWidth(1, 600);
-
-  // Protect the info sheet
-  const protection = infoSheet.protect();
-  protection.setDescription('Period information - read only');
-  protection.setWarningOnly(true);
-
-  // Create data sheets
-  createSubmissionStatusSheet(ss);
-  createEntityNoteDataSheet(ss);
-
-  // Delete default sheet
-  const defaultSheet = ss.getSheetByName('Sheet1');
-  if (defaultSheet) ss.deleteSheet(defaultSheet);
-
-  Logger.log(`Period spreadsheet created successfully: ${ssId}`);
-  Logger.log(`Spreadsheet URL: ${ss.getUrl()}`);
-
-  return ssId;
+  Logger.log(`Period sheets created successfully for ${periodId}`);
 }
 
 /**
- * Protects period spreadsheet
+ * Protects period sheets
  * @param {string} periodId - Period ID
  */
 function protectPeriodSpreadsheet(periodId) {
-  const periodSs = getPeriodSpreadsheet(periodId);
-  if (!periodSs) return;
+  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
 
-  // Protect all sheets
-  const sheets = periodSs.getSheets();
-  sheets.forEach(sheet => {
-    const protection = sheet.protect();
-    protection.setDescription('Period locked - no edits allowed');
+  // Protect period-specific sheets
+  const sheetNames = [
+    `SubmissionStatus_${periodId}`,
+    `EntityNoteData_${periodId}`
+  ];
 
-    // Only admins can edit
-    protection.removeEditors(protection.getEditors());
-    protection.addEditor(Session.getActiveUser().getEmail());
+  sheetNames.forEach(sheetName => {
+    const sheet = ss.getSheetByName(sheetName);
+    if (sheet) {
+      const protection = sheet.protect();
+      protection.setDescription('Period locked - no edits allowed');
+
+      // Only admins can edit
+      protection.removeEditors(protection.getEditors());
+      protection.addEditor(Session.getActiveUser().getEmail());
+    }
   });
 }
 
@@ -742,21 +693,7 @@ function getAllPeriods() {
   }
 }
 
-/**
- * Gets the period spreadsheet by period ID
- * @param {string} periodId - Period ID
- * @returns {Spreadsheet} Period spreadsheet
- */
-function getPeriodSpreadsheet(periodId) {
-  try {
-    const ssId = PropertiesService.getScriptProperties().getProperty('PERIOD_' + periodId);
-    if (!ssId) return null;
-    return SpreadsheetApp.openById(ssId);
-  } catch (error) {
-    Logger.log('Error getting period spreadsheet: ' + error.toString());
-    return null;
-  }
-}
+// Function removed - all period data now stored in master config workbook with period-specific sheet names
 
 /**
  * Gets submission status for an entity in a period
@@ -766,15 +703,10 @@ function getPeriodSpreadsheet(periodId) {
  */
 function getSubmissionStatus(entityId, periodId) {
   try {
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) {
-      return {
-        success: false,
-        error: 'Period spreadsheet not found'
-      };
-    }
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `SubmissionStatus_${periodId}`;
+    const sheet = ss.getSheetByName(sheetName);
 
-    const sheet = periodSs.getSheetByName('SubmissionStatus');
     if (!sheet) {
       return {
         success: true,

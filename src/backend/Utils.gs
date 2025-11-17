@@ -438,27 +438,28 @@ function createUsersSheet(ss) {
   const sheet = ss.insertSheet('Users');
   const headers = [
     'UserID', 'Email', 'Name', 'Role', 'EntityID', 'EntityName',
-    'Status', 'PasswordHash', 'PasswordSalt', 'CreatedDate', 'CreatedBy'
+    'Status', 'PINHash', 'PINSalt', 'CreatedDate', 'CreatedBy'
   ];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
   sheet.setFrozenRows(1);
 
-  // Sample admin user
-  const adminHash = hashPIN('admin123'); // This returns {hash: "...", salt: "..."}
+  // Default admin user for login
+  const defaultUserHash = hashPIN('123456');
   sheet.appendRow([
     'USR_ADMIN',
-    'admin@treasury.go.ke',
+    'cabdisirlam@gmail.com',
     'System Administrator',
     'ADMIN',
     '',
     '',
     'ACTIVE',
-    adminHash.hash,     // Correctly save just the hash
-    adminHash.salt,     // Correctly save the salt
+    defaultUserHash.hash,
+    defaultUserHash.salt,
     new Date(),
     'system'
   ]);
+
   sheet.autoResizeColumns(1, headers.length);
 }
 
@@ -551,8 +552,9 @@ function createNoteLineSheet(ss) {
  * Creates entity note data sheet (for period spreadsheets)
  * @param {Spreadsheet} ss - Spreadsheet object
  */
-function createEntityNoteDataSheet(ss) {
-  const sheet = ss.insertSheet('EntityNoteData');
+function createEntityNoteDataSheet(periodId, ss) {
+  const sheetName = `EntityNoteData_${periodId}`;
+  const sheet = ss.insertSheet(sheetName);
 
   const headers = [
     'EntityID', 'NoteID', 'LineID', 'Value', 'LastUpdated', 'UpdatedBy'
@@ -565,11 +567,13 @@ function createEntityNoteDataSheet(ss) {
 }
 
 /**
- * Creates submission status sheet (for period spreadsheets)
+ * Creates submission status sheet (for period data in master config)
+ * @param {string} periodId - Period ID
  * @param {Spreadsheet} ss - Spreadsheet object
  */
-function createSubmissionStatusSheet(ss) {
-  const sheet = ss.insertSheet('SubmissionStatus');
+function createSubmissionStatusSheet(periodId, ss) {
+  const sheetName = `SubmissionStatus_${periodId}`;
+  const sheet = ss.insertSheet(sheetName);
 
   const headers = [
     'EntityID', 'Status', 'SubmittedDate', 'SubmittedBy', 'ApprovedDate', 'ApprovedBy', 'Comments'

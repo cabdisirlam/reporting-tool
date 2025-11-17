@@ -29,19 +29,14 @@ function saveNoteData(params) {
       };
     }
 
-    // Get period spreadsheet
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) {
-      return {
-        success: false,
-        error: 'Period spreadsheet not found'
-      };
-    }
+    // Get master config spreadsheet
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `EntityNoteData_${periodId}`;
 
     // Get or create EntityNoteData sheet
-    let dataSheet = periodSs.getSheetByName('EntityNoteData');
+    let dataSheet = ss.getSheetByName(sheetName);
     if (!dataSheet) {
-      dataSheet = createEntityNoteDataSheet(periodSs);
+      dataSheet = createEntityNoteDataSheet(periodId, ss);
     }
 
     // Save data
@@ -78,15 +73,10 @@ function getNoteData(params) {
     const { entityId, periodId, noteId } = params;
 
     // Get period spreadsheet
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) {
-      return {
-        success: false,
-        error: 'Period spreadsheet not found'
-      };
-    }
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `EntityNoteData_${periodId}`;
+    const dataSheet = ss.getSheetByName(sheetName);
 
-    const dataSheet = periodSs.getSheetByName('EntityNoteData');
     if (!dataSheet) {
       return {
         success: true,
@@ -130,15 +120,10 @@ function getNoteData(params) {
  */
 function getAllEntityNoteData(entityId, periodId) {
   try {
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) {
-      return {
-        success: false,
-        error: 'Period spreadsheet not found'
-      };
-    }
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `EntityNoteData_${periodId}`;
+    const dataSheet = ss.getSheetByName(sheetName);
 
-    const dataSheet = periodSs.getSheetByName('EntityNoteData');
     if (!dataSheet) {
       return {
         success: true,
@@ -230,23 +215,6 @@ function getEntityCompletionStatus(entityId, periodId) {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
-
-/**
- * Gets period spreadsheet by ID
- * @param {string} periodId - Period ID
- * @returns {Spreadsheet} Spreadsheet object
- */
-function getPeriodSpreadsheet(periodId) {
-  // Get spreadsheet ID from properties or create new
-  const props = PropertiesService.getScriptProperties();
-  const ssId = props.getProperty('PERIOD_' + periodId);
-
-  if (ssId) {
-    return SpreadsheetApp.openById(ssId);
-  }
-
-  return null;
-}
 
 /**
  * Saves or updates note data in sheet

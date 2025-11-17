@@ -191,12 +191,12 @@ function rejectSubmission(params) {
  */
 function updateSubmissionStatus(entityId, periodId, statusData) {
   try {
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) return;
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `SubmissionStatus_${periodId}`;
+    let statusSheet = ss.getSheetByName(sheetName);
 
-    let statusSheet = periodSs.getSheetByName('SubmissionStatus');
     if (!statusSheet) {
-      statusSheet = createSubmissionStatusSheet(periodSs);
+      statusSheet = createSubmissionStatusSheet(periodId, ss);
     }
 
     const data = statusSheet.getDataRange().getValues();
@@ -240,12 +240,10 @@ function updateSubmissionStatus(entityId, periodId, statusData) {
  */
 function getSubmissionStatus(entityId, periodId) {
   try {
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) {
-      return { success: false, error: 'Period spreadsheet not found' };
-    }
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `SubmissionStatus_${periodId}`;
+    const statusSheet = ss.getSheetByName(sheetName);
 
-    const statusSheet = periodSs.getSheetByName('SubmissionStatus');
     if (!statusSheet) {
       return {
         success: true,
@@ -291,12 +289,10 @@ function getSubmissionStatus(entityId, periodId) {
  */
 function getPendingApprovals(periodId) {
   try {
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) {
-      return { success: false, error: 'Period spreadsheet not found' };
-    }
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `SubmissionStatus_${periodId}`;
+    const statusSheet = ss.getSheetByName(sheetName);
 
-    const statusSheet = periodSs.getSheetByName('SubmissionStatus');
     if (!statusSheet) {
       return { success: true, submissions: [] };
     }
