@@ -376,12 +376,12 @@ function calculateLineTotal(line, allLines, noteData) {
  */
 function saveValidationResults(entityId, periodId, results) {
   try {
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) return;
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `ValidationResults_${periodId}`;
+    let resultsSheet = ss.getSheetByName(sheetName);
 
-    let resultsSheet = periodSs.getSheetByName('ValidationResults');
     if (!resultsSheet) {
-      resultsSheet = periodSs.insertSheet('ValidationResults');
+      resultsSheet = ss.insertSheet(sheetName);
       resultsSheet.appendRow(['EntityID', 'RunDate', 'Status', 'Errors', 'Warnings', 'ResultsJSON']);
       resultsSheet.getRange(1, 1, 1, 6).setFontWeight('bold');
     }
@@ -409,12 +409,10 @@ function saveValidationResults(entityId, periodId, results) {
  */
 function getValidationResults(entityId, periodId) {
   try {
-    const periodSs = getPeriodSpreadsheet(periodId);
-    if (!periodSs) {
-      return { success: false, error: 'Period spreadsheet not found' };
-    }
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheetName = `ValidationResults_${periodId}`;
+    const resultsSheet = ss.getSheetByName(sheetName);
 
-    const resultsSheet = periodSs.getSheetByName('ValidationResults');
     if (!resultsSheet) {
       return { success: true, results: null };
     }

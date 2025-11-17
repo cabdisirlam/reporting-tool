@@ -552,8 +552,9 @@ function createNoteLineSheet(ss) {
  * Creates entity note data sheet (for period spreadsheets)
  * @param {Spreadsheet} ss - Spreadsheet object
  */
-function createEntityNoteDataSheet(ss) {
-  const sheet = ss.insertSheet('EntityNoteData');
+function createEntityNoteDataSheet(periodId, ss) {
+  const sheetName = `EntityNoteData_${periodId}`;
+  const sheet = ss.insertSheet(sheetName);
 
   const headers = [
     'EntityID', 'NoteID', 'LineID', 'Value', 'LastUpdated', 'UpdatedBy'
@@ -566,11 +567,13 @@ function createEntityNoteDataSheet(ss) {
 }
 
 /**
- * Creates submission status sheet (for period spreadsheets)
+ * Creates submission status sheet (for period data in master config)
+ * @param {string} periodId - Period ID
  * @param {Spreadsheet} ss - Spreadsheet object
  */
-function createSubmissionStatusSheet(ss) {
-  const sheet = ss.insertSheet('SubmissionStatus');
+function createSubmissionStatusSheet(periodId, ss) {
+  const sheetName = `SubmissionStatus_${periodId}`;
+  const sheet = ss.insertSheet(sheetName);
 
   const headers = [
     'EntityID', 'Status', 'SubmittedDate', 'SubmittedBy', 'ApprovedDate', 'ApprovedBy', 'Comments'
