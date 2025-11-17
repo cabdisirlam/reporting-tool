@@ -82,11 +82,8 @@ function handleLogin(credentials) {
     // Log successful login
     logLoginAttempt(email, true);
 
-    // Check if admin needs setup prompt
-    const needsSetupPrompt = (user.role === CONFIG.ROLES.ADMIN);
-    Logger.log('handleLogin: needsSetupPrompt=' + needsSetupPrompt + ' for role=' + user.role);
-
-    const redirectPage = needsSetupPrompt ? 'AdminSetupPrompt' : getDefaultPageForRole(user.role);
+    // Get default page for user's role
+    const redirectPage = getDefaultPageForRole(user.role);
     Logger.log('handleLogin: Redirecting to: ' + redirectPage);
 
     return {
@@ -101,8 +98,7 @@ function handleLogin(credentials) {
       },
       session: session,
       redirectTo: redirectPage,
-      requirePINChange: requirePINChange,
-      needsSetupPrompt: needsSetupPrompt
+      requirePINChange: requirePINChange
     };
 
   } catch (error) {
@@ -747,20 +743,7 @@ function resetPIN(email) {
  * @returns {string} Page name
  */
 function getDefaultPageForRole(role) {
-  // Check if system has periods configured
-  const periodsExist = checkPeriodsExist();
-
-  // If no periods exist, redirect to setup
-  if (!periodsExist) {
-    // Admin should go to period setup
-    if (role === CONFIG.ROLES.ADMIN) {
-      return 'PeriodSetup';
-    }
-    // Non-admin users should see a waiting page
-    return 'SystemNotReady';
-  }
-
-  // Normal redirect logic when periods exist
+  // Admin always goes to AdminPanel - they can create periods manually from there
   switch(role) {
     case CONFIG.ROLES.ADMIN:
       return 'AdminPanel';
