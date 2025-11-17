@@ -728,6 +728,20 @@ function resetPIN(email) {
  * @returns {string} Page name
  */
 function getDefaultPageForRole(role) {
+  // Check if system has periods configured
+  const periodsExist = checkPeriodsExist();
+
+  // If no periods exist, redirect to setup
+  if (!periodsExist) {
+    // Admin should go to period setup
+    if (role === CONFIG.ROLES.ADMIN) {
+      return 'PeriodSetup';
+    }
+    // Non-admin users should see a waiting page
+    return 'SystemNotReady';
+  }
+
+  // Normal redirect logic when periods exist
   switch(role) {
     case CONFIG.ROLES.ADMIN:
       return 'AdminPanel';
@@ -737,6 +751,20 @@ function getDefaultPageForRole(role) {
       return 'dataEntry';
     default:
       return 'dashboard';
+  }
+}
+
+/**
+ * Checks if any periods exist in the system
+ * @returns {boolean} True if periods exist, false otherwise
+ */
+function checkPeriodsExist() {
+  try {
+    const periodsResult = getAllPeriods();
+    return periodsResult.success && periodsResult.periods && periodsResult.periods.length > 0;
+  } catch (error) {
+    Logger.log('Error checking periods: ' + error.toString());
+    return false;
   }
 }
 
