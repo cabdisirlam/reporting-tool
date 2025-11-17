@@ -113,21 +113,23 @@ function showSystemDiagnostics() {
   const result = getSystemDiagnostics();
 
   let html = '<html><head><title>System Diagnostics</title>';
-  html += '<style>';
-  html += 'body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }';
-  html += '.container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }';
-  html += 'h1 { color: #333; margin-bottom: 30px; }';
-  html += '.section { margin-bottom: 25px; padding: 15px; background: #f9f9f9; border-left: 4px solid #1a73e8; border-radius: 4px; }';
-  html += '.section h2 { margin-top: 0; color: #1a73e8; font-size: 18px; }';
-  html += '.property { margin: 8px 0; }';
-  html += '.property-name { font-weight: bold; color: #555; }';
-  html += '.property-value { color: #333; }';
-  html += '.status-ok { color: #28a745; font-weight: bold; }';
-  html += '.status-error { color: #dc3545; font-weight: bold; }';
-  html += '.status-warning { color: #ffc107; font-weight: bold; }';
-  html += 'pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }';
-  html += '.btn { display: inline-block; padding: 10px 20px; background: #1a73e8; color: white; text-decoration: none; border-radius: 4px; margin-top: 10px; }';
-  html += '</style></head><body>';
+  const styles = `
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-bottom: 30px; }
+    .section { margin-bottom: 25px; padding: 15px; background: #f9f9f9; border-left: 4px solid #1a73e8; border-radius: 4px; }
+    .section h2 { margin-top: 0; color: #1a73e8; font-size: 18px; }
+    .property { margin: 8px 0; }
+    .property-name { font-weight: bold; color: #555; }
+    .property-value { color: #333; }
+    .status-ok { color: #28a745; font-weight: bold; }
+    .status-error { color: #dc3545; font-weight: bold; }
+    .status-warning { color: #ffc107; font-weight: bold; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .btn { display: inline-block; padding: 10px 20px; background: #1a73e8; color: white; text-decoration: none; border-radius: 4px; margin-top: 10px; }
+  `;
+
+  html += '<style>' + styles + '</style></head><body>';
   html += '<div class="container">';
   html += '<h1>System Diagnostics</h1>';
 
