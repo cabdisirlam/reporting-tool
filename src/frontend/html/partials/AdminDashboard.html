@@ -9,7 +9,7 @@
             <h4>User Management</h4>
             <p>Manage users, roles, and permissions</p>
             <div class="card-actions">
-                <a href="?page=AdminPanel&section=users" class="btn-card">Manage Users</a>
+                <a href="?page=UserList" class="btn-card">Manage Users</a>
                 <button onclick="quickAddUser()" class="btn-card-secondary">Add New User</button>
             </div>
         </div>
@@ -18,7 +18,7 @@
             <h4>Entity Management</h4>
             <p>Manage entities and organizational structure</p>
             <div class="card-actions">
-                <a href="?page=AdminPanel&section=entities" class="btn-card">Manage Entities</a>
+                <a href="?page=EntityList" class="btn-card">Manage Entities</a>
                 <button onclick="quickAddEntity()" class="btn-card-secondary">Add New Entity</button>
             </div>
         </div>
@@ -226,13 +226,39 @@
     });
 
     function loadSystemStats() {
-        // TODO: Call backend to get actual stats
-        setTimeout(function() {
-            document.getElementById('totalUsers').textContent = '0';
-            document.getElementById('activeEntities').textContent = '0';
-            document.getElementById('openPeriods').textContent = '0';
-            document.getElementById('pendingSubmissions').textContent = '0';
-        }, 1000);
+        // Show loading state
+        document.getElementById('totalUsers').textContent = '...';
+        document.getElementById('activeEntities').textContent = '...';
+        document.getElementById('openPeriods').textContent = '...';
+        document.getElementById('pendingSubmissions').textContent = '...';
+
+        google.script.run
+            .withSuccessHandler(function(data) {
+                if (data.success) {
+                    updateSystemStats(data);
+                } else {
+                    showStatsError(data.error);
+                }
+            })
+            .withFailureHandler(function(error) {
+                showStatsError(error.message);
+            })
+            .getAdminDashboardData();
+    }
+
+    function updateSystemStats(data) {
+        document.getElementById('totalUsers').textContent = data.userCount || '0';
+        document.getElementById('activeEntities').textContent = data.entityCount || '0';
+        document.getElementById('openPeriods').textContent = data.openPeriodCount || '0';
+        document.getElementById('pendingSubmissions').textContent = (data.stats && data.stats.pending) || '0';
+    }
+
+    function showStatsError(errorMsg) {
+        document.getElementById('totalUsers').textContent = 'Error';
+        document.getElementById('activeEntities').textContent = 'Error';
+        document.getElementById('openPeriods').textContent = 'Error';
+        document.getElementById('pendingSubmissions').textContent = 'Error';
+        console.error('Error loading admin stats:', errorMsg);
     }
 
     function quickAddUser() {
@@ -244,7 +270,7 @@
     }
 
     function createNewPeriod() {
-        window.location.href = '?page=AdminPanel&section=periods&action=create';
+        window.location.href = '?page=PeriodSetup';
     }
 
     function importNoteConfig() {

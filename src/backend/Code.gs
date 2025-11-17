@@ -139,7 +139,8 @@ function doGet(e) {
 
       default:
         // Handle other pages if they exist
-        if (page === 'ApprovalDashboard' || page === 'BudgetEntry' || page === 'CashFlowEntry') {
+        if (page === 'ApprovalDashboard' || page === 'BudgetEntry' || page === 'CashFlowEntry' ||
+            page === 'EntityList' || page === 'EntityForm' || page === 'UserList') {
             if (!user) return redirectToLogin();
             // This is a generic loader for other HTML files
             return HtmlService.createTemplateFromFile(`src/frontend/html/${page}`)
@@ -562,6 +563,288 @@ function getDashboardData() {
     };
   } catch (error) {
     Logger.log('Error getting dashboard data: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets data entry dashboard data for the current user
+ * Shows assigned entity, active period, and submission status
+ * @returns {Object} Dashboard data for data entry users
+ */
+function getDataEntryDashboardData() {
+  try {
+    const user = getCurrentUser();
+    if (!user) {
+      return {
+        success: false,
+        error: 'User not authenticated'
+      };
+    }
+
+    // Get the active period
+    const periodsResult = getAllPeriods();
+    if (!periodsResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get periods'
+      };
+    }
+
+    // Find the currently open period
+    let activePeriod = null;
+    for (const period of periodsResult.periods) {
+      if (period.status === CONFIG.PERIOD_STATUS.OPEN) {
+        activePeriod = period;
+        break;
+      }
+    }
+
+    // If no open period, get the most recent period
+    if (!activePeriod && periodsResult.periods.length > 0) {
+      const sortedPeriods = periodsResult.periods.sort((a, b) => {
+        return new Date(b.startDate) - new Date(a.startDate);
+      });
+      activePeriod = sortedPeriods[0];
+    }
+
+    // Get submission status for this user's entity
+    let submissionStatus = null;
+    if (activePeriod && user.entityId) {
+      const statusResult = getSubmissionStatus(user.entityId, activePeriod.periodId);
+      if (statusResult.success) {
+        submissionStatus = statusResult;
+      }
+    }
+
+    // Get entity details
+    let entityName = user.entityName || 'Unknown Entity';
+    if (user.entityId) {
+      const entityResult = getEntityById(user.entityId);
+      if (entityResult.success) {
+        entityName = entityResult.entity.name;
+      }
+    }
+
+    return {
+      success: true,
+      period: activePeriod,
+      status: submissionStatus,
+      entity: entityName,
+      entityId: user.entityId
+    };
+  } catch (error) {
+    Logger.log('Error getting data entry dashboard data: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets approver dashboard data
+ * Shows pending approvals and approval statistics
+ * @returns {Object} Dashboard data for approvers
+ */
+function getApproverDashboardData() {
+  try {
+    // Get the active period
+    const periodsResult = getAllPeriods();
+    if (!periodsResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get periods'
+      };
+    }
+
+    // Find the currently open period
+    let activePeriod = null;
+    for (const period of periodsResult.periods) {
+      if (period.status === CONFIG.PERIOD_STATUS.OPEN) {
+        activePeriod = period;
+        break;
+      }
+    }
+
+    // If no open period, get the most recent period
+    if (!activePeriod && periodsResult.periods.length > 0) {
+      const sortedPeriods = periodsResult.periods.sort((a, b) => {
+        return new Date(b.startDate) - new Date(a.startDate);
+      });
+      activePeriod = sortedPeriods[0];
+    }
+
+    // Get pending approvals
+    let pendingApprovals = [];
+    let approvalStats = {
+      pending: 0,
+      approved: 0,
+      rejected: 0
+    };
+
+    if (activePeriod) {
+      const approvalsResult = getPendingApprovals(activePeriod.periodId);
+      if (approvalsResult.success) {
+        pendingApprovals = approvalsResult.submissions;
+        approvalStats.pending = pendingApprovals.length;
+      }
+
+      // Get period stats for approved count
+      const stats = getPeriodSubmissionStats(activePeriod.periodId);
+      if (stats) {
+        approvalStats.approved = stats.approved || 0;
+        // Calculate rejected = submitted - approved
+        approvalStats.rejected = (stats.submitted || 0) - approvalStats.approved - approvalStats.pending;
+      }
+    }
+
+    return {
+      success: true,
+      period: activePeriod,
+      pendingApprovals: pendingApprovals,
+      stats: approvalStats
+    };
+  } catch (error) {
+    Logger.log('Error getting approver dashboard data: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets admin dashboard data
+ * Shows system-wide statistics
+ * @returns {Object} Dashboard data for administrators
+ */
+function getAdminDashboardData() {
+  try {
+    // Get all users
+    const usersResult = getAllUsers();
+    const userCount = usersResult.success ? usersResult.users.length : 0;
+
+    // Get all entities
+    const entitiesResult = getAllEntities({ status: 'ACTIVE' });
+    const entityCount = entitiesResult.success ? entitiesResult.entities.length : 0;
+
+    // Get the active period
+    const periodsResult = getAllPeriods();
+    let activePeriod = null;
+    let openPeriodCount = 0;
+
+    if (periodsResult.success) {
+      // Count open periods
+      openPeriodCount = periodsResult.periods.filter(p => p.status === CONFIG.PERIOD_STATUS.OPEN).length;
+
+      // Find the currently open period
+      for (const period of periodsResult.periods) {
+        if (period.status === CONFIG.PERIOD_STATUS.OPEN) {
+          activePeriod = period;
+          break;
+        }
+      }
+
+      // If no open period, get the most recent period
+      if (!activePeriod && periodsResult.periods.length > 0) {
+        const sortedPeriods = periodsResult.periods.sort((a, b) => {
+          return new Date(b.startDate) - new Date(a.startDate);
+        });
+        activePeriod = sortedPeriods[0];
+      }
+    }
+
+    // Get submission stats for the active period
+    let submissionStats = {
+      total: 0,
+      submitted: 0,
+      approved: 0,
+      pending: 0
+    };
+
+    if (activePeriod) {
+      submissionStats = getPeriodSubmissionStats(activePeriod.periodId);
+    }
+
+    return {
+      success: true,
+      userCount: userCount,
+      entityCount: entityCount,
+      openPeriodCount: openPeriodCount,
+      activePeriod: activePeriod,
+      stats: submissionStats
+    };
+  } catch (error) {
+    Logger.log('Error getting admin dashboard data: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets all users from the system
+ * @param {Object} filters - Optional filters
+ * @returns {Object} Result with list of users
+ */
+function getAllUsers(filters) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('Users');
+
+    if (!sheet) {
+      return { success: false, error: 'Users sheet not found' };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const users = [];
+
+    // Find column indices
+    const idCol = headers.indexOf('UserID');
+    const emailCol = headers.indexOf('Email');
+    const nameCol = headers.indexOf('Name');
+    const roleCol = headers.indexOf('Role');
+    const entityIdCol = headers.indexOf('EntityID');
+    const entityNameCol = headers.indexOf('EntityName');
+    const statusCol = headers.indexOf('Status');
+    const createdDateCol = headers.indexOf('CreatedDate');
+
+    // Map data to objects
+    for (let i = 1; i < data.length; i++) {
+      const user = {
+        id: data[i][idCol] || data[i][0],
+        email: emailCol >= 0 ? data[i][emailCol] : '',
+        name: nameCol >= 0 ? data[i][nameCol] : '',
+        role: roleCol >= 0 ? data[i][roleCol] : '',
+        entityId: entityIdCol >= 0 ? data[i][entityIdCol] : '',
+        entityName: entityNameCol >= 0 ? data[i][entityNameCol] : '',
+        status: statusCol >= 0 ? data[i][statusCol] : 'ACTIVE',
+        createdDate: createdDateCol >= 0 ? data[i][createdDateCol] : ''
+      };
+
+      // Apply filters
+      if (filters) {
+        if (filters.role && user.role !== filters.role) continue;
+        if (filters.status && user.status !== filters.status) continue;
+        if (filters.entityId && user.entityId !== filters.entityId) continue;
+      }
+
+      users.push(user);
+    }
+
+    return {
+      success: true,
+      users: users,
+      count: users.length
+    };
+  } catch (error) {
+    Logger.log('Error getting users: ' + error.toString());
     return {
       success: false,
       error: error.toString()
