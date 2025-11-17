@@ -394,7 +394,7 @@ function getMovementSummary(entityId, periodId) {
   try {
     const ppeResult = getPPEMovement(entityId, periodId);
     const intangiblesResult = getNoteData({ entityId, periodId, noteId: 'NOTE_37' });
-    const inventoryResult = getNoteData({ entityId, periodId, noteId: 'NOTE_38' });
+    const inventoryResult = getNoteData({ entityId, periodId, noteId: 'NOTE_34' });  // Fixed: NOTE_34 is Inventories, not NOTE_38 (Investment Property)
 
     return {
       success: true,

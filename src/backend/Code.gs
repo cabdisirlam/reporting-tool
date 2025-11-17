@@ -1260,7 +1260,7 @@ function generateReport(params) {
         reportData = generateStatementOfChangesInNetAssets(entityId, periodId);
         break;
       case 'complete_financial':
-        reportData = generateCompleteFinancialStatements(entityId, periodId);
+        reportData = getCompleteFinancialStatements({entityId, periodId});
         break;
       case 'notes_disclosure':
         reportData = generateNotesDisclosure(entityId, periodId);
@@ -1307,47 +1307,8 @@ function generateReport(params) {
   }
 }
 
-/**
- * Gets complete financial statements for display
- * @param {Object} params - Parameters with entityId and periodId
- * @returns {Object} All four financial statements
- */
-function getCompleteFinancialStatements(params) {
-  try {
-    const { entityId, periodId } = params;
-
-    const entityResult = getEntityById(entityId);
-    const periodResult = getPeriodById(periodId);
-
-    if (!entityResult.success || !periodResult.success) {
-      return { success: false, error: 'Entity or period not found' };
-    }
-
-    // Generate all four statements
-    const position = generateStatementOfFinancialPosition(entityId, periodId);
-    const performance = generateStatementOfFinancialPerformance(entityId, periodId);
-    const cashflow = generateCashFlowStatement(entityId, periodId);
-    const changes = generateStatementOfChangesInNetAssets(entityId, periodId);
-
-    return {
-      success: true,
-      entity: entityResult.entity,
-      period: periodResult.period,
-      statements: {
-        position: position.success ? position.statement : null,
-        performance: performance.success ? performance.statement : null,
-        cashflow: cashflow.success ? cashflow.statement : null,
-        changes: changes.success ? changes.statement : null
-      }
-    };
-  } catch (error) {
-    Logger.log('Error getting complete statements: ' + error.toString());
-    return {
-      success: false,
-      error: error.toString()
-    };
-  }
-}
+// NOTE: getCompleteFinancialStatements is now defined in Statements.gs
+// to avoid duplication and keep statement-related functions together
 
 /**
  * Gets admin dashboard data

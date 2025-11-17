@@ -501,22 +501,8 @@ function createPeriodConfigSheet(ss) {
   sheet.autoResizeColumns(1, headers.length);
 }
 
-/**
- * Creates note templates sheet
- * @param {Spreadsheet} ss - Spreadsheet object
- */
-function createNoteTemplatesSheet(ss) {
-  const sheet = ss.insertSheet('NoteTemplates');
-
-  const headers = [
-    'NoteID', 'NoteName', 'NoteType', 'Description', 'Active'
-  ];
-
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-  sheet.setFrozenRows(1);
-  sheet.autoResizeColumns(1, headers.length);
-}
+// NOTE: createNoteTemplatesSheet is now defined in NoteConfiguration.gs
+// to avoid duplication and keep note-related functions together
 
 /**
  * Creates note line items sheet

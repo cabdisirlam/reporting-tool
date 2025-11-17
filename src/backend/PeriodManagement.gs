@@ -608,6 +608,15 @@ function getPeriodConfig(periodId) {
 }
 
 /**
+ * Gets period by ID (alias for getPeriodConfig for compatibility)
+ * @param {string} periodId - Period ID
+ * @returns {Object} Result with period data
+ */
+function getPeriodById(periodId) {
+  return getPeriodConfig(periodId);
+}
+
+/**
  * Gets the specific Spreadsheet for a given periodId.
  * @param {string} periodId - The ID of the period (e.g., "PER_Q2_2024")
  * @returns {Spreadsheet|null} The Google Spreadsheet object or null if not found.
