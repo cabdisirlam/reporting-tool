@@ -251,22 +251,6 @@ function saveOrUpdateNoteData(sheet, entityId, noteId, noteData) {
 }
 
 /**
- * Creates EntityNoteData sheet
- * @param {Spreadsheet} ss - Spreadsheet object
- * @returns {Sheet} Created sheet
- */
-function createEntityNoteDataSheet(ss) {
-  const sheet = ss.insertSheet('EntityNoteData');
-
-  const headers = ['EntityID', 'NoteID', 'DataJSON', 'LastModified', 'ModifiedBy'];
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-  sheet.setFrozenRows(1);
-
-  return sheet;
-}
-
-/**
  * Calculates note completion percentage
  * @param {string} noteId - Note ID
  * @param {Object} noteData - Note data
