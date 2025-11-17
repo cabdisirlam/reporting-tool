@@ -79,6 +79,9 @@ function handleLogin(credentials) {
     // Log successful login
     logLoginAttempt(email, true);
 
+    // Check if admin needs setup prompt
+    const needsSetupPrompt = (user.role === CONFIG.ROLES.ADMIN);
+
     return {
       success: true,
       user: {
@@ -90,8 +93,9 @@ function handleLogin(credentials) {
         entityName: user.entityName
       },
       session: session,
-      redirectTo: getDefaultPageForRole(user.role),
-      requirePINChange: requirePINChange
+      redirectTo: needsSetupPrompt ? 'AdminSetupPrompt' : getDefaultPageForRole(user.role),
+      requirePINChange: requirePINChange,
+      needsSetupPrompt: needsSetupPrompt
     };
 
   } catch (error) {

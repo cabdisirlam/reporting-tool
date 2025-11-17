@@ -115,6 +115,14 @@ function doGet(e) {
         }
         return servePeriodSetup(user);
 
+      case 'AdminSetupPrompt':
+        if (!user) return redirectToLogin();
+        // Only admins can access setup prompt
+        if (user.role !== CONFIG.ROLES.ADMIN) {
+          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can access this page.</p>');
+        }
+        return serveAdminSetupPrompt(user);
+
       case 'SystemNotReady':
         if (!user) return redirectToLogin();
         return serveSystemNotReady(user);
@@ -228,6 +236,14 @@ function serveSystemNotReady(user) {
   template.user = user;
   return template.evaluate()
     .setTitle('System Setup In Progress - ' + CONFIG.APP_NAME)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function serveAdminSetupPrompt(user) {
+  const template = HtmlService.createTemplateFromFile('src/frontend/html/AdminSetupPrompt');
+  template.user = user;
+  return template.evaluate()
+    .setTitle('Admin Setup - ' + CONFIG.APP_NAME)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 

@@ -693,6 +693,73 @@ function getAllPeriods() {
   }
 }
 
+/**
+ * Resets admin sheets - archives old sheets and recreates headers/period data
+ * Called from admin setup prompt after login
+ * @returns {Object} Result with success status
+ */
+function resetAdminSheets() {
+  try {
+    // Verify user is admin
+    const user = getCurrentUser();
+    if (!user || user.role !== CONFIG.ROLES.ADMIN) {
+      return {
+        success: false,
+        error: 'Only admins can reset sheets'
+      };
+    }
+
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss');
+
+    // Get all sheets in the spreadsheet
+    const allSheets = ss.getSheets();
+    let archivedCount = 0;
+
+    // Archive period-specific data sheets (EntityNoteData_*, SubmissionStatus_*)
+    allSheets.forEach(sheet => {
+      const sheetName = sheet.getName();
+
+      // Archive data sheets but not config sheets
+      if (sheetName.startsWith('EntityNoteData_') || sheetName.startsWith('SubmissionStatus_')) {
+        const archivedName = `ARCHIVED_${timestamp}_${sheetName}`;
+        sheet.setName(archivedName);
+        sheet.hideSheet(); // Hide archived sheets
+        archivedCount++;
+        Logger.log(`Archived sheet: ${sheetName} -> ${archivedName}`);
+      }
+    });
+
+    // Recreate fresh period sheets for all existing periods
+    const periodsResult = getAllPeriods();
+    if (periodsResult.success && periodsResult.periods) {
+      periodsResult.periods.forEach(period => {
+        createPeriodSheets(period.periodId, period.periodName);
+      });
+    }
+
+    // Log activity
+    logActivity(
+      user.email,
+      'RESET_ADMIN_SHEETS',
+      `Reset admin sheets - ${archivedCount} sheets archived`
+    );
+
+    return {
+      success: true,
+      message: `Successfully reset sheets. ${archivedCount} sheets archived with timestamp ${timestamp}.`,
+      archivedCount: archivedCount
+    };
+
+  } catch (error) {
+    Logger.log('Error resetting admin sheets: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
 // Function removed - all period data now stored in master config workbook with period-specific sheet names
 
 /**
