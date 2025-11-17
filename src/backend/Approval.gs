@@ -363,6 +363,7 @@ function createSubmissionStatusSheet(periodId, ss) {
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
   sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, headers.length);
 
   return sheet;
 }

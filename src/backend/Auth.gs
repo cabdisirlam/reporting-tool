@@ -154,11 +154,17 @@ function getUserById(userId) {
   // 1. Try to get from cache first
   const userCache = PropertiesService.getUserProperties().getProperty('userCache');
   if (userCache) {
-    const user = JSON.parse(userCache);
-    // Make sure cache is for the correct user
-    if (user.id === userId) {
-      Logger.log('getUserById: Found user in cache.');
-      return user;
+    try {
+      const user = JSON.parse(userCache);
+      // Make sure cache is for the correct user
+      if (user.id === userId) {
+        Logger.log('getUserById: Found user in cache.');
+        return user;
+      }
+    } catch (parseError) {
+      Logger.log('getUserById: Error parsing user cache: ' + parseError.toString());
+      // Clear corrupted cache
+      PropertiesService.getUserProperties().deleteProperty('userCache');
     }
   }
 
