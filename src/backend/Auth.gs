@@ -279,6 +279,123 @@ function createUser(userData) {
   }
 }
 
+/**
+ * Updates an existing user
+ * @param {string} userId - User ID to update
+ * @param {Object} userData - Updated user data
+ * @returns {Object} Result with success status
+ */
+function updateUser(userId, userData) {
+  try {
+    if (!userId) {
+      return { success: false, error: 'User ID is required' };
+    }
+
+    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const sheet = ss.getSheetByName('Users');
+
+    if (!sheet) {
+      return { success: false, error: 'Users sheet not found' };
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+
+    // Find column indices
+    const idColIndex = 0; // UserID is always first column
+    const emailColIndex = headers.indexOf('Email');
+    const nameColIndex = headers.indexOf('Name');
+    const roleColIndex = headers.indexOf('Role');
+    const entityIdColIndex = headers.indexOf('EntityID');
+    const entityNameColIndex = headers.indexOf('EntityName');
+    const statusColIndex = headers.indexOf('Status');
+
+    if (emailColIndex === -1 || nameColIndex === -1 || roleColIndex === -1) {
+      return { success: false, error: 'Required columns not found in Users sheet' };
+    }
+
+    // Find the user row
+    let userRow = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][idColIndex] === userId) {
+        userRow = i;
+        break;
+      }
+    }
+
+    if (userRow === -1) {
+      return { success: false, error: 'User not found' };
+    }
+
+    // Update the user data
+    const rowNumber = userRow + 1; // Sheet rows are 1-indexed
+
+    if (userData.email !== undefined && emailColIndex >= 0) {
+      sheet.getRange(rowNumber, emailColIndex + 1).setValue(userData.email);
+    }
+    if (userData.name !== undefined && nameColIndex >= 0) {
+      sheet.getRange(rowNumber, nameColIndex + 1).setValue(userData.name);
+    }
+    if (userData.role !== undefined && roleColIndex >= 0) {
+      sheet.getRange(rowNumber, roleColIndex + 1).setValue(userData.role);
+    }
+    if (userData.entityId !== undefined && entityIdColIndex >= 0) {
+      sheet.getRange(rowNumber, entityIdColIndex + 1).setValue(userData.entityId || '');
+    }
+    if (userData.entityName !== undefined && entityNameColIndex >= 0) {
+      sheet.getRange(rowNumber, entityNameColIndex + 1).setValue(userData.entityName || '');
+    }
+    if (userData.status !== undefined && statusColIndex >= 0) {
+      sheet.getRange(rowNumber, statusColIndex + 1).setValue(userData.status);
+    }
+
+    // Clear user cache if updating current user
+    const userProperties = PropertiesService.getUserProperties();
+    const currentUserId = userProperties.getProperty('userId');
+    if (currentUserId === userId) {
+      userProperties.deleteProperty('userCache');
+      Logger.log('updateUser: Cleared cache for current user');
+    }
+
+    // Log the update
+    logActivity(
+      Session.getActiveUser().getEmail(),
+      'USER_UPDATE',
+      'Updated user: ' + userId
+    );
+
+    return {
+      success: true,
+      message: 'User updated successfully',
+      userId: userId
+    };
+
+  } catch (error) {
+    Logger.log('Error updating user: ' + error.toString());
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
+ * Deletes (deactivates) a user
+ * @param {string} userId - User ID to delete
+ * @returns {Object} Result with success status
+ */
+function deleteUser(userId) {
+  try {
+    if (!userId) {
+      return { success: false, error: 'User ID is required' };
+    }
+
+    // We don't actually delete users, we just deactivate them
+    return updateUser(userId, { status: 'INACTIVE' });
+
+  } catch (error) {
+    Logger.log('Error deleting user: ' + error.toString());
+    return { success: false, error: error.toString() };
+  }
+}
+
 // ============================================================================
 // AUTHORIZATION
 // ============================================================================
