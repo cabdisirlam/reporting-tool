@@ -1,1 +1,418 @@
-<!DOCTYPE html><html><head><title>EntityForm</title></head><body><h1>EntityForm</h1><p>Page under construction</p></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <title>Entity Form - IPSAS System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f7fafc;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1a202c;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d3748;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: #e53e3e;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input:disabled {
+            background: #edf2f7;
+            cursor: not-allowed;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="pageTitle">Add New Entity</h1>
+            <p id="pageDescription">Create a new entity in the system</p>
+        </div>
+
+        <div id="messageArea"></div>
+
+        <div id="formContainer">
+            <div class="loading">Loading form...</div>
+        </div>
+    </div>
+
+    <script>
+        let entityId = null;
+        let isEditMode = false;
+
+        // Load form on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get entity ID from URL if editing
+            const urlParams = new URLSearchParams(window.location.search);
+            entityId = urlParams.get('id');
+            isEditMode = !!entityId;
+
+            if (isEditMode) {
+                document.getElementById('pageTitle').textContent = 'Edit Entity';
+                document.getElementById('pageDescription').textContent = 'Update entity information';
+                loadEntityData(entityId);
+            } else {
+                renderForm(null);
+            }
+            loadFormData();
+        });
+
+        function loadFormData() {
+            // Load entity types and sectors
+            google.script.run
+                .withSuccessHandler(function(types) {
+                    window.entityTypes = types;
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Error loading entity types:', error);
+                })
+                .getEntityTypes();
+
+            google.script.run
+                .withSuccessHandler(function(sectors) {
+                    window.entitySectors = sectors;
+                })
+                .withFailureHandler(function(error) {
+                    console.error('Error loading entity sectors:', error);
+                })
+                .getEntitySectors();
+        }
+
+        function loadEntityData(id) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        renderForm(result.entity);
+                    } else {
+                        showError('Failed to load entity: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error loading entity: ' + error.message);
+                })
+                .getEntityById(id);
+        }
+
+        function renderForm(entity) {
+            const formContainer = document.getElementById('formContainer');
+
+            let html = '<form id="entityForm" onsubmit="handleSubmit(event)">';
+
+            // Entity Code
+            html += '<div class="form-group">';
+            html += '<label>Entity Code <span class="required">*</span></label>';
+            html += '<input type="text" id="code" name="code" required maxlength="10" ';
+            if (entity) {
+                html += 'value="' + escapeHtml(entity.code) + '" disabled>';
+                html += '<div class="form-help">Entity code cannot be changed after creation</div>';
+            } else {
+                html += 'placeholder="e.g., KENGEN">';
+                html += '<div class="form-help">A unique identifier for the entity (uppercase letters and numbers only)</div>';
+            }
+            html += '</div>';
+
+            // Entity Name
+            html += '<div class="form-group">';
+            html += '<label>Entity Name <span class="required">*</span></label>';
+            html += '<input type="text" id="name" name="name" required maxlength="200" ';
+            html += 'value="' + (entity ? escapeHtml(entity.name) : '') + '" ';
+            html += 'placeholder="e.g., Kenya Electricity Generating Company">';
+            html += '</div>';
+
+            // Entity Type
+            html += '<div class="form-group">';
+            html += '<label>Entity Type <span class="required">*</span></label>';
+            html += '<select id="type" name="type" required>';
+            html += '<option value="">Select entity type...</option>';
+            if (window.entityTypes) {
+                window.entityTypes.forEach(function(type) {
+                    const selected = entity && entity.type === type ? 'selected' : '';
+                    html += '<option value="' + escapeHtml(type) + '" ' + selected + '>' + escapeHtml(type) + '</option>';
+                });
+            }
+            html += '</select>';
+            html += '</div>';
+
+            // Sector
+            html += '<div class="form-group">';
+            html += '<label>Sector</label>';
+            html += '<select id="sector" name="sector">';
+            html += '<option value="">Select sector...</option>';
+            if (window.entitySectors) {
+                window.entitySectors.forEach(function(sector) {
+                    const selected = entity && entity.sector === sector ? 'selected' : '';
+                    html += '<option value="' + escapeHtml(sector) + '" ' + selected + '>' + escapeHtml(sector) + '</option>';
+                });
+            }
+            html += '</select>';
+            html += '</div>';
+
+            // Ministry
+            html += '<div class="form-group">';
+            html += '<label>Parent Ministry</label>';
+            html += '<input type="text" id="ministry" name="ministry" maxlength="200" ';
+            html += 'value="' + (entity && entity.ministry ? escapeHtml(entity.ministry) : '') + '" ';
+            html += 'placeholder="e.g., Ministry of Energy">';
+            html += '</div>';
+
+            // Status (only for edit mode)
+            if (isEditMode) {
+                html += '<div class="form-group">';
+                html += '<label>Status</label>';
+                html += '<select id="status" name="status">';
+                html += '<option value="ACTIVE"' + (entity && entity.status === 'ACTIVE' ? ' selected' : '') + '>Active</option>';
+                html += '<option value="INACTIVE"' + (entity && entity.status === 'INACTIVE' ? ' selected' : '') + '>Inactive</option>';
+                html += '</select>';
+                html += '</div>';
+            }
+
+            // Form Actions
+            html += '<div class="form-actions">';
+            html += '<button type="submit" class="btn btn-primary" id="submitBtn">';
+            html += isEditMode ? 'Update Entity' : 'Create Entity';
+            html += '</button>';
+            html += '<a href="?page=EntityList" class="btn btn-secondary">Cancel</a>';
+            html += '</div>';
+
+            html += '</form>';
+
+            formContainer.innerHTML = html;
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = isEditMode ? 'Updating...' : 'Creating...';
+
+            const formData = {
+                code: document.getElementById('code').value.trim().toUpperCase(),
+                name: document.getElementById('name').value.trim(),
+                type: document.getElementById('type').value,
+                sector: document.getElementById('sector').value,
+                ministry: document.getElementById('ministry').value.trim()
+            };
+
+            if (isEditMode) {
+                formData.status = document.getElementById('status').value;
+            }
+
+            // Validate
+            if (!formData.code || !formData.name || !formData.type) {
+                showError('Please fill in all required fields');
+                submitBtn.disabled = false;
+                submitBtn.textContent = isEditMode ? 'Update Entity' : 'Create Entity';
+                return;
+            }
+
+            if (isEditMode) {
+                updateEntity(formData);
+            } else {
+                createEntity(formData);
+            }
+        }
+
+        function createEntity(formData) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showSuccess('Entity created successfully!');
+                        setTimeout(function() {
+                            window.location.href = '?page=EntityList';
+                        }, 1500);
+                    } else {
+                        showError('Failed to create entity: ' + result.error);
+                        document.getElementById('submitBtn').disabled = false;
+                        document.getElementById('submitBtn').textContent = 'Create Entity';
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error creating entity: ' + error.message);
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').textContent = 'Create Entity';
+                })
+                .createEntity(formData);
+        }
+
+        function updateEntity(formData) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showSuccess('Entity updated successfully!');
+                        setTimeout(function() {
+                            window.location.href = '?page=EntityList';
+                        }, 1500);
+                    } else {
+                        showError('Failed to update entity: ' + result.error);
+                        document.getElementById('submitBtn').disabled = false;
+                        document.getElementById('submitBtn').textContent = 'Update Entity';
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error updating entity: ' + error.message);
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').textContent = 'Update Entity';
+                })
+                .updateEntity(entityId, formData);
+        }
+
+        function showError(message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = '<div class="error">' + escapeHtml(message) + '</div>';
+            window.scrollTo(0, 0);
+        }
+
+        function showSuccess(message) {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = '<div class="success">' + escapeHtml(message) + '</div>';
+            window.scrollTo(0, 0);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

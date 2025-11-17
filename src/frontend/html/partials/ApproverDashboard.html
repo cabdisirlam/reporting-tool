@@ -163,20 +163,80 @@
     // Load approval counts on page load
     document.addEventListener('DOMContentLoaded', function() {
         loadApprovalCounts();
-        loadRecentApprovals();
     });
 
     function loadApprovalCounts() {
-        document.getElementById('pendingCount').textContent = 'Loading pending items...';
-        document.getElementById('approvedCount').textContent = 'Loading approved items...';
-        document.getElementById('rejectedCount').textContent = 'Loading rejected items...';
+        document.getElementById('pendingCount').textContent = 'Loading...';
+        document.getElementById('approvedCount').textContent = 'Loading...';
+        document.getElementById('rejectedCount').textContent = 'Loading...';
+        document.getElementById('recentApprovalsTable').innerHTML = '<p style="color: #718096;">Loading pending approvals...</p>';
 
-        // TODO: Call backend to get actual counts
-        setTimeout(function() {
-            document.getElementById('pendingCount').textContent = '0 items pending review';
-            document.getElementById('approvedCount').textContent = '0 items approved';
-            document.getElementById('rejectedCount').textContent = '0 items rejected';
-        }, 1000);
+        google.script.run
+            .withSuccessHandler(function(data) {
+                if (data.success) {
+                    updateApprovalCounts(data);
+                    displayPendingApprovals(data.pendingApprovals || []);
+                } else {
+                    document.getElementById('pendingCount').textContent = 'Error: ' + data.error;
+                    document.getElementById('recentApprovalsTable').innerHTML = '<p style="color: #e53e3e;">Error loading approvals: ' + data.error + '</p>';
+                }
+            })
+            .withFailureHandler(function(error) {
+                document.getElementById('pendingCount').textContent = 'Error loading data';
+                document.getElementById('recentApprovalsTable').innerHTML = '<p style="color: #e53e3e;">Error: ' + error.message + '</p>';
+            })
+            .getApproverDashboardData();
+    }
+
+    function updateApprovalCounts(data) {
+        const stats = data.stats || { pending: 0, approved: 0, rejected: 0 };
+
+        document.getElementById('pendingCount').textContent = stats.pending + ' item' + (stats.pending !== 1 ? 's' : '') + ' pending review';
+        document.getElementById('approvedCount').textContent = stats.approved + ' item' + (stats.approved !== 1 ? 's' : '') + ' approved';
+        document.getElementById('rejectedCount').textContent = stats.rejected + ' item' + (stats.rejected !== 1 ? 's' : '') + ' rejected';
+    }
+
+    function displayPendingApprovals(approvals) {
+        const table = document.getElementById('recentApprovalsTable');
+
+        if (!approvals || approvals.length === 0) {
+            table.innerHTML = '<p style="color: #718096;">No pending approvals at this time.</p>';
+            return;
+        }
+
+        let html = '<table style="width: 100%; border-collapse: collapse;">';
+        html += '<thead>';
+        html += '<tr style="background: #f7fafc; border-bottom: 2px solid #e2e8f0;">';
+        html += '<th style="padding: 12px; text-align: left; color: #2d3748; font-weight: 600;">Entity</th>';
+        html += '<th style="padding: 12px; text-align: left; color: #2d3748; font-weight: 600;">Submitted By</th>';
+        html += '<th style="padding: 12px; text-align: left; color: #2d3748; font-weight: 600;">Date</th>';
+        html += '<th style="padding: 12px; text-align: left; color: #2d3748; font-weight: 600;">Actions</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        approvals.forEach(function(approval, index) {
+            const bgColor = index % 2 === 0 ? '#ffffff' : '#f7fafc';
+            html += '<tr style="background: ' + bgColor + '; border-bottom: 1px solid #e2e8f0;">';
+            html += '<td style="padding: 12px; color: #2d3748;">' + (approval.entityName || approval.entityId) + '</td>';
+            html += '<td style="padding: 12px; color: #4a5568;">' + (approval.submittedBy || 'N/A') + '</td>';
+            html += '<td style="padding: 12px; color: #4a5568;">' + formatDate(approval.submittedDate) + '</td>';
+            html += '<td style="padding: 12px;">';
+            html += '<a href="?page=ApprovalDashboard&entity=' + approval.entityId + '" style="color: #3182ce; text-decoration: none; font-weight: 500;">Review</a>';
+            html += '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+
+        table.innerHTML = html;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
     function loadPendingApprovals() {
@@ -193,10 +253,5 @@
 
     function exportData() {
         alert('Export functionality coming soon. Please contact your administrator.');
-    }
-
-    function loadRecentApprovals() {
-        const approvalsTable = document.getElementById('recentApprovalsTable');
-        approvalsTable.innerHTML = '<p style="color: #718096;">No recent approvals to display.</p>';
     }
 </script>

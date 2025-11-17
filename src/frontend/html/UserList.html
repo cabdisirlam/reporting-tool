@@ -2,7 +2,7 @@
 <html>
 <head>
     <base target="_top">
-    <title>Entity Management - IPSAS System</title>
+    <title>User Management - IPSAS System</title>
     <style>
         * {
             margin: 0;
@@ -165,6 +165,34 @@
             color: #742a2a;
         }
 
+        .role-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .role-admin {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .role-approver {
+            background: #bee3f8;
+            color: #1e4e8c;
+        }
+
+        .role-data_entry {
+            background: #e9d8fd;
+            color: #553c9a;
+        }
+
+        .role-viewer {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
         .actions {
             display: flex;
             gap: 10px;
@@ -224,42 +252,50 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Entity Management</h1>
+            <h1>User Management</h1>
             <div class="header-actions">
                 <a href="?page=AdminPanel" class="btn btn-secondary">Back to Admin</a>
-                <a href="?page=EntityForm" class="btn btn-primary">Add New Entity</a>
+                <a href="?page=AdminPanel&section=users&action=add" class="btn btn-primary">Add New User</a>
             </div>
         </div>
 
         <div id="stats" class="stats" style="display: none;">
             <div class="stat-item">
-                <div class="stat-label">Total Entities</div>
-                <div class="stat-value" id="totalEntities">0</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="totalUsers">0</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Active Entities</div>
-                <div class="stat-value" id="activeEntities">0</div>
+                <div class="stat-label">Active Users</div>
+                <div class="stat-value" id="activeUsers">0</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Inactive Entities</div>
-                <div class="stat-value" id="inactiveEntities">0</div>
+                <div class="stat-label">Admins</div>
+                <div class="stat-value" id="adminCount">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Approvers</div>
+                <div class="stat-value" id="approverCount">0</div>
             </div>
         </div>
 
         <div class="filters">
             <div class="filter-group">
                 <label>Search</label>
-                <input type="text" id="searchInput" placeholder="Search by name or code..." onkeyup="filterEntities()">
+                <input type="text" id="searchInput" placeholder="Search by name or email..." onkeyup="filterUsers()">
             </div>
             <div class="filter-group">
-                <label>Type</label>
-                <select id="typeFilter" onchange="filterEntities()">
-                    <option value="">All Types</option>
+                <label>Role</label>
+                <select id="roleFilter" onchange="filterUsers()">
+                    <option value="">All Roles</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="APPROVER">Approver</option>
+                    <option value="DATA_ENTRY">Data Entry</option>
+                    <option value="VIEWER">Viewer</option>
                 </select>
             </div>
             <div class="filter-group">
                 <label>Status</label>
-                <select id="statusFilter" onchange="filterEntities()">
+                <select id="statusFilter" onchange="filterUsers()">
                     <option value="">All Statuses</option>
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
@@ -270,102 +306,77 @@
         <div id="errorMessage"></div>
 
         <div class="table-container" id="tableContainer">
-            <div class="loading">Loading entities...</div>
+            <div class="loading">Loading users...</div>
         </div>
     </div>
 
     <script>
-        let allEntities = [];
+        let allUsers = [];
 
-        // Load entities on page load
+        // Load users on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadEntities();
-            loadEntityTypes();
+            loadUsers();
         });
 
-        function loadEntities() {
+        function loadUsers() {
             google.script.run
                 .withSuccessHandler(function(data) {
                     if (data.success) {
-                        allEntities = data.entities || [];
+                        allUsers = data.users || [];
                         updateStats();
-                        displayEntities(allEntities);
+                        displayUsers(allUsers);
                     } else {
-                        showError('Failed to load entities: ' + data.error);
+                        showError('Failed to load users: ' + data.error);
                     }
                 })
                 .withFailureHandler(function(error) {
-                    showError('Error loading entities: ' + error.message);
+                    showError('Error loading users: ' + error.message);
                 })
-                .getAllEntities({});
-        }
-
-        function loadEntityTypes() {
-            google.script.run
-                .withSuccessHandler(function(types) {
-                    const typeFilter = document.getElementById('typeFilter');
-                    types.forEach(function(type) {
-                        const option = document.createElement('option');
-                        option.value = type;
-                        option.textContent = type;
-                        typeFilter.appendChild(option);
-                    });
-                })
-                .withFailureHandler(function(error) {
-                    console.error('Error loading entity types:', error);
-                })
-                .getEntityTypes();
+                .getAllUsers({});
         }
 
         function updateStats() {
-            const total = allEntities.length;
-            const active = allEntities.filter(e => e.status === 'ACTIVE').length;
-            const inactive = total - active;
+            const total = allUsers.length;
+            const active = allUsers.filter(u => u.status === 'ACTIVE').length;
+            const admins = allUsers.filter(u => u.role === 'ADMIN').length;
+            const approvers = allUsers.filter(u => u.role === 'APPROVER').length;
 
-            document.getElementById('totalEntities').textContent = total;
-            document.getElementById('activeEntities').textContent = active;
-            document.getElementById('inactiveEntities').textContent = inactive;
+            document.getElementById('totalUsers').textContent = total;
+            document.getElementById('activeUsers').textContent = active;
+            document.getElementById('adminCount').textContent = admins;
+            document.getElementById('approverCount').textContent = approvers;
             document.getElementById('stats').style.display = 'flex';
         }
 
-        function displayEntities(entities) {
+        function displayUsers(users) {
             const container = document.getElementById('tableContainer');
 
-            if (entities.length === 0) {
-                container.innerHTML = '<div class="loading">No entities found</div>';
+            if (users.length === 0) {
+                container.innerHTML = '<div class="loading">No users found</div>';
                 return;
             }
 
             let html = '<table>';
             html += '<thead>';
             html += '<tr>';
-            html += '<th>Code</th>';
             html += '<th>Name</th>';
-            html += '<th>Type</th>';
-            html += '<th>Sector</th>';
-            html += '<th>Ministry</th>';
+            html += '<th>Email</th>';
+            html += '<th>Role</th>';
+            html += '<th>Entity</th>';
             html += '<th>Status</th>';
-            html += '<th>Actions</th>';
+            html += '<th>Created</th>';
             html += '</tr>';
             html += '</thead>';
             html += '<tbody>';
 
-            entities.forEach(function(entity) {
+            users.forEach(function(user) {
                 html += '<tr>';
-                html += '<td>' + escapeHtml(entity.code) + '</td>';
-                html += '<td>' + escapeHtml(entity.name) + '</td>';
-                html += '<td>' + escapeHtml(entity.type || '') + '</td>';
-                html += '<td>' + escapeHtml(entity.sector || '') + '</td>';
-                html += '<td>' + escapeHtml(entity.ministry || '') + '</td>';
-                html += '<td><span class="status-badge status-' + entity.status.toLowerCase() + '">' + entity.status + '</span></td>';
-                html += '<td class="actions">';
-                html += '<a href="?page=EntityForm&id=' + entity.id + '" class="action-link">Edit</a>';
-                if (entity.status === 'ACTIVE') {
-                    html += '<a href="javascript:void(0)" onclick="deactivateEntity(\'' + entity.id + '\', \'' + escapeHtml(entity.name) + '\')" class="action-link">Deactivate</a>';
-                } else {
-                    html += '<a href="javascript:void(0)" onclick="activateEntity(\'' + entity.id + '\', \'' + escapeHtml(entity.name) + '\')" class="action-link">Activate</a>';
-                }
-                html += '</td>';
+                html += '<td>' + escapeHtml(user.name) + '</td>';
+                html += '<td>' + escapeHtml(user.email) + '</td>';
+                html += '<td><span class="role-badge role-' + user.role.toLowerCase() + '">' + formatRole(user.role) + '</span></td>';
+                html += '<td>' + escapeHtml(user.entityName || user.entityId || 'N/A') + '</td>';
+                html += '<td><span class="status-badge status-' + user.status.toLowerCase() + '">' + user.status + '</span></td>';
+                html += '<td>' + formatDate(user.createdDate) + '</td>';
                 html += '</tr>';
             });
 
@@ -375,68 +386,44 @@
             container.innerHTML = html;
         }
 
-        function filterEntities() {
+        function filterUsers() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const typeFilter = document.getElementById('typeFilter').value;
+            const roleFilter = document.getElementById('roleFilter').value;
             const statusFilter = document.getElementById('statusFilter').value;
 
-            const filtered = allEntities.filter(function(entity) {
+            const filtered = allUsers.filter(function(user) {
                 const matchesSearch = !searchTerm ||
-                    entity.name.toLowerCase().includes(searchTerm) ||
-                    entity.code.toLowerCase().includes(searchTerm);
-                const matchesType = !typeFilter || entity.type === typeFilter;
-                const matchesStatus = !statusFilter || entity.status === statusFilter;
+                    user.name.toLowerCase().includes(searchTerm) ||
+                    user.email.toLowerCase().includes(searchTerm);
+                const matchesRole = !roleFilter || user.role === roleFilter;
+                const matchesStatus = !statusFilter || user.status === statusFilter;
 
-                return matchesSearch && matchesType && matchesStatus;
+                return matchesSearch && matchesRole && matchesStatus;
             });
 
-            displayEntities(filtered);
+            displayUsers(filtered);
         }
 
-        function deactivateEntity(entityId, entityName) {
-            if (!confirm('Are you sure you want to deactivate "' + entityName + '"?')) {
-                return;
-            }
-
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success) {
-                        alert('Entity deactivated successfully');
-                        loadEntities();
-                    } else {
-                        alert('Error deactivating entity: ' + result.error);
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    alert('Error deactivating entity: ' + error.message);
-                })
-                .deleteEntity(entityId);
+        function formatRole(role) {
+            const roleMap = {
+                'ADMIN': 'Admin',
+                'APPROVER': 'Approver',
+                'DATA_ENTRY': 'Data Entry',
+                'VIEWER': 'Viewer'
+            };
+            return roleMap[role] || role;
         }
 
-        function activateEntity(entityId, entityName) {
-            if (!confirm('Are you sure you want to activate "' + entityName + '"?')) {
-                return;
-            }
-
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success) {
-                        alert('Entity activated successfully');
-                        loadEntities();
-                    } else {
-                        alert('Error activating entity: ' + result.error);
-                    }
-                })
-                .withFailureHandler(function(error) {
-                    alert('Error activating entity: ' + error.message);
-                })
-                .updateEntity(entityId, { status: 'ACTIVE' });
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         }
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.innerHTML = '<div class="error">' + escapeHtml(message) + '</div>';
-            document.getElementById('tableContainer').innerHTML = '<div class="loading">Failed to load entities</div>';
+            document.getElementById('tableContainer').innerHTML = '<div class="loading">Failed to load users</div>';
         }
 
         function escapeHtml(text) {

@@ -166,13 +166,99 @@
         alert('Support Contact: Please email support@treasury.go.ke for assistance.');
     }
 
-    // Load recent activity on page load
+    // Load dashboard data on page load
     document.addEventListener('DOMContentLoaded', function() {
-        loadRecentActivity();
+        loadDashboardData();
     });
 
-    function loadRecentActivity() {
+    function loadDashboardData() {
         const activityList = document.getElementById('recentActivityList');
-        activityList.innerHTML = '<p style="color: #718096;">No recent activity to display.</p>';
+        activityList.innerHTML = '<p style="color: #718096;">Loading dashboard data...</p>';
+
+        google.script.run
+            .withSuccessHandler(function(data) {
+                if (data.success) {
+                    updateDashboardInfo(data);
+                    activityList.innerHTML = buildActivitySummary(data);
+                } else {
+                    activityList.innerHTML = '<p style="color: #e53e3e;">Error loading dashboard: ' + data.error + '</p>';
+                }
+            })
+            .withFailureHandler(function(error) {
+                activityList.innerHTML = '<p style="color: #e53e3e;">Error loading dashboard: ' + error.message + '</p>';
+            })
+            .getDataEntryDashboardData();
+    }
+
+    function updateDashboardInfo(data) {
+        // Update welcome section if entity info is available
+        if (data.entity) {
+            const welcomeSection = document.querySelector('.welcome-section p');
+            if (welcomeSection) {
+                welcomeSection.textContent = 'Managing data for: ' + data.entity;
+            }
+        }
+    }
+
+    function buildActivitySummary(data) {
+        let html = '<div style="padding: 10px; background: #f7fafc; border-radius: 8px;">';
+
+        // Show period info
+        if (data.period) {
+            html += '<div style="margin-bottom: 15px;">';
+            html += '<h4 style="margin: 0 0 5px 0; color: #2d3748;">Current Period</h4>';
+            html += '<p style="margin: 0; color: #4a5568;">' + data.period.periodName + '</p>';
+            html += '<p style="margin: 5px 0 0 0; font-size: 13px; color: #718096;">';
+            html += 'Status: <span style="font-weight: 600; color: ' + getPeriodStatusColor(data.period.status) + ';">' + data.period.status + '</span>';
+            html += '</p>';
+            html += '</div>';
+        } else {
+            html += '<p style="color: #718096;">No active period available</p>';
+        }
+
+        // Show submission status
+        if (data.status && data.period) {
+            html += '<div>';
+            html += '<h4 style="margin: 0 0 5px 0; color: #2d3748;">Submission Status</h4>';
+            html += '<p style="margin: 0;">';
+            html += '<span style="display: inline-block; padding: 4px 12px; background: ' + getStatusColor(data.status.status) + '; color: white; border-radius: 12px; font-size: 13px; font-weight: 600;">';
+            html += data.status.status || 'DRAFT';
+            html += '</span>';
+            html += '</p>';
+            if (data.status.submittedDate) {
+                html += '<p style="margin: 5px 0 0 0; font-size: 13px; color: #718096;">';
+                html += 'Submitted: ' + formatDate(data.status.submittedDate);
+                html += '</p>';
+            }
+            html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function getPeriodStatusColor(status) {
+        switch(status) {
+            case 'OPEN': return '#38a169';
+            case 'CLOSED': return '#dd6b20';
+            case 'LOCKED': return '#e53e3e';
+            default: return '#718096';
+        }
+    }
+
+    function getStatusColor(status) {
+        switch(status) {
+            case 'DRAFT': return '#718096';
+            case 'SUBMITTED': return '#3182ce';
+            case 'APPROVED': return '#38a169';
+            case 'REJECTED': return '#e53e3e';
+            default: return '#718096';
+        }
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 </script>
