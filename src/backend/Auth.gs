@@ -730,9 +730,9 @@ function resetPIN(email) {
 function getDefaultPageForRole(role) {
   switch(role) {
     case CONFIG.ROLES.ADMIN:
-      return 'admin';
+      return 'AdminPanel';
     case CONFIG.ROLES.APPROVER:
-      return 'approvalDashboard';
+      return 'ApprovalDashboard';
     case CONFIG.ROLES.DATA_ENTRY:
       return 'dataEntry';
     default:

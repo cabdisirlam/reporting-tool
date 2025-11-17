@@ -1,0 +1,202 @@
+<div class="approver-dashboard">
+    <div class="welcome-section">
+        <h3>Welcome, <?= user.name ?>!</h3>
+        <p>Review and approve entity submissions.</p>
+    </div>
+
+    <div class="dashboard-cards">
+        <div class="card">
+            <h4>Pending Approvals</h4>
+            <p id="pendingCount">Loading...</p>
+            <div class="card-actions">
+                <a href="?page=ApprovalDashboard" class="btn-card">Review Submissions</a>
+                <button onclick="loadPendingApprovals()" class="btn-card-secondary">Refresh</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>Approved Items</h4>
+            <p id="approvedCount">Loading...</p>
+            <div class="card-actions">
+                <button onclick="viewApprovedItems()" class="btn-card">View All Approved</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>Rejected Items</h4>
+            <p id="rejectedCount">Loading...</p>
+            <div class="card-actions">
+                <button onclick="viewRejectedItems()" class="btn-card">View All Rejected</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>Reports & Analytics</h4>
+            <p>View consolidation reports and analytics</p>
+            <div class="card-actions">
+                <a href="?page=reports" class="btn-card">View Reports</a>
+                <button onclick="exportData()" class="btn-card-secondary">Export Data</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="recent-activity">
+        <h3>Recent Approvals</h3>
+        <div id="recentApprovalsTable">
+            <p>Loading recent approvals...</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .approver-dashboard {
+        padding: 20px;
+    }
+
+    .welcome-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+    }
+
+    .welcome-section h3 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+    }
+
+    .welcome-section p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-5px);
+    }
+
+    .card h4 {
+        margin: 0 0 10px 0;
+        color: #1a202c;
+        font-size: 18px;
+    }
+
+    .card p {
+        margin: 0 0 20px 0;
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-card {
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-card-secondary {
+        padding: 10px 16px;
+        background: #e2e8f0;
+        color: #2d3748;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-card-secondary:hover {
+        background: #cbd5e0;
+    }
+
+    .recent-activity {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .recent-activity h3 {
+        margin: 0 0 20px 0;
+        color: #1a202c;
+        font-size: 20px;
+    }
+</style>
+
+<script>
+    // Load approval counts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadApprovalCounts();
+        loadRecentApprovals();
+    });
+
+    function loadApprovalCounts() {
+        document.getElementById('pendingCount').textContent = 'Loading pending items...';
+        document.getElementById('approvedCount').textContent = 'Loading approved items...';
+        document.getElementById('rejectedCount').textContent = 'Loading rejected items...';
+
+        // TODO: Call backend to get actual counts
+        setTimeout(function() {
+            document.getElementById('pendingCount').textContent = '0 items pending review';
+            document.getElementById('approvedCount').textContent = '0 items approved';
+            document.getElementById('rejectedCount').textContent = '0 items rejected';
+        }, 1000);
+    }
+
+    function loadPendingApprovals() {
+        loadApprovalCounts();
+    }
+
+    function viewApprovedItems() {
+        window.location.href = '?page=ApprovalDashboard&filter=approved';
+    }
+
+    function viewRejectedItems() {
+        window.location.href = '?page=ApprovalDashboard&filter=rejected';
+    }
+
+    function exportData() {
+        alert('Export functionality coming soon. Please contact your administrator.');
+    }
+
+    function loadRecentApprovals() {
+        const approvalsTable = document.getElementById('recentApprovalsTable');
+        approvalsTable.innerHTML = '<p style="color: #718096;">No recent approvals to display.</p>';
+    }
+</script>
