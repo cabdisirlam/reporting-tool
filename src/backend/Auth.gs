@@ -83,7 +83,7 @@ function handleLogin(credentials) {
     logLoginAttempt(email, true);
 
     // Check if admin needs setup prompt
-    const needsSetupPrompt = (user.role === CONFIG.ROLES.ADMIN);
+    const needsSetupPrompt = (user.role === CONFIG.ROLES.ADMIN) && !isSystemConfigured();
     Logger.log('handleLogin: needsSetupPrompt=' + needsSetupPrompt + ' for role=' + user.role);
 
     const redirectPage = needsSetupPrompt ? 'AdminSetupPrompt' : getDefaultPageForRole(user.role);

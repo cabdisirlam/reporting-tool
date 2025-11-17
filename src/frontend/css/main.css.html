@@ -1,0 +1,114 @@
+/*
+ * main.css - Shared styles and variables for IPSAS reporting UI
+ */
+
+:root {
+    --oracle-red: #C74634;
+    --oracle-red-dark: #A63929;
+    --oracle-black: #1a202c;
+    --oracle-gray: #718096;
+    --surface: #ffffff;
+    --surface-muted: #f7fafc;
+    --border: #e2e8f0;
+    --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.15);
+    --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--surface-muted);
+    color: var(--oracle-black);
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--oracle-black);
+    margin: 0;
+}
+
+p {
+    color: var(--oracle-gray);
+}
+
+.card {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    padding: 20px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--oracle-red) 0%, var(--oracle-red-dark) 100%);
+    color: white;
+    box-shadow: var(--shadow-soft);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-strong);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: var(--oracle-black);
+}
+
+.input, input, select, textarea {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    width: 100%;
+    background: var(--surface-muted);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.input:focus, input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--oracle-red);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(199, 70, 52, 0.15);
+}
+
+.alert {
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-muted);
+}
+
+.alert-info {
+    border-color: #0c5460;
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.alert-success {
+    border-color: #28a745;
+    background: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    border-color: #dc3545;
+    background: #f8d7da;
+    color: #721c24;
+}

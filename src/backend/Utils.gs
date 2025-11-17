@@ -498,19 +498,6 @@ function createPeriodConfigSheet(ss) {
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
   sheet.setFrozenRows(1);
 
-  // Sample period
-  sheet.appendRow([
-    'PER_Q2_2024',
-    'Q2 2024-25',
-    '2024-25',
-    'Q2',
-    new Date(2024, 9, 1), // Oct 1
-    new Date(2024, 11, 31), // Dec 31
-    new Date(2025, 0, 15), // Jan 15
-    'OPEN',
-    new Date()
-  ]);
-
   sheet.autoResizeColumns(1, headers.length);
 }
 
