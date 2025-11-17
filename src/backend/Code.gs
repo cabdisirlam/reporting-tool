@@ -218,10 +218,19 @@ function include(filename) {
 }
 
 function getCurrentUser() {
-  const email = Session.getActiveUser().getEmail();
-  if (!email) return null;
-  // This function is in Auth.gs, which is fine
-  return getUserByEmail(email);
+  // First, validate the PIN-based session
+  if (!validateSession()) {
+    return null;
+  }
+
+  // Get user ID from session properties
+  const userId = PropertiesService.getUserProperties().getProperty('userId');
+  if (!userId) {
+    return null;
+  }
+
+  // Retrieve user by ID
+  return getUserById(userId);
 }
 
 // ============================================================================
