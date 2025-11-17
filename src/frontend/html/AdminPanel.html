@@ -327,6 +327,7 @@
                         <th>Role</th>
                         <th>Entity</th>
                         <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="usersTableBody">
@@ -421,6 +422,59 @@
         </div>
     </div>
 
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: white; border-radius: 8px; padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+            <h2 style="margin-bottom: 20px;">Edit User</h2>
+            <form id="editUserForm" onsubmit="handleUpdateUser(event)">
+                <input type="hidden" id="editUserId">
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="editUserName">Full Name *</label>
+                        <input type="text" id="editUserName" name="name" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="editUserEmail">Email Address *</label>
+                        <input type="email" id="editUserEmail" name="email" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="editUserRole">Role *</label>
+                        <select id="editUserRole" name="role" required>
+                            <option value="">Select Role</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="APPROVER">Approver</option>
+                            <option value="DATA_ENTRY">Data Entry</option>
+                            <option value="VIEWER">Viewer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="editUserEntity">Entity (for Data Entry users)</label>
+                        <select id="editUserEntity" name="entityId">
+                            <option value="">Select Entity</option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="editUserStatus">Status *</label>
+                        <select id="editUserStatus" name="status" required>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Update User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Tab switching
         function switchTab(tabName) {
@@ -503,6 +557,13 @@
                                 <td>${user.role}</td>
                                 <td>${user.entityName || '-'}</td>
                                 <td><span class="badge badge-${user.status.toLowerCase()}">${user.status}</span></td>
+                                <td>
+                                    <button class="btn-action" onclick='editUser(${JSON.stringify(user)})' style="background: #0572CE; margin-right: 5px;">Edit</button>
+                                    ${user.status === 'ACTIVE' ?
+                                        `<button class="btn-action" onclick="deactivateUser('${user.id}', '${user.name}')" style="background: #ef4444;">Deactivate</button>` :
+                                        `<button class="btn-action" onclick="activateUser('${user.id}', '${user.name}')" style="background: #10b981;">Activate</button>`
+                                    }
+                                </td>
                             `;
                         });
                     } else {
@@ -754,6 +815,139 @@
             setTimeout(function() {
                 alert.style.display = 'none';
             }, 5000);
+        }
+
+        // ====================================================================
+        // USER EDITING FUNCTIONS
+        // ====================================================================
+
+        // Open edit user modal
+        function editUser(user) {
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUserName').value = user.name;
+            document.getElementById('editUserEmail').value = user.email;
+            document.getElementById('editUserRole').value = user.role;
+            document.getElementById('editUserStatus').value = user.status;
+
+            // Load entities for dropdown
+            const editEntitySelect = document.getElementById('editUserEntity');
+            editEntitySelect.innerHTML = '<option value="">Select Entity</option>';
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        result.entities.forEach(entity => {
+                            if (entity.status === 'ACTIVE') {
+                                const option = document.createElement('option');
+                                option.value = entity.id;
+                                option.textContent = entity.name;
+                                if (entity.id === user.entityId) {
+                                    option.selected = true;
+                                }
+                                editEntitySelect.appendChild(option);
+                            }
+                        });
+                    }
+                })
+                .getAllEntities({ status: 'ACTIVE' });
+
+            // Show modal
+            const modal = document.getElementById('editUserModal');
+            modal.style.display = 'flex';
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editUserModal').style.display = 'none';
+        }
+
+        // Handle update user form submission
+        function handleUpdateUser(event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const userId = document.getElementById('editUserId').value;
+
+            const userData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                role: formData.get('role'),
+                entityId: formData.get('entityId') || '',
+                status: formData.get('status')
+            };
+
+            // Get entity name if entityId is selected
+            if (userData.entityId) {
+                const entitySelect = document.getElementById('editUserEntity');
+                userData.entityName = entitySelect.options[entitySelect.selectedIndex].text;
+            } else {
+                userData.entityName = '';
+            }
+
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating...';
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showAlert('User updated successfully!', 'success');
+                        closeEditModal();
+                        loadUsers();
+                    } else {
+                        showAlert('Error updating user: ' + result.error, 'error');
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Update User';
+                })
+                .withFailureHandler(function(error) {
+                    showAlert('Error updating user: ' + error.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Update User';
+                })
+                .updateUser(userId, userData);
+        }
+
+        // Deactivate user
+        function deactivateUser(userId, userName) {
+            if (!confirm('Are you sure you want to deactivate user "' + userName + '"?')) {
+                return;
+            }
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showAlert('User deactivated successfully!', 'success');
+                        loadUsers();
+                    } else {
+                        showAlert('Error deactivating user: ' + result.error, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showAlert('Error deactivating user: ' + error.message, 'error');
+                })
+                .deleteUser(userId);
+        }
+
+        // Activate user
+        function activateUser(userId, userName) {
+            if (!confirm('Are you sure you want to activate user "' + userName + '"?')) {
+                return;
+            }
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showAlert('User activated successfully!', 'success');
+                        loadUsers();
+                    } else {
+                        showAlert('Error activating user: ' + result.error, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showAlert('Error activating user: ' + error.message, 'error');
+                })
+                .updateUser(userId, { status: 'ACTIVE' });
         }
 
         // Load data on page load
