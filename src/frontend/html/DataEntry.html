@@ -7,19 +7,46 @@
     <style>
         <?!= include('css/main.css.html'); ?>
         <?!= include('src/frontend/css/forms.css.html'); ?>
+
+        body { display: flex; flex-direction: column; height: 100vh; }
+        .data-entry-container { display: flex; flex-grow: 1; overflow: hidden; }
+        .sidebar { width: 300px; background-color: #f9f9f9; border-right: 1px solid #ddd; flex-shrink: 0; display: flex; flex-direction: column; height: calc(100vh - 70px); /* Adjust 70px to your header height */ }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #ddd; }
+        .sidebar-header h3 { margin: 0 0 10px 0; color: var(--oracle-black); }
+        .sidebar-search { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .notes-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
+        .notes-list-item { padding: 15px 20px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s; }
+        .notes-list-item:hover { background-color: #f0f0f0; }
+        .notes-list-item.active { background-color: #e0eafc; border-left: 4px solid var(--oracle-blue); font-weight: 600; padding-left: 16px; }
+        .note-number { font-size: 0.9em; color: #666; display: block; }
+        .note-name { font-size: 1em; color: var(--oracle-black); }
+        .main-content-entry { flex-grow: 1; padding: 30px; overflow-y: auto; height: calc(100vh - 70px); /* Adjust 70px to your header height */ }
+        #noteForm { max-width: 1000px; margin: 0 auto; }
+        .loading-placeholder { text-align: center; padding: 50px; color: #888; font-size: 1.2em; }
     </style>
 </head>
 <body>
-    <div id="dataEntryContainer">
+    <div class="data-entry-container">
         <div class="sidebar">
-            <h3>Notes</h3>
-            <div id="notesList"></div>
+            <div class="sidebar-header">
+                <h3>Financial Notes</h3>
+                <input type="text" id="noteSearch" class="sidebar-search" onkeyup="DataEntry.filterNotes()" placeholder="Search notes...">
+            </div>
+            <ul id="notesList" class="notes-list">
+                <li class="loading-placeholder">Loading notes...</li>
+            </ul>
         </div>
-        <div class="main-content">
-            <h2>Data Entry</h2>
-            <div id="noteForm"></div>
+        <div class="main-content-entry">
+            <div id="noteForm">
+                <div class="loading-placeholder">
+                    <h2>Welcome, <?!= user.name ?></h2>
+                    <p>Select a note from the left sidebar to begin data entry.</p>
+                    <p>Your entity: <strong><?!= user.entityName ?></strong></p>
+                </div>
+            </div>
         </div>
     </div>
+
     <script>
         <?!= include('src/frontend/js/dataEntry.js.html'); ?>
     </script>

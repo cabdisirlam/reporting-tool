@@ -82,11 +82,7 @@ function handleLogin(credentials) {
     // Log successful login
     logLoginAttempt(email, true);
 
-    // Check if admin needs setup prompt
-    const needsSetupPrompt = (user.role === CONFIG.ROLES.ADMIN) && !isSystemConfigured();
-    Logger.log('handleLogin: needsSetupPrompt=' + needsSetupPrompt + ' for role=' + user.role);
-
-    const redirectPage = needsSetupPrompt ? 'AdminSetupPrompt' : getDefaultPageForRole(user.role);
+    const redirectPage = getDefaultPageForRole(user.role);
     Logger.log('handleLogin: Redirecting to: ' + redirectPage);
 
     return {
@@ -101,8 +97,7 @@ function handleLogin(credentials) {
       },
       session: session,
       redirectTo: redirectPage,
-      requirePINChange: requirePINChange,
-      needsSetupPrompt: needsSetupPrompt
+      requirePINChange: requirePINChange
     };
 
   } catch (error) {

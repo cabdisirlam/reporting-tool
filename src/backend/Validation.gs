@@ -376,8 +376,13 @@ function calculateLineTotal(line, allLines, noteData) {
  */
 function saveValidationResults(entityId, periodId, results) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-    const sheetName = `ValidationResults_${periodId}`;
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      Logger.log(`Unable to save validation results: Spreadsheet not found for ${periodId}`);
+      return;
+    }
+
+    const sheetName = 'ValidationResults';
     let resultsSheet = ss.getSheetByName(sheetName);
 
     if (!resultsSheet) {
@@ -409,8 +414,12 @@ function saveValidationResults(entityId, periodId, results) {
  */
 function getValidationResults(entityId, periodId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-    const sheetName = `ValidationResults_${periodId}`;
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      return { success: false, error: `Spreadsheet not found for period ${periodId}` };
+    }
+
+    const sheetName = 'ValidationResults';
     const resultsSheet = ss.getSheetByName(sheetName);
 
     if (!resultsSheet) {

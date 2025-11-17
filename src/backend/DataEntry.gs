@@ -30,18 +30,17 @@ function saveNoteData(params) {
     }
 
     // Get period spreadsheet
-    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
-    if (!periodSpreadsheetResult.success) {
-      return { success: false, error: periodSpreadsheetResult.error };
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      return { success: false, error: `Spreadsheet not found for period ${periodId}` };
     }
 
-    const ss = periodSpreadsheetResult.ss;
-    const sheetName = `EntityNoteData_${periodId}`;
+    const sheetName = 'EntityNoteData';
 
     // Get or create EntityNoteData sheet
     let dataSheet = ss.getSheetByName(sheetName);
     if (!dataSheet) {
-      dataSheet = createEntityNoteDataSheet(periodId, ss);
+      dataSheet = createEntityNoteDataSheet(ss);
     }
 
     // Save data
@@ -78,13 +77,12 @@ function getNoteData(params) {
     const { entityId, periodId, noteId } = params;
 
     // Get period spreadsheet
-    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
-    if (!periodSpreadsheetResult.success) {
-      return { success: false, error: periodSpreadsheetResult.error };
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      return { success: false, error: `Spreadsheet not found for period ${periodId}` };
     }
 
-    const ss = periodSpreadsheetResult.ss;
-    const sheetName = `EntityNoteData_${periodId}`;
+    const sheetName = 'EntityNoteData';
     const dataSheet = ss.getSheetByName(sheetName);
 
     if (!dataSheet) {
@@ -130,13 +128,12 @@ function getNoteData(params) {
  */
 function getAllEntityNoteData(entityId, periodId) {
   try {
-    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
-    if (!periodSpreadsheetResult.success) {
-      return { success: false, error: periodSpreadsheetResult.error };
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      return { success: false, error: `Spreadsheet not found for period ${periodId}` };
     }
 
-    const ss = periodSpreadsheetResult.ss;
-    const sheetName = `EntityNoteData_${periodId}`;
+    const sheetName = 'EntityNoteData';
     const dataSheet = ss.getSheetByName(sheetName);
 
     if (!dataSheet) {
