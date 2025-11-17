@@ -3,12 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAGAs Consolidation Tool - IPSAS Financial Reporting System</title>
+    <title>TNSC appre for sc consolidation</title>
     <style>
-        <?!= include('css/main.css.html'); ?>
-        <?!= include('css/mobile.css.html'); ?>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        /* Professional Modal Styling (Oracle-like) */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 420px;
+            width: 100%;
+            padding: 48px 40px;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            color: #718096;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background: #f7fafc;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #a0aec0;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .forgot-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .forgot-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .forgot-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            border-left: 4px solid #c53030;
+        }
+
+        /* Professional Modal Styling */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -25,35 +168,35 @@
         .modal-container {
             background: #ffffff;
             padding: 0;
-            border-radius: 4px;
+            border-radius: 12px;
             max-width: 480px;
             width: 90%;
-            box-shadow: 0 11px 15px rgba(0, 0, 0, 0.2), 0 9px 46px rgba(0, 0, 0, 0.12);
-            animation: modalFadeIn 0.2s ease-out;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s ease-out;
         }
 
         @keyframes modalFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+                transform: scale(0.95);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: scale(1);
             }
         }
 
         .modal-header {
-            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px 24px;
-            border-radius: 4px 4px 0 0;
+            padding: 24px;
+            border-radius: 12px 12px 0 0;
         }
 
         .modal-header h2 {
             margin: 0;
             font-size: 20px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .modal-body {
@@ -67,7 +210,7 @@
             margin-bottom: 20px;
             color: #856404;
             font-size: 14px;
-            border-radius: 2px;
+            border-radius: 4px;
         }
 
         .form-field {
@@ -76,117 +219,122 @@
 
         .form-field label {
             display: block;
-            margin-bottom: 6px;
-            color: #424242;
+            margin-bottom: 8px;
+            color: #2d3748;
             font-size: 14px;
             font-weight: 500;
         }
 
         .form-field input {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #bdbdbd;
-            border-radius: 3px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             box-sizing: border-box;
             font-size: 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
+            background: #f7fafc;
         }
 
         .form-field input:focus {
             outline: none;
-            border-color: #1976d2;
-            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .form-field small {
             display: block;
-            margin-top: 4px;
-            color: #757575;
+            margin-top: 6px;
+            color: #718096;
             font-size: 12px;
         }
 
         .modal-footer {
-            padding: 16px 24px;
-            background: #f5f5f5;
-            border-radius: 0 0 4px 4px;
+            padding: 20px 24px;
+            background: #f7fafc;
+            border-radius: 0 0 12px 12px;
             display: flex;
             gap: 12px;
             justify-content: flex-end;
         }
 
         .btn-modal {
-            padding: 9px 20px;
+            padding: 10px 24px;
             border: none;
-            border-radius: 3px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
-            transition: background-color 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+            transition: all 0.2s ease;
         }
 
         .btn-modal-cancel {
-            background: #ffffff;
-            color: #424242;
-            border: 1px solid #bdbdbd;
+            background: #e2e8f0;
+            color: #2d3748;
         }
 
         .btn-modal-cancel:hover {
-            background: #f5f5f5;
+            background: #cbd5e0;
         }
 
         .btn-modal-primary {
-            background: #1976d2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
 
         .btn-modal-primary:hover {
-            background: #1565c0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
         }
 
         .btn-modal-primary:disabled {
-            background: #9e9e9e;
+            opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
-        /* Professional Reset Dialog */
+        /* Reset Dialog */
         .reset-dialog {
             background: white;
-            padding: 24px;
-            border-radius: 4px;
+            padding: 32px;
+            border-radius: 12px;
             max-width: 420px;
             width: 90%;
-            box-shadow: 0 11px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .reset-dialog h3 {
-            margin: 0 0 16px 0;
-            color: #212121;
-            font-size: 18px;
-            font-weight: 500;
+            margin: 0 0 12px 0;
+            color: #1a202c;
+            font-size: 20px;
+            font-weight: 600;
         }
 
         .reset-dialog p {
-            margin: 0 0 20px 0;
-            color: #616161;
+            margin: 0 0 24px 0;
+            color: #4a5568;
             font-size: 14px;
             line-height: 1.6;
         }
 
         .reset-dialog input {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #bdbdbd;
-            border-radius: 3px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
             box-sizing: border-box;
             font-size: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            background: #f7fafc;
+            transition: all 0.2s ease;
         }
 
         .reset-dialog input:focus {
             outline: none;
-            border-color: #1976d2;
-            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .reset-dialog-buttons {
@@ -197,106 +345,51 @@
     </style>
 </head>
 <body>
-    <!-- Header Section -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo-section">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="60" height="60" class="logo-image">
-                        <!-- Kenya Coat of Arms Placeholder -->
-                        <path d="M100,20 L160,50 L160,120 Q160,160 100,180 Q40,160 40,120 L40,50 Z"
-                              fill="#006600" stroke="#000000" stroke-width="2"/>
-                        <rect x="40" y="60" width="120" height="15" fill="#000000"/>
-                        <rect x="40" y="90" width="120" height="15" fill="#CC0000"/>
-                        <rect x="40" y="75" width="120" height="15" fill="#FFFFFF"/>
-                        <line x1="80" y1="30" x2="80" y2="160" stroke="#8B4513" stroke-width="3"/>
-                        <line x1="120" y1="30" x2="120" y2="160" stroke="#8B4513" stroke-width="3"/>
-                        <polygon points="80,25 75,35 85,35" fill="#C0C0C0"/>
-                        <polygon points="120,25 115,35 125,35" fill="#C0C0C0"/>
-                        <text x="100" y="195" font-family="Arial, sans-serif" font-size="12"
-                              text-anchor="middle" fill="#000000" font-weight="bold">KENYA</text>
-                    </svg>
-                </div>
-                <div class="title-section">
-                    <h1 class="system-title">SAGAs Consolidation Tool</h1>
-                    <p class="system-subtitle">IPSAS Financial Reporting System</p>
-                </div>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>TNSC appre for sc consolidation</h1>
+            <p>Financial Reporting System</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required
+                    autocomplete="email"
+                >
             </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container">
-            <!-- Login Section -->
-            <section class="login-section">
-                <div class="login-box">
-                    <h2 class="login-title">Login to SAGAs</h2>
-                    <form class="login-form" id="loginForm">
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                class="form-input"
-                                placeholder="Enter your email"
-                                required
-                            >
-                        </div>
-                        <div class="form-group">
-                            <label for="pin">PIN (6 digits)</label>
-                            <input
-                                type="password"
-                                id="pin"
-                                name="pin"
-                                class="form-input"
-                                placeholder="Enter your 6-digit PIN"
-                                pattern="\d{6}"
-                                inputmode="numeric"
-                                maxlength="6"
-                                required
-                            >
-                        </div>
-                        <button type="submit" class="btn-login">Login</button>
-                        <div class="form-footer">
-                            <a href="#" class="forgot-password" id="forgotPinLink">Forgot PIN?</a>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <!-- Info Section - Hidden on login page, only shown on dashboards -->
-            <section class="info-section" style="display: none;">
-                <div class="info-grid">
-                    <div class="info-card">
-                        <div class="info-label">Current Period</div>
-                        <div class="info-value" id="currentPeriod">Loading...</div>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-label">Submission Deadline</div>
-                        <div class="info-value" id="submissionDeadline">Loading...</div>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-label">Entities Submitted</div>
-                        <div class="info-value">
-                            <span class="submission-count" id="entitiesSubmitted">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <p class="footer-text" id="copyrightText">&copy; <span id="currentYear"></span> National Treasury of Kenya</p>
-                <p class="footer-version">Version 1.0</p>
+            <div class="form-group">
+                <label for="pin">PIN</label>
+                <input
+                    type="password"
+                    id="pin"
+                    name="pin"
+                    placeholder="Enter your 6-digit PIN"
+                    pattern="\d{6}"
+                    inputmode="numeric"
+                    maxlength="6"
+                    required
+                    autocomplete="off"
+                >
             </div>
-        </div>
-    </footer>
+
+            <button type="submit" class="btn-login" id="loginButton">
+                Login
+            </button>
+
+            <div class="forgot-link">
+                <a href="#" id="forgotPinLink">Forgot PIN?</a>
+            </div>
+        </form>
+    </div>
 
     <!-- PIN Change Modal -->
     <div id="pinChangeModal" class="modal-overlay">
@@ -557,9 +650,6 @@
                 hidePinChangeModal();
             }
         });
-
-        // Set dynamic copyright year
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
 </body>
 </html>

@@ -1,0 +1,262 @@
+<div class="admin-dashboard">
+    <div class="welcome-section">
+        <h3>Welcome, <?= user.name ?>!</h3>
+        <p>System administration and configuration.</p>
+    </div>
+
+    <div class="dashboard-cards">
+        <div class="card">
+            <h4>User Management</h4>
+            <p>Manage users, roles, and permissions</p>
+            <div class="card-actions">
+                <a href="?page=AdminPanel&section=users" class="btn-card">Manage Users</a>
+                <button onclick="quickAddUser()" class="btn-card-secondary">Add New User</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>Entity Management</h4>
+            <p>Manage entities and organizational structure</p>
+            <div class="card-actions">
+                <a href="?page=AdminPanel&section=entities" class="btn-card">Manage Entities</a>
+                <button onclick="quickAddEntity()" class="btn-card-secondary">Add New Entity</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>Period Management</h4>
+            <p>Configure reporting periods and deadlines</p>
+            <div class="card-actions">
+                <a href="?page=AdminPanel&section=periods" class="btn-card">Manage Periods</a>
+                <button onclick="createNewPeriod()" class="btn-card-secondary">Create Period</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>Note Configuration</h4>
+            <p>Configure IPSAS notes and templates</p>
+            <div class="card-actions">
+                <a href="?page=AdminPanel&section=notes" class="btn-card">Configure Notes</a>
+                <button onclick="importNoteConfig()" class="btn-card-secondary">Import Config</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>System Reports</h4>
+            <p>View system-wide reports and analytics</p>
+            <div class="card-actions">
+                <a href="?page=reports" class="btn-card">View Reports</a>
+                <button onclick="generateSystemReport()" class="btn-card-secondary">Generate Report</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>System Settings</h4>
+            <p>Configure system-wide settings and preferences</p>
+            <div class="card-actions">
+                <a href="?page=AdminPanel&section=settings" class="btn-card">System Settings</a>
+                <button onclick="viewAuditLog()" class="btn-card-secondary">View Audit Log</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="system-stats">
+        <h3>System Overview</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="totalUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Entities</div>
+                <div class="stat-value" id="activeEntities">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Open Periods</div>
+                <div class="stat-value" id="openPeriods">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Submissions</div>
+                <div class="stat-value" id="pendingSubmissions">-</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-dashboard {
+        padding: 20px;
+    }
+
+    .welcome-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+    }
+
+    .welcome-section h3 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+    }
+
+    .welcome-section p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transform: translateY(-5px);
+    }
+
+    .card h4 {
+        margin: 0 0 10px 0;
+        color: #1a202c;
+        font-size: 18px;
+    }
+
+    .card p {
+        margin: 0 0 20px 0;
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-card {
+        padding: 10px 16px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-card-secondary {
+        padding: 10px 16px;
+        background: #e2e8f0;
+        color: #2d3748;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-card-secondary:hover {
+        background: #cbd5e0;
+    }
+
+    .system-stats {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .system-stats h3 {
+        margin: 0 0 20px 0;
+        color: #1a202c;
+        font-size: 20px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .stat-card {
+        background: #f7fafc;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .stat-label {
+        color: #718096;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        color: #1a202c;
+        font-size: 32px;
+        font-weight: 700;
+    }
+</style>
+
+<script>
+    // Load system stats on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadSystemStats();
+    });
+
+    function loadSystemStats() {
+        // TODO: Call backend to get actual stats
+        setTimeout(function() {
+            document.getElementById('totalUsers').textContent = '0';
+            document.getElementById('activeEntities').textContent = '0';
+            document.getElementById('openPeriods').textContent = '0';
+            document.getElementById('pendingSubmissions').textContent = '0';
+        }, 1000);
+    }
+
+    function quickAddUser() {
+        window.location.href = '?page=AdminPanel&section=users&action=add';
+    }
+
+    function quickAddEntity() {
+        window.location.href = '?page=AdminPanel&section=entities&action=add';
+    }
+
+    function createNewPeriod() {
+        window.location.href = '?page=AdminPanel&section=periods&action=create';
+    }
+
+    function importNoteConfig() {
+        alert('Note configuration import functionality coming soon.');
+    }
+
+    function generateSystemReport() {
+        alert('Generating system report. This may take a moment...');
+        window.location.href = '?page=reports&type=system';
+    }
+
+    function viewAuditLog() {
+        window.location.href = '?page=AdminPanel&section=audit';
+    }
+</script>
