@@ -279,20 +279,30 @@ function getCompleteFinancialStatements(params) {
     if (!changesResult.success) return changesResult;
 
     // Get entity and period details
-    const entity = getEntityDetails(entityId);
-    const period = getPeriodDetails(periodId);
+    const entityResult = getEntityById(entityId);
+    const periodResult = getPeriodById(periodId);
+
+    if (!entityResult.success || !periodResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get entity or period details'
+      };
+    }
+
+    const entity = entityResult.entity;
+    const period = periodResult.period;
 
     return {
       success: true,
       entity: {
-        id: entity.entityId,
-        name: entity.entityName,
-        type: entity.entityType
+        id: entity.id,
+        name: entity.name,
+        type: entity.type
       },
       period: {
         id: period.periodId,
         name: period.periodName,
-        year: period.year,
+        year: period.fiscalYear,
         quarter: period.quarter,
         startDate: period.startDate,
         endDate: period.endDate
