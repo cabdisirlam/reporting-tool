@@ -1,1 +1,819 @@
-<!DOCTYPE html><html><head><title>ValidationReport</title></head><body><h1>ValidationReport</h1><p>Page under construction</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation Report - IPSAS System</title>
+    <style>
+        <?!= include('css/main.css.html'); ?>
+        <?!= include('src/frontend/css/dashboard.css.html'); ?>
+
+        /* Validation Report Specific Styles */
+        .validation-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Status Banner */
+        .status-banner {
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-banner.passed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .status-banner.warnings {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .status-banner.failed {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .status-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+
+        .status-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .status-message {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .status-stats {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Issues Section */
+        .issues-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 24px;
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .section-header.error {
+            background: #fee2e2;
+            border-left: 6px solid #ef4444;
+        }
+
+        .section-header.warning {
+            background: #fef3c7;
+            border-left: 6px solid #f59e0b;
+        }
+
+        .section-header.success {
+            background: #d1fae5;
+            border-left: 6px solid #10b981;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .section-count {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .toggle-icon {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 24px;
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+            padding: 0 24px;
+        }
+
+        /* Issue Item */
+        .issue-item {
+            padding: 16px;
+            border-left: 4px solid;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .issue-item.error {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .issue-item.warning {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .issue-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .issue-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1f2937;
+        }
+
+        .issue-location {
+            font-size: 12px;
+            color: #6b7280;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .issue-message {
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .issue-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-fix {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-fix:hover {
+            background: #5568d3;
+        }
+
+        .btn-ignore {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-ignore:hover {
+            background: #d1d5db;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .status-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+            }
+
+            .btn-action {
+                width: 100%;
+            }
+
+            .issue-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .issue-actions {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1>IPSAS Financial Consolidation System</h1>
+                <div class="user-info">
+                    <span><?= user.name ?></span>
+                    <span class="role-badge"><?= user.role ?></span>
+                    <button onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="validation-container">
+        <h2 style="margin-bottom: 20px; color: #1f2937;">Validation Report</h2>
+
+        <div id="content-container">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px; color: #6b7280;">Running validation...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global state
+        let validationResults = null;
+        let entityData = null;
+        let periodData = null;
+
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const entityId = urlParams.get('entityId') || '<?= session.entityId ?>';
+        const periodId = urlParams.get('periodId');
+
+        // Load validation results on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadValidationResults();
+        });
+
+        /**
+         * Load validation results
+         */
+        function loadValidationResults() {
+            if (!entityId) {
+                showError('No entity selected');
+                return;
+            }
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        validationResults = result.validation;
+                        entityData = result.entity;
+                        periodData = result.period;
+                        renderValidationReport();
+                    } else {
+                        showError('Failed to load validation results: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error loading validation: ' + error.message);
+                })
+                .getValidationResults({ entityId, periodId });
+        }
+
+        /**
+         * Render validation report
+         */
+        function renderValidationReport() {
+            const container = document.getElementById('content-container');
+
+            // Determine overall status
+            const hasErrors = (validationResults.errors || []).length > 0;
+            const hasWarnings = (validationResults.warnings || []).length > 0;
+            const overallStatus = hasErrors ? 'failed' : (hasWarnings ? 'warnings' : 'passed');
+
+            let html = `
+                <!-- Status Banner -->
+                <div class="status-banner ${overallStatus}">
+                    <div class="status-icon">${getStatusIcon(overallStatus)}</div>
+                    <div class="status-title">${getStatusTitle(overallStatus)}</div>
+                    <div class="status-message">${getStatusMessage(overallStatus)}</div>
+                    <div class="status-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${validationResults.errors.length}</div>
+                            <div class="stat-label">Errors</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${validationResults.warnings.length}</div>
+                            <div class="stat-label">Warnings</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${validationResults.passed || 0}</div>
+                            <div class="stat-label">Passed</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${validationResults.completeness || 0}%</div>
+                            <div class="stat-label">Completeness</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="btn-action btn-secondary" onclick="goBackToDashboard()">
+                        ← Back to Dashboard
+                    </button>
+                    <button class="btn-action btn-primary" onclick="rerunValidation()">
+                        🔄 Re-run Validation
+                    </button>
+                    <button class="btn-action btn-secondary" onclick="downloadReport()">
+                        📥 Download Report
+                    </button>
+                    <button class="btn-action btn-success" onclick="submitForApproval()" ${hasErrors ? 'disabled' : ''}>
+                        ✅ Submit for Approval
+                    </button>
+                </div>
+
+                <!-- Errors Section -->
+                ${renderErrorsSection()}
+
+                <!-- Warnings Section -->
+                ${renderWarningsSection()}
+
+                <!-- Passed Validations Section -->
+                ${renderPassedSection()}
+            `;
+
+            container.innerHTML = html;
+        }
+
+        /**
+         * Render errors section
+         */
+        function renderErrorsSection() {
+            const errors = validationResults.errors || [];
+
+            if (errors.length === 0) {
+                return '';
+            }
+
+            let html = `
+                <div class="issues-section">
+                    <div class="section-header error" onclick="toggleSection('errors')">
+                        <div class="section-title">
+                            <span>❌ Errors</span>
+                            <span class="section-count">${errors.length}</span>
+                        </div>
+                        <span class="toggle-icon" id="toggle-errors">▼</span>
+                    </div>
+                    <div class="section-content" id="content-errors">
+            `;
+
+            errors.forEach((error, index) => {
+                html += `
+                    <div class="issue-item error">
+                        <div class="issue-header">
+                            <div class="issue-title">${escapeHtml(error.rule || 'Validation Error')}</div>
+                            <div class="issue-location">${escapeHtml(error.location || 'Unknown')}</div>
+                        </div>
+                        <div class="issue-message">${escapeHtml(error.message || 'No details provided')}</div>
+                        <div class="issue-actions">
+                            ${error.note ? `<button class="btn-small btn-fix" onclick="goToNote('${error.note}')">Go to ${error.note}</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        /**
+         * Render warnings section
+         */
+        function renderWarningsSection() {
+            const warnings = validationResults.warnings || [];
+
+            if (warnings.length === 0) {
+                return '';
+            }
+
+            let html = `
+                <div class="issues-section">
+                    <div class="section-header warning" onclick="toggleSection('warnings')">
+                        <div class="section-title">
+                            <span>⚠️ Warnings</span>
+                            <span class="section-count">${warnings.length}</span>
+                        </div>
+                        <span class="toggle-icon" id="toggle-warnings">▼</span>
+                    </div>
+                    <div class="section-content" id="content-warnings">
+            `;
+
+            warnings.forEach((warning, index) => {
+                html += `
+                    <div class="issue-item warning">
+                        <div class="issue-header">
+                            <div class="issue-title">${escapeHtml(warning.rule || 'Warning')}</div>
+                            <div class="issue-location">${escapeHtml(warning.location || 'Unknown')}</div>
+                        </div>
+                        <div class="issue-message">${escapeHtml(warning.message || 'No details provided')}</div>
+                        ${warning.hasExplanation ?
+                            '<div style="margin-top: 8px; font-size: 13px; color: #10b981;">✅ Explanation provided</div>' :
+                            '<div style="margin-top: 8px; font-size: 13px; color: #f59e0b;">⚠️ Explanation required</div>'
+                        }
+                        <div class="issue-actions">
+                            ${warning.note ? `<button class="btn-small btn-fix" onclick="goToNote('${warning.note}')">Go to ${warning.note}</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        /**
+         * Render passed validations section
+         */
+        function renderPassedSection() {
+            const passed = validationResults.passedChecks || [];
+            const passedCount = validationResults.passed || passed.length;
+
+            let html = `
+                <div class="issues-section">
+                    <div class="section-header success" onclick="toggleSection('passed')">
+                        <div class="section-title">
+                            <span>✅ Passed Validations</span>
+                            <span class="section-count">${passedCount}</span>
+                        </div>
+                        <span class="toggle-icon collapsed" id="toggle-passed">▼</span>
+                    </div>
+                    <div class="section-content collapsed" id="content-passed">
+            `;
+
+            if (passed.length > 0) {
+                passed.forEach(check => {
+                    html += `
+                        <div style="padding: 12px; background: #f9fafb; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #10b981; font-size: 18px;">✅</span>
+                            <span style="color: #374151; font-size: 14px;">${escapeHtml(check.description || check.rule || 'Check passed')}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                html += `
+                    <div class="empty-state" style="padding: 30px;">
+                        <p style="color: #6b7280;">All basic validation checks passed!</p>
+                    </div>
+                `;
+            }
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        /**
+         * Toggle section collapse
+         */
+        function toggleSection(sectionName) {
+            const content = document.getElementById('content-' + sectionName);
+            const toggle = document.getElementById('toggle-' + sectionName);
+
+            content.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+
+        /**
+         * Get status icon
+         */
+        function getStatusIcon(status) {
+            switch (status) {
+                case 'passed':
+                    return '✅';
+                case 'warnings':
+                    return '⚠️';
+                case 'failed':
+                    return '❌';
+                default:
+                    return '📋';
+            }
+        }
+
+        /**
+         * Get status title
+         */
+        function getStatusTitle(status) {
+            switch (status) {
+                case 'passed':
+                    return 'Validation Passed';
+                case 'warnings':
+                    return 'Passed with Warnings';
+                case 'failed':
+                    return 'Validation Failed';
+                default:
+                    return 'Validation Report';
+            }
+        }
+
+        /**
+         * Get status message
+         */
+        function getStatusMessage(status) {
+            switch (status) {
+                case 'passed':
+                    return 'All validation checks passed successfully. You can submit for approval.';
+                case 'warnings':
+                    return 'Validation passed but there are warnings that require your attention.';
+                case 'failed':
+                    return 'Validation failed. Please fix all errors before submitting.';
+                default:
+                    return 'Validation complete';
+            }
+        }
+
+        /**
+         * Re-run validation
+         */
+        function rerunValidation() {
+            document.getElementById('content-container').innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 20px; color: #6b7280;">Re-running validation...</p>
+                </div>
+            `;
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        validationResults = result.validation;
+                        renderValidationReport();
+                    } else {
+                        showError('Failed to re-run validation: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error running validation: ' + error.message);
+                })
+                .runValidations(entityId, periodId);
+        }
+
+        /**
+         * Submit for approval
+         */
+        function submitForApproval() {
+            if ((validationResults.errors || []).length > 0) {
+                alert('Cannot submit with validation errors. Please fix all errors first.');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to submit this data for approval?')) {
+                return;
+            }
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        alert('Successfully submitted for approval!');
+                        window.location.href = '?page=dashboard';
+                    } else {
+                        alert('Failed to submit: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    alert('Error submitting: ' + error.message);
+                })
+                .submitForApproval({
+                    entityId,
+                    periodId,
+                    userId: '<?= user.userId ?>'
+                });
+        }
+
+        /**
+         * Go to note for fixing
+         */
+        function goToNote(noteId) {
+            window.location.href = `?page=NoteEntry&noteId=${noteId}&entityId=${entityId}&periodId=${periodId}`;
+        }
+
+        /**
+         * Go back to dashboard
+         */
+        function goBackToDashboard() {
+            window.location.href = '?page=dashboard';
+        }
+
+        /**
+         * Download report
+         */
+        function downloadReport() {
+            alert('PDF download feature coming soon!');
+            // TODO: Implement PDF generation and download
+        }
+
+        /**
+         * Escape HTML
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Show error message
+         */
+        function showError(message) {
+            const container = document.getElementById('content-container');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon" style="color: #ef4444;">⚠️</div>
+                    <div class="empty-text" style="color: #ef4444;">Error</div>
+                    <div class="empty-subtext">${escapeHtml(message)}</div>
+                    <button class="btn-action btn-primary" onclick="loadValidationResults()" style="margin-top: 20px;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+
+        /**
+         * Logout function
+         */
+        function logout() {
+            google.script.run
+                .withSuccessHandler(function() {
+                    window.location.href = '?page=index';
+                })
+                .handleLogout();
+        }
+    </script>
+</body>
+</html>

@@ -1,1 +1,913 @@
-<!DOCTYPE html><html><head><title>ApprovalReview</title></head><body><h1>ApprovalReview</h1><p>Page under construction</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Submission - IPSAS System</title>
+    <style>
+        <?!= include('css/main.css.html'); ?>
+        <?!= include('src/frontend/css/dashboard.css.html'); ?>
+
+        /* Review Page Specific Styles */
+        .review-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Entity Header */
+        .entity-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .entity-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .entity-meta {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            opacity: 0.95;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .meta-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* Validation Summary Card */
+        .validation-summary {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .summary-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+
+        .validation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .validation-item {
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .validation-item.success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+        }
+
+        .validation-item.warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .validation-item.error {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .validation-icon {
+            font-size: 24px;
+        }
+
+        .validation-text {
+            flex: 1;
+        }
+
+        .validation-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 2px;
+        }
+
+        .validation-count {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 16px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 24px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .data-table th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+        }
+
+        .data-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .variance-positive {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .variance-negative {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .comments-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+
+        .existing-comments {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .comment-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: sticky;
+            bottom: 20px;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-action {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 160px;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-reject:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-clarify {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .btn-clarify:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-back {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-back:hover {
+            background: #e5e7eb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .entity-meta {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .tabs-header {
+                flex-wrap: wrap;
+            }
+
+            .tab-button {
+                flex: 1 1 auto;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn-action {
+                width: 100%;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1>IPSAS Financial Consolidation System</h1>
+                <div class="user-info">
+                    <span><?= user.name ?></span>
+                    <span class="role-badge"><?= user.role ?></span>
+                    <button onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="review-container">
+        <div id="content-container">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #6b7280;">Loading submission...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global state
+        let entityData = null;
+        let periodData = null;
+        let submissionData = null;
+        let validationData = null;
+        let currentTab = 'summary';
+
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const entityId = urlParams.get('entityId');
+        const periodId = urlParams.get('periodId');
+
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            if (!entityId || !periodId) {
+                showError('Missing required parameters: entityId and periodId');
+                return;
+            }
+            loadSubmissionData();
+        });
+
+        /**
+         * Load submission data for review
+         */
+        function loadSubmissionData() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        entityData = result.entity;
+                        periodData = result.period;
+                        submissionData = result.submission;
+                        validationData = result.validation;
+                        renderReviewPage();
+                    } else {
+                        showError('Failed to load submission: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error loading data: ' + error.message);
+                })
+                .getSubmissionForReview({ entityId, periodId });
+        }
+
+        /**
+         * Render the review page
+         */
+        function renderReviewPage() {
+            const container = document.getElementById('content-container');
+
+            let html = `
+                <!-- Entity Header -->
+                <div class="entity-header">
+                    <div class="entity-title">${escapeHtml(entityData.name || 'Unknown Entity')}</div>
+                    <div class="entity-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">Entity Code</div>
+                            <div class="meta-value">${escapeHtml(entityData.code || 'N/A')}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Entity Type</div>
+                            <div class="meta-value">${escapeHtml(entityData.type || 'N/A')}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Period</div>
+                            <div class="meta-value">${escapeHtml(periodData.name || 'N/A')}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Submitted By</div>
+                            <div class="meta-value">${escapeHtml(submissionData.submittedBy || 'N/A')}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Submitted Date</div>
+                            <div class="meta-value">${formatDate(submissionData.submittedDate)}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Status</div>
+                            <div class="meta-value">${escapeHtml(submissionData.status || 'SUBMITTED')}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Summary -->
+                <div class="validation-summary">
+                    <div class="summary-header">Validation Summary</div>
+                    <div class="validation-grid">
+                        <div class="validation-item ${validationData.errorCount === 0 ? 'success' : 'error'}">
+                            <div class="validation-icon">${validationData.errorCount === 0 ? '✅' : '❌'}</div>
+                            <div class="validation-text">
+                                <div class="validation-label">Errors</div>
+                                <div class="validation-count">${validationData.errorCount || 0}</div>
+                            </div>
+                        </div>
+
+                        <div class="validation-item ${validationData.warningCount === 0 ? 'success' : 'warning'}">
+                            <div class="validation-icon">${validationData.warningCount === 0 ? '✅' : '⚠️'}</div>
+                            <div class="validation-text">
+                                <div class="validation-label">Warnings</div>
+                                <div class="validation-count">${validationData.warningCount || 0}</div>
+                            </div>
+                        </div>
+
+                        <div class="validation-item success">
+                            <div class="validation-icon">✅</div>
+                            <div class="validation-text">
+                                <div class="validation-label">Passed Checks</div>
+                                <div class="validation-count">${validationData.passedCount || 0}</div>
+                            </div>
+                        </div>
+
+                        <div class="validation-item ${validationData.completeness >= 100 ? 'success' : 'warning'}">
+                            <div class="validation-icon">${validationData.completeness >= 100 ? '✅' : '📊'}</div>
+                            <div class="validation-text">
+                                <div class="validation-label">Completeness</div>
+                                <div class="validation-count">${validationData.completeness || 0}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-button active" onclick="switchTab('summary')">Summary</button>
+                        <button class="tab-button" onclick="switchTab('notes')">Financial Notes</button>
+                        <button class="tab-button" onclick="switchTab('validation')">Validation Details</button>
+                        <button class="tab-button" onclick="switchTab('attachments')">Attachments</button>
+                    </div>
+
+                    <div id="tab-summary" class="tab-content active">
+                        ${renderSummaryTab()}
+                    </div>
+
+                    <div id="tab-notes" class="tab-content">
+                        ${renderNotesTab()}
+                    </div>
+
+                    <div id="tab-validation" class="tab-content">
+                        ${renderValidationTab()}
+                    </div>
+
+                    <div id="tab-attachments" class="tab-content">
+                        ${renderAttachmentsTab()}
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <div class="comments-header">Review Comments</div>
+
+                    ${submissionData.submitterComments ? `
+                        <div class="existing-comments">
+                            <div class="comment-label">Submitter Comments:</div>
+                            <div class="comment-text">${escapeHtml(submissionData.submitterComments)}</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="comment-label" style="margin-bottom: 8px;">Your Review Comments:</div>
+                    <textarea id="review-comments" class="comment-input" placeholder="Enter your review comments here..."></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-action btn-back" onclick="goBack()">
+                        ← Back to Dashboard
+                    </button>
+                    <button class="btn-action btn-clarify" onclick="requestClarification()">
+                        Request Clarification
+                    </button>
+                    <button class="btn-action btn-reject" onclick="rejectSubmission()">
+                        ❌ Reject
+                    </button>
+                    <button class="btn-action btn-approve" onclick="approveSubmission()">
+                        ✅ Approve
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        /**
+         * Render summary tab
+         */
+        function renderSummaryTab() {
+            const notes = submissionData.notes || [];
+            if (notes.length === 0) {
+                return '<div class="empty-state"><p>No financial data submitted</p></div>';
+            }
+
+            let html = '<h3>Key Financial Highlights</h3>';
+            html += '<table class="data-table">';
+            html += '<thead><tr><th>Note</th><th>Description</th><th>Current Year</th><th>Prior Year</th><th>Variance</th></tr></thead>';
+            html += '<tbody>';
+
+            notes.forEach(note => {
+                const variance = (note.currentYear || 0) - (note.priorYear || 0);
+                const varianceClass = variance >= 0 ? 'variance-positive' : 'variance-negative';
+
+                html += `
+                    <tr>
+                        <td><strong>${escapeHtml(note.noteNumber || '')}</strong></td>
+                        <td>${escapeHtml(note.noteName || '')}</td>
+                        <td>${formatCurrency(note.currentYear || 0)}</td>
+                        <td>${formatCurrency(note.priorYear || 0)}</td>
+                        <td class="${varianceClass}">${formatCurrency(variance)}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            return html;
+        }
+
+        /**
+         * Render notes tab
+         */
+        function renderNotesTab() {
+            const notes = submissionData.notes || [];
+            if (notes.length === 0) {
+                return '<div class="empty-state"><p>No notes data available</p></div>';
+            }
+
+            let html = '<div style="max-height: 600px; overflow-y: auto;">';
+            notes.forEach(note => {
+                html += `
+                    <div style="margin-bottom: 30px; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                        <h4 style="margin-bottom: 15px;">${escapeHtml(note.noteNumber || '')} - ${escapeHtml(note.noteName || '')}</h4>
+                        <p style="color: #6b7280; font-size: 14px;">${escapeHtml(note.description || 'No description available')}</p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        /**
+         * Render validation tab
+         */
+        function renderValidationTab() {
+            const errors = validationData.errors || [];
+            const warnings = validationData.warnings || [];
+
+            let html = '';
+
+            if (errors.length > 0) {
+                html += '<h3 style="color: #ef4444;">Validation Errors</h3>';
+                html += '<div style="margin-bottom: 30px;">';
+                errors.forEach(error => {
+                    html += `
+                        <div style="background: #fee2e2; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444; margin-bottom: 10px;">
+                            <strong>${escapeHtml(error.rule || 'Validation Error')}</strong><br>
+                            <span style="color: #6b7280;">${escapeHtml(error.message || '')}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (warnings.length > 0) {
+                html += '<h3 style="color: #f59e0b;">Warnings</h3>';
+                html += '<div style="margin-bottom: 30px;">';
+                warnings.forEach(warning => {
+                    html += `
+                        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 10px;">
+                            <strong>${escapeHtml(warning.rule || 'Warning')}</strong><br>
+                            <span style="color: #6b7280;">${escapeHtml(warning.message || '')}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (errors.length === 0 && warnings.length === 0) {
+                html = '<div class="empty-state"><div style="font-size: 48px; margin-bottom: 15px;">✅</div><p>No validation issues found!</p></div>';
+            }
+
+            return html;
+        }
+
+        /**
+         * Render attachments tab
+         */
+        function renderAttachmentsTab() {
+            return '<div class="empty-state"><p>Document attachments feature coming soon</p></div>';
+        }
+
+        /**
+         * Switch tabs
+         */
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        /**
+         * Approve submission
+         */
+        function approveSubmission() {
+            const comments = document.getElementById('review-comments').value;
+
+            if (!confirm('Are you sure you want to approve this submission?')) {
+                return;
+            }
+
+            disableActionButtons();
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        alert('Submission approved successfully!');
+                        window.location.href = '?page=ApprovalDashboard';
+                    } else {
+                        alert('Failed to approve: ' + result.error);
+                        enableActionButtons();
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    alert('Error approving submission: ' + error.message);
+                    enableActionButtons();
+                })
+                .approveSubmission({
+                    entityId,
+                    periodId,
+                    approverId: '<?= user.userId ?>',
+                    comments
+                });
+        }
+
+        /**
+         * Reject submission
+         */
+        function rejectSubmission() {
+            const comments = document.getElementById('review-comments').value.trim();
+
+            if (!comments) {
+                alert('Please provide comments explaining why you are rejecting this submission.');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to reject this submission?')) {
+                return;
+            }
+
+            disableActionButtons();
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        alert('Submission rejected.');
+                        window.location.href = '?page=ApprovalDashboard';
+                    } else {
+                        alert('Failed to reject: ' + result.error);
+                        enableActionButtons();
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    alert('Error rejecting submission: ' + error.message);
+                    enableActionButtons();
+                })
+                .rejectSubmission({
+                    entityId,
+                    periodId,
+                    approverId: '<?= user.userId ?>',
+                    comments
+                });
+        }
+
+        /**
+         * Request clarification
+         */
+        function requestClarification() {
+            const comments = document.getElementById('review-comments').value.trim();
+
+            if (!comments) {
+                alert('Please provide comments explaining what clarification is needed.');
+                return;
+            }
+
+            disableActionButtons();
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        alert('Clarification request sent.');
+                        window.location.href = '?page=ApprovalDashboard';
+                    } else {
+                        alert('Failed to request clarification: ' + result.error);
+                        enableActionButtons();
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    alert('Error requesting clarification: ' + error.message);
+                    enableActionButtons();
+                })
+                .requestClarification({
+                    entityId,
+                    periodId,
+                    approverId: '<?= user.userId ?>',
+                    comments
+                });
+        }
+
+        /**
+         * Go back to dashboard
+         */
+        function goBack() {
+            window.location.href = '?page=ApprovalDashboard';
+        }
+
+        /**
+         * Disable action buttons
+         */
+        function disableActionButtons() {
+            document.querySelectorAll('.btn-action').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+
+        /**
+         * Enable action buttons
+         */
+        function enableActionButtons() {
+            document.querySelectorAll('.btn-action').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
+
+        /**
+         * Format currency
+         */
+        function formatCurrency(amount) {
+            return 'KES ' + parseFloat(amount || 0).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        /**
+         * Format date
+         */
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        /**
+         * Escape HTML
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Show error message
+         */
+        function showError(message) {
+            const container = document.getElementById('content-container');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div style="font-size: 48px; color: #ef4444; margin-bottom: 15px;">⚠️</div>
+                    <div style="font-size: 20px; font-weight: 600; margin-bottom: 8px; color: #ef4444;">Error Loading Submission</div>
+                    <div style="color: #6b7280;">${escapeHtml(message)}</div>
+                    <button class="btn-action btn-back" onclick="goBack()" style="margin-top: 20px;">
+                        ← Back to Dashboard
+                    </button>
+                </div>
+            `;
+        }
+
+        /**
+         * Logout function
+         */
+        function logout() {
+            google.script.run
+                .withSuccessHandler(function() {
+                    window.location.href = '?page=index';
+                })
+                .handleLogout();
+        }
+    </script>
+</body>
+</html>

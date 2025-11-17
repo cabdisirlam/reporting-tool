@@ -718,6 +718,351 @@ function getApproverDashboardData() {
 }
 
 /**
+ * Gets comprehensive approval dashboard data
+ * Returns all submissions with entity details for filtering and sorting
+ * @returns {Object} Approval dashboard data with submissions and stats
+ */
+function getApprovalDashboardData() {
+  try {
+    // Get the active period
+    const periodsResult = getAllPeriods();
+    if (!periodsResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get periods'
+      };
+    }
+
+    // Find the currently open period
+    let activePeriod = null;
+    for (const period of periodsResult.periods) {
+      if (period.status === CONFIG.PERIOD_STATUS.OPEN) {
+        activePeriod = period;
+        break;
+      }
+    }
+
+    // If no open period, get the most recent period
+    if (!activePeriod && periodsResult.periods.length > 0) {
+      const sortedPeriods = periodsResult.periods.sort((a, b) => {
+        return new Date(b.startDate) - new Date(a.startDate);
+      });
+      activePeriod = sortedPeriods[0];
+    }
+
+    if (!activePeriod) {
+      return {
+        success: false,
+        error: 'No periods found'
+      };
+    }
+
+    // Get period spreadsheet
+    const ss = getPeriodSpreadsheet(activePeriod.periodId);
+    if (!ss) {
+      return {
+        success: false,
+        error: `Spreadsheet not found for period ${activePeriod.periodId}`
+      };
+    }
+
+    // Get submission status sheet
+    const statusSheet = ss.getSheetByName('SubmissionStatus');
+    const allSubmissions = [];
+    const stats = {
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      total: 0
+    };
+
+    if (statusSheet) {
+      const data = statusSheet.getDataRange().getValues();
+
+      // Process all submissions
+      for (let i = 1; i < data.length; i++) {
+        const entityId = data[i][0];
+        const status = data[i][1];
+        const submittedBy = data[i][2];
+        const submittedDate = data[i][3];
+        const submitterComments = data[i][4];
+        const reviewedBy = data[i][5];
+        const reviewedDate = data[i][6];
+        const reviewerComments = data[i][7];
+
+        // Get entity details
+        const entityResult = getEntityById(entityId);
+        const entityName = entityResult.success ? entityResult.entity.name : 'Unknown';
+        const entityCode = entityResult.success ? entityResult.entity.code : entityId;
+        const entityType = entityResult.success ? entityResult.entity.type : 'Unknown';
+
+        // Get submitter name
+        let submitterName = submittedBy;
+        if (submittedBy) {
+          const submitterResult = getUserByEmail(submittedBy);
+          if (submitterResult.success) {
+            submitterName = submitterResult.user.name;
+          }
+        }
+
+        allSubmissions.push({
+          entityId,
+          entityName,
+          entityCode,
+          entityType,
+          status,
+          submittedBy: submitterName || submittedBy,
+          submittedDate,
+          submitterComments,
+          reviewedBy,
+          reviewedDate,
+          reviewerComments
+        });
+
+        // Update stats
+        if (status === CONFIG.STATUS.SUBMITTED) {
+          stats.pending++;
+        } else if (status === CONFIG.STATUS.APPROVED) {
+          stats.approved++;
+        } else if (status === CONFIG.STATUS.REJECTED) {
+          stats.rejected++;
+        }
+      }
+    }
+
+    // Get total entities count
+    const entitiesResult = getAllEntities({ status: 'ACTIVE' });
+    stats.total = entitiesResult.success ? entitiesResult.entities.length : 0;
+
+    return {
+      success: true,
+      activePeriod,
+      submissions: allSubmissions,
+      stats
+    };
+  } catch (error) {
+    Logger.log('Error getting approval dashboard data: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets submission data for approval review
+ * @param {Object} params - Parameters with entityId and periodId
+ * @returns {Object} Complete submission data for review
+ */
+function getSubmissionForReview(params) {
+  try {
+    const { entityId, periodId } = params;
+
+    // Get entity details
+    const entityResult = getEntityById(entityId);
+    if (!entityResult.success) {
+      return {
+        success: false,
+        error: 'Entity not found'
+      };
+    }
+
+    // Get period details
+    const periodResult = getPeriodById(periodId);
+    if (!periodResult.success) {
+      return {
+        success: false,
+        error: 'Period not found'
+      };
+    }
+
+    // Get submission status
+    const ss = getPeriodSpreadsheet(periodId);
+    if (!ss) {
+      return {
+        success: false,
+        error: `Spreadsheet not found for period ${periodId}`
+      };
+    }
+
+    const statusSheet = ss.getSheetByName('SubmissionStatus');
+    let submissionData = {
+      status: 'DRAFT',
+      submittedBy: null,
+      submittedDate: null,
+      submitterComments: null
+    };
+
+    if (statusSheet) {
+      const data = statusSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === entityId) {
+          submissionData = {
+            status: data[i][1],
+            submittedBy: data[i][2],
+            submittedDate: data[i][3],
+            submitterComments: data[i][4]
+          };
+          break;
+        }
+      }
+    }
+
+    // Get note data
+    const noteDataSheet = ss.getSheetByName('EntityNoteData');
+    const notes = [];
+
+    if (noteDataSheet) {
+      const data = noteDataSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === entityId) {
+          const noteId = data[i][1];
+          const dataJSON = data[i][2];
+
+          try {
+            const parsedData = JSON.parse(dataJSON || '{}');
+            notes.push({
+              noteNumber: noteId,
+              noteName: parsedData.noteName || noteId,
+              description: parsedData.description || '',
+              currentYear: parsedData.total || 0,
+              priorYear: parsedData.priorTotal || 0
+            });
+          } catch (e) {
+            Logger.log('Error parsing note data for ' + noteId + ': ' + e.toString());
+          }
+        }
+      }
+    }
+
+    // Get validation results
+    const validationResult = getValidationSummary(entityId, periodId);
+
+    return {
+      success: true,
+      entity: entityResult.entity,
+      period: periodResult.period,
+      submission: {
+        ...submissionData,
+        notes
+      },
+      validation: validationResult.success ? validationResult.summary : {
+        errorCount: 0,
+        warningCount: 0,
+        passedCount: 0,
+        completeness: 0,
+        errors: [],
+        warnings: []
+      }
+    };
+  } catch (error) {
+    Logger.log('Error getting submission for review: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Gets validation results for display
+ * @param {Object} params - Parameters with entityId and periodId
+ * @returns {Object} Validation results with errors and warnings
+ */
+function getValidationResults(params) {
+  try {
+    const { entityId, periodId } = params;
+
+    // Get entity and period
+    const entityResult = getEntityById(entityId);
+    const periodResult = getPeriodById(periodId);
+
+    if (!entityResult.success || !periodResult.success) {
+      return {
+        success: false,
+        error: 'Entity or period not found'
+      };
+    }
+
+    // Run validation
+    const validationResult = runValidations(entityId, periodId);
+
+    if (!validationResult.success) {
+      return {
+        success: false,
+        error: validationResult.error
+      };
+    }
+
+    return {
+      success: true,
+      entity: entityResult.entity,
+      period: periodResult.period,
+      validation: validationResult.summary
+    };
+  } catch (error) {
+    Logger.log('Error getting validation results: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Requests clarification on a submission
+ * @param {Object} params - Parameters with entityId, periodId, approverId, comments
+ * @returns {Object} Result of clarification request
+ */
+function requestClarification(params) {
+  try {
+    const { entityId, periodId, approverId, comments } = params;
+
+    // Validate approver
+    const approver = getUserById(approverId);
+    if (!approver || approver.role !== CONFIG.ROLES.APPROVER) {
+      return {
+        success: false,
+        error: 'Not authorized to request clarification'
+      };
+    }
+
+    // Update submission status to require clarification
+    updateSubmissionStatus(entityId, periodId, {
+      status: CONFIG.STATUS.REJECTED,
+      reviewedBy: approverId,
+      reviewedDate: new Date(),
+      reviewerComments: 'CLARIFICATION REQUIRED: ' + (comments || '')
+    });
+
+    // Get entity and submitter info
+    const entityResult = getEntityById(entityId);
+    if (entityResult.success) {
+      // Send notification to data entry officer
+      notifyDataEntryOfficer(entityId, periodId, 'CLARIFICATION', approver, comments);
+    }
+
+    // Log activity
+    logActivity(
+      approver.email,
+      'REQUEST_CLARIFICATION',
+      `Requested clarification for ${entityId}`
+    );
+
+    return {
+      success: true,
+      message: 'Clarification request sent successfully'
+    };
+  } catch (error) {
+    Logger.log('Error requesting clarification: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
  * Gets admin dashboard data
  * Shows system-wide statistics
  * @returns {Object} Dashboard data for administrators
