@@ -188,10 +188,16 @@ function rejectSubmission(params) {
  * @param {string} entityId - Entity ID
  * @param {string} periodId - Period ID
  * @param {Object} statusData - Status data to update
- */
+  */
 function updateSubmissionStatus(entityId, periodId, statusData) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
+    if (!periodSpreadsheetResult.success) {
+      Logger.log(`Error updating submission status: ${periodSpreadsheetResult.error}`);
+      return;
+    }
+
+    const ss = periodSpreadsheetResult.ss;
     const sheetName = `SubmissionStatus_${periodId}`;
     let statusSheet = ss.getSheetByName(sheetName);
 
@@ -240,7 +246,12 @@ function updateSubmissionStatus(entityId, periodId, statusData) {
  */
 function getSubmissionStatus(entityId, periodId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
+    if (!periodSpreadsheetResult.success) {
+      return { success: false, error: periodSpreadsheetResult.error };
+    }
+
+    const ss = periodSpreadsheetResult.ss;
     const sheetName = `SubmissionStatus_${periodId}`;
     const statusSheet = ss.getSheetByName(sheetName);
 
@@ -289,7 +300,12 @@ function getSubmissionStatus(entityId, periodId) {
  */
 function getPendingApprovals(periodId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
+    if (!periodSpreadsheetResult.success) {
+      return { success: false, error: periodSpreadsheetResult.error };
+    }
+
+    const ss = periodSpreadsheetResult.ss;
     const sheetName = `SubmissionStatus_${periodId}`;
     const statusSheet = ss.getSheetByName(sheetName);
 
@@ -337,8 +353,9 @@ function getPendingApprovals(periodId) {
  * @param {Spreadsheet} ss - Spreadsheet object
  * @returns {Sheet} Created sheet
  */
-function createSubmissionStatusSheet(ss) {
-  const sheet = ss.insertSheet('SubmissionStatus');
+function createSubmissionStatusSheet(periodId, ss) {
+  const sheetName = `SubmissionStatus_${periodId}`;
+  const sheet = ss.insertSheet(sheetName);
 
   const headers = [
     'EntityID', 'Status', 'SubmittedBy', 'SubmittedDate', 'SubmitterComments',

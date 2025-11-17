@@ -29,8 +29,13 @@ function saveNoteData(params) {
       };
     }
 
-    // Get master config spreadsheet
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    // Get period spreadsheet
+    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
+    if (!periodSpreadsheetResult.success) {
+      return { success: false, error: periodSpreadsheetResult.error };
+    }
+
+    const ss = periodSpreadsheetResult.ss;
     const sheetName = `EntityNoteData_${periodId}`;
 
     // Get or create EntityNoteData sheet
@@ -73,7 +78,12 @@ function getNoteData(params) {
     const { entityId, periodId, noteId } = params;
 
     // Get period spreadsheet
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
+    if (!periodSpreadsheetResult.success) {
+      return { success: false, error: periodSpreadsheetResult.error };
+    }
+
+    const ss = periodSpreadsheetResult.ss;
     const sheetName = `EntityNoteData_${periodId}`;
     const dataSheet = ss.getSheetByName(sheetName);
 
@@ -120,7 +130,12 @@ function getNoteData(params) {
  */
 function getAllEntityNoteData(entityId, periodId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
+    if (!periodSpreadsheetResult.success) {
+      return { success: false, error: periodSpreadsheetResult.error };
+    }
+
+    const ss = periodSpreadsheetResult.ss;
     const sheetName = `EntityNoteData_${periodId}`;
     const dataSheet = ss.getSheetByName(sheetName);
 

@@ -12,6 +12,20 @@
 // PERIOD OPERATIONS
 // ============================================================================
 
+// Column headers for PeriodConfig sheet
+const PERIOD_CONFIG_HEADERS = {
+  PERIOD_ID: 'PeriodID',
+  PERIOD_NAME: 'PeriodName',
+  SPREADSHEET_ID: 'SpreadsheetID',
+  FISCAL_YEAR: 'FiscalYear',
+  QUARTER: 'Quarter',
+  START_DATE: 'StartDate',
+  END_DATE: 'EndDate',
+  DEADLINE_DATE: 'DeadlineDate',
+  STATUS: 'Status',
+  CREATED_DATE: 'CreatedDate'
+};
+
 /**
  * Shows dialog to create a new period
  * Prompts admin for all required period information
@@ -283,6 +297,12 @@ function createPeriod(periodData) {
     // Generate period ID
     const periodId = `PER_${quarter}_${fiscalYear.replace('-', '')}`;
 
+    // Create dedicated spreadsheet for this period
+    const sanitizedFiscalYear = fiscalYear.replace(/[^0-9A-Za-z]/g, '');
+    const spreadsheetName = `IPSAS_PER_${quarter}_${sanitizedFiscalYear}`;
+    const periodSpreadsheet = SpreadsheetApp.create(spreadsheetName);
+    const spreadsheetId = periodSpreadsheet.getId();
+
     // Check if period already exists
     if (periodExists(periodId)) {
       return {
@@ -298,6 +318,7 @@ function createPeriod(periodData) {
     sheet.appendRow([
       periodId,
       periodName,
+      spreadsheetId,
       fiscalYear,
       quarter,
       new Date(startDate),
@@ -307,8 +328,8 @@ function createPeriod(periodData) {
       new Date()
     ]);
 
-    // Create period sheets within master config workbook
-    createPeriodSheets(periodId, periodName);
+    // Create period sheets within the period-specific spreadsheet
+    createPeriodSheets(periodId, periodName, periodSpreadsheet);
 
     // Log activity
     logActivity(
@@ -511,22 +532,109 @@ function rolloverOpeningBalances(fromPeriodId, toPeriodId) {
 // ============================================================================
 
 /**
+ * Gets PeriodConfig context (sheet, data, header map)
+ * @returns {Object} Context with sheet, data array, and headerIndex map
+ */
+function getPeriodConfigContext() {
+  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+  const sheet = ss.getSheetByName('PeriodConfig');
+
+  if (!sheet) {
+    throw new Error('PeriodConfig sheet not found');
+  }
+
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0] || [];
+  const headerIndex = {};
+
+  headers.forEach((header, index) => {
+    headerIndex[header] = index;
+  });
+
+  return { sheet, data, headerIndex };
+}
+
+/**
+ * Builds a period object from a PeriodConfig row
+ * @param {Array} row - Row data
+ * @param {Object} headerIndex - Header to index map
+ * @returns {Object} Period details
+ */
+function buildPeriodFromRow(row, headerIndex) {
+  return {
+    periodId: row[headerIndex[PERIOD_CONFIG_HEADERS.PERIOD_ID]],
+    periodName: row[headerIndex[PERIOD_CONFIG_HEADERS.PERIOD_NAME]],
+    spreadsheetId: row[headerIndex[PERIOD_CONFIG_HEADERS.SPREADSHEET_ID]],
+    fiscalYear: row[headerIndex[PERIOD_CONFIG_HEADERS.FISCAL_YEAR]],
+    quarter: row[headerIndex[PERIOD_CONFIG_HEADERS.QUARTER]],
+    startDate: row[headerIndex[PERIOD_CONFIG_HEADERS.START_DATE]],
+    endDate: row[headerIndex[PERIOD_CONFIG_HEADERS.END_DATE]],
+    deadlineDate: row[headerIndex[PERIOD_CONFIG_HEADERS.DEADLINE_DATE]],
+    status: row[headerIndex[PERIOD_CONFIG_HEADERS.STATUS]],
+    createdDate: row[headerIndex[PERIOD_CONFIG_HEADERS.CREATED_DATE]]
+  };
+}
+
+/**
+ * Looks up period configuration for a given periodId
+ * @param {string} periodId - Period ID
+ * @returns {Object} Lookup result with period, rowIndex, and sheet
+ */
+function getPeriodConfig(periodId) {
+  const context = getPeriodConfigContext();
+  const periodIdIndex = context.headerIndex[PERIOD_CONFIG_HEADERS.PERIOD_ID];
+
+  for (let i = 1; i < context.data.length; i++) {
+    if (context.data[i][periodIdIndex] === periodId) {
+      return {
+        success: true,
+        period: buildPeriodFromRow(context.data[i], context.headerIndex),
+        rowIndex: i + 1,
+        sheet: context.sheet,
+        headerIndex: context.headerIndex
+      };
+    }
+  }
+
+  return { success: false, error: 'Period not found' };
+}
+
+/**
+ * Opens the spreadsheet associated with a period
+ * @param {string} periodId - Period ID
+ * @returns {Object} Result with spreadsheet instance
+ */
+function getPeriodSpreadsheet(periodId) {
+  const periodConfig = getPeriodConfig(periodId);
+  if (!periodConfig.success) {
+    return { success: false, error: periodConfig.error };
+  }
+
+  const spreadsheetId = periodConfig.period.spreadsheetId;
+  if (!spreadsheetId) {
+    return { success: false, error: `No spreadsheet configured for period ${periodId}` };
+  }
+
+  try {
+    const ss = SpreadsheetApp.openById(spreadsheetId);
+    return { success: true, ss, period: periodConfig.period };
+  } catch (error) {
+    return { success: false, error: `Unable to open spreadsheet for ${periodId}: ${error.toString()}` };
+  }
+}
+
+/**
  * Checks if period exists
  * @param {string} periodId - Period ID
  * @returns {boolean} True if exists
  */
 function periodExists(periodId) {
-  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-  const sheet = ss.getSheetByName('PeriodConfig');
-  const data = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === periodId) {
-      return true;
-    }
+  try {
+    return getPeriodConfig(periodId).success;
+  } catch (error) {
+    Logger.log('Error checking period existence: ' + error.toString());
+    return false;
   }
-
-  return false;
 }
 
 /**
@@ -535,13 +643,18 @@ function periodExists(periodId) {
  * @param {string} status - New status
  */
 function updatePeriodStatus(periodId, status) {
-  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-  const sheet = ss.getSheetByName('PeriodConfig');
-  const data = sheet.getDataRange().getValues();
+  const context = getPeriodConfigContext();
+  const statusIndex = context.headerIndex[PERIOD_CONFIG_HEADERS.STATUS];
+  if (statusIndex === undefined) {
+    throw new Error('Status column not found in PeriodConfig');
+  }
 
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === periodId) {
-      sheet.getRange(i + 1, 8).setValue(status); // Status column
+  const statusCol = statusIndex + 1;
+  const periodIdIndex = context.headerIndex[PERIOD_CONFIG_HEADERS.PERIOD_ID];
+
+  for (let i = 1; i < context.data.length; i++) {
+    if (context.data[i][periodIdIndex] === periodId) {
+      context.sheet.getRange(i + 1, statusCol).setValue(status);
       break;
     }
   }
@@ -551,13 +664,17 @@ function updatePeriodStatus(periodId, status) {
  * Closes all currently open periods
  */
 function closeAllOpenPeriods() {
-  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-  const sheet = ss.getSheetByName('PeriodConfig');
-  const data = sheet.getDataRange().getValues();
+  const context = getPeriodConfigContext();
+  const statusIndex = context.headerIndex[PERIOD_CONFIG_HEADERS.STATUS];
+  if (statusIndex === undefined) {
+    throw new Error('Status column not found in PeriodConfig');
+  }
 
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][7] === CONFIG.PERIOD_STATUS.OPEN) {
-      sheet.getRange(i + 1, 8).setValue(CONFIG.PERIOD_STATUS.CLOSED);
+  const statusCol = statusIndex + 1;
+
+  for (let i = 1; i < context.data.length; i++) {
+    if (context.data[i][statusIndex] === CONFIG.PERIOD_STATUS.OPEN) {
+      context.sheet.getRange(i + 1, statusCol).setValue(CONFIG.PERIOD_STATUS.CLOSED);
     }
   }
 }
@@ -567,14 +684,28 @@ function closeAllOpenPeriods() {
  * @param {string} periodId - Period ID
  * @param {string} periodName - Period name
  */
-function createPeriodSheets(periodId, periodName) {
-  Logger.log(`Creating period sheets for ${periodId} in master config workbook...`);
+function createPeriodSheets(periodId, periodName, periodSpreadsheet) {
+  Logger.log(`Creating period sheets for ${periodId}...`);
 
-  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+  const spreadsheetResult = periodSpreadsheet
+    ? { success: true, ss: periodSpreadsheet }
+    : getPeriodSpreadsheet(periodId);
 
-  // Create data sheets with period-specific names
-  createSubmissionStatusSheet(periodId, ss);
-  createEntityNoteDataSheet(periodId, ss);
+  if (!spreadsheetResult.success) {
+    Logger.log(`Unable to create period sheets for ${periodId}: ${spreadsheetResult.error}`);
+    return;
+  }
+
+  const ss = spreadsheetResult.ss;
+
+  // Create data sheets with period-specific names if they don't exist
+  if (!ss.getSheetByName(`SubmissionStatus_${periodId}`)) {
+    createSubmissionStatusSheet(periodId, ss);
+  }
+
+  if (!ss.getSheetByName(`EntityNoteData_${periodId}`)) {
+    createEntityNoteDataSheet(periodId, ss);
+  }
 
   Logger.log(`Period sheets created successfully for ${periodId}`);
 }
@@ -584,7 +715,13 @@ function createPeriodSheets(periodId, periodName) {
  * @param {string} periodId - Period ID
  */
 function protectPeriodSpreadsheet(periodId) {
-  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+  const spreadsheetResult = getPeriodSpreadsheet(periodId);
+  if (!spreadsheetResult.success) {
+    Logger.log(`Unable to protect spreadsheet for ${periodId}: ${spreadsheetResult.error}`);
+    return;
+  }
+
+  const ss = spreadsheetResult.ss;
 
   // Protect period-specific sheets
   const sheetNames = [
@@ -665,28 +802,11 @@ function setEntityOpeningBalances(entityId, periodId, balances) {
  */
 function getAllPeriods() {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-    const sheet = ss.getSheetByName('PeriodConfig');
-
-    if (!sheet) {
-      return { success: false, error: 'PeriodConfig sheet not found' };
-    }
-
-    const data = sheet.getDataRange().getValues();
+    const context = getPeriodConfigContext();
     const periods = [];
 
-    for (let i = 1; i < data.length; i++) {
-      periods.push({
-        periodId: data[i][0],
-        periodName: data[i][1],
-        fiscalYear: data[i][2],
-        quarter: data[i][3],
-        startDate: data[i][4],
-        endDate: data[i][5],
-        deadlineDate: data[i][6],
-        status: data[i][7],
-        createdDate: data[i][8]
-      });
+    for (let i = 1; i < context.data.length; i++) {
+      periods.push(buildPeriodFromRow(context.data[i], context.headerIndex));
     }
 
     return {
@@ -743,7 +863,12 @@ function resetAdminSheets() {
     const periodsResult = getAllPeriods();
     if (periodsResult.success && periodsResult.periods) {
       periodsResult.periods.forEach(period => {
-        createPeriodSheets(period.periodId, period.periodName);
+        const periodSpreadsheetResult = getPeriodSpreadsheet(period.periodId);
+        if (periodSpreadsheetResult.success) {
+          createPeriodSheets(period.periodId, period.periodName, periodSpreadsheetResult.ss);
+        } else {
+          Logger.log(`Skipping period ${period.periodId} during reset: ${periodSpreadsheetResult.error}`);
+        }
       });
     }
 
@@ -779,7 +904,12 @@ function resetAdminSheets() {
  */
 function getSubmissionStatus(entityId, periodId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const periodSpreadsheetResult = getPeriodSpreadsheet(periodId);
+    if (!periodSpreadsheetResult.success) {
+      return { success: false, error: periodSpreadsheetResult.error };
+    }
+
+    const ss = periodSpreadsheetResult.ss;
     const sheetName = `SubmissionStatus_${periodId}`;
     const sheet = ss.getSheetByName(sheetName);
 
@@ -798,11 +928,13 @@ function getSubmissionStatus(entityId, periodId) {
         return {
           success: true,
           status: data[i][1] || CONFIG.STATUS.DRAFT,
-          submittedDate: data[i][2],
-          submittedBy: data[i][3],
-          approvedDate: data[i][4],
+          submittedBy: data[i][2],
+          submittedDate: data[i][3],
+          comments: data[i][4],
           approvedBy: data[i][5],
-          comments: data[i][6]
+          approvedDate: data[i][6],
+          approverComments: data[i][7],
+          lastUpdated: data[i][8]
         };
       }
     }

@@ -290,20 +290,12 @@ function sendAutomatedReminders() {
  */
 function getActivePeriod() {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-    const sheet = ss.getSheetByName('PeriodConfig');
+    const context = getPeriodConfigContext();
+    const statusIndex = context.headerIndex[PERIOD_CONFIG_HEADERS.STATUS];
 
-    if (!sheet) return null;
-
-    const data = sheet.getDataRange().getValues();
-
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][7] === CONFIG.PERIOD_STATUS.OPEN) {
-        return {
-          periodId: data[i][0],
-          periodName: data[i][1],
-          deadlineDate: data[i][6]
-        };
+    for (let i = 1; i < context.data.length; i++) {
+      if (context.data[i][statusIndex] === CONFIG.PERIOD_STATUS.OPEN) {
+        return buildPeriodFromRow(context.data[i], context.headerIndex);
       }
     }
 
@@ -321,26 +313,9 @@ function getActivePeriod() {
  */
 function getPeriodDetails(periodId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-    const sheet = ss.getSheetByName('PeriodConfig');
-
-    if (!sheet) return null;
-
-    const data = sheet.getDataRange().getValues();
-
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === periodId) {
-        return {
-          periodId: data[i][0],
-          periodName: data[i][1],
-          fiscalYear: data[i][2],
-          quarter: data[i][3],
-          startDate: data[i][4],
-          endDate: data[i][5],
-          deadlineDate: data[i][6],
-          status: data[i][7]
-        };
-      }
+    const periodConfig = getPeriodConfig(periodId);
+    if (periodConfig.success) {
+      return periodConfig.period;
     }
 
     return null;
