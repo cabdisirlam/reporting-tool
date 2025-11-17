@@ -431,10 +431,18 @@ function getValidationResults(entityId, periodId) {
     // Find latest result for entity
     for (let i = data.length - 1; i >= 1; i--) {
       if (data[i][0] === entityId) {
-        return {
-          success: true,
-          results: JSON.parse(data[i][5])
-        };
+        try {
+          return {
+            success: true,
+            results: JSON.parse(data[i][5] || '{}')
+          };
+        } catch (parseError) {
+          Logger.log('Error parsing validation results: ' + parseError.toString());
+          return {
+            success: true,
+            results: {}
+          };
+        }
       }
     }
 

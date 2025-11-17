@@ -546,19 +546,7 @@ function createEntityNoteDataSheet(periodId, ss) {
  * Creates submission status sheet (for period data in master config)
  * @param {string|Spreadsheet} periodId - Period ID (legacy) or spreadsheet reference
  * @param {Spreadsheet} ss - Spreadsheet object (preferred)
+ * NOTE: This function has been moved to Approval.gs to avoid duplication
+ * This is a stub for backwards compatibility
  */
-function createSubmissionStatusSheet(periodId, ss) {
-  const targetSs = ss || periodId;
-  const sheetName = 'SubmissionStatus';
-  const sheet = targetSs.insertSheet(sheetName);
-
-  const headers = [
-    'EntityID', 'Status', 'SubmittedBy', 'SubmittedDate', 'SubmitterComments',
-    'ReviewedBy', 'ReviewedDate', 'ReviewerComments', 'LastUpdated'
-  ];
-
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-  sheet.setFrozenRows(1);
-  sheet.autoResizeColumns(1, headers.length);
-}
+// function createSubmissionStatusSheet(periodId, ss) - REMOVED: Duplicate definition exists in Approval.gs
