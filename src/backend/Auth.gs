@@ -74,6 +74,9 @@ function handleLogin(credentials) {
     let session = null;
     if (!requirePINChange) {
       session = createUserSession(user);
+      Logger.log('handleLogin: Session created for user: ' + user.email);
+    } else {
+      Logger.log('handleLogin: PIN change required for user: ' + user.email);
     }
 
     // Log successful login
@@ -81,6 +84,10 @@ function handleLogin(credentials) {
 
     // Check if admin needs setup prompt
     const needsSetupPrompt = (user.role === CONFIG.ROLES.ADMIN);
+    Logger.log('handleLogin: needsSetupPrompt=' + needsSetupPrompt + ' for role=' + user.role);
+
+    const redirectPage = needsSetupPrompt ? 'AdminSetupPrompt' : getDefaultPageForRole(user.role);
+    Logger.log('handleLogin: Redirecting to: ' + redirectPage);
 
     return {
       success: true,
@@ -93,7 +100,7 @@ function handleLogin(credentials) {
         entityName: user.entityName
       },
       session: session,
-      redirectTo: needsSetupPrompt ? 'AdminSetupPrompt' : getDefaultPageForRole(user.role),
+      redirectTo: redirectPage,
       requirePINChange: requirePINChange,
       needsSetupPrompt: needsSetupPrompt
     };
@@ -439,26 +446,34 @@ function createUserSession(user) {
  * @returns {boolean} True if session is valid
  */
 function validateSession() {
-  const userProperties = PropertiesService.getUserProperties();
-  const sessionToken = userProperties.getProperty('sessionToken');
-  const sessionCreated = userProperties.getProperty('sessionCreated');
+  try {
+    const userProperties = PropertiesService.getUserProperties();
+    const sessionToken = userProperties.getProperty('sessionToken');
+    const sessionCreated = userProperties.getProperty('sessionCreated');
 
-  if (!sessionToken || !sessionCreated) {
+    if (!sessionToken || !sessionCreated) {
+      Logger.log('validateSession: No session token or creation time found');
+      return false;
+    }
+
+    // Check if session is expired (24 hours)
+    const created = new Date(sessionCreated);
+    const now = new Date();
+    const hoursDiff = (now - created) / (1000 * 60 * 60);
+
+    if (hoursDiff > 24) {
+      // Session expired
+      Logger.log('validateSession: Session expired (age: ' + hoursDiff + ' hours)');
+      userProperties.deleteAllProperties();
+      return false;
+    }
+
+    Logger.log('validateSession: Session valid (age: ' + hoursDiff.toFixed(2) + ' hours)');
+    return true;
+  } catch (error) {
+    Logger.log('validateSession: Error: ' + error.toString());
     return false;
   }
-
-  // Check if session is expired (24 hours)
-  const created = new Date(sessionCreated);
-  const now = new Date();
-  const hoursDiff = (now - created) / (1000 * 60 * 60);
-
-  if (hoursDiff > 24) {
-    // Session expired
-    userProperties.deleteAllProperties();
-    return false;
-  }
-
-  return true;
 }
 
 // ============================================================================
