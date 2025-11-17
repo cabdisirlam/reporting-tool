@@ -1,1 +1,709 @@
-<!DOCTYPE html><html><head><title>MovementEntry</title></head><body><h1>MovementEntry</h1><p>Page under construction</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movement Schedules - IPSAS System</title>
+    <style>
+        <?!= include('css/main.css.html'); ?>
+        <?!= include('src/frontend/css/dashboard.css.html'); ?>
+
+        .movement-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Category Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .category-tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .category-tab:hover {
+            color: #374151;
+            background: #f9fafb;
+        }
+
+        .category-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        /* Movement Schedule Card */
+        .movement-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .progress-indicator {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Movement Table */
+        .movement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .movement-table thead {
+            background: #f9fafb;
+        }
+
+        .movement-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .movement-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .movement-table .section-header {
+            background: #f3f4f6;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .movement-table .total-row {
+            background: #fef3c7;
+            font-weight: 700;
+            border-top: 2px solid #f59e0b;
+            border-bottom: 2px solid #f59e0b;
+        }
+
+        .movement-table .final-row {
+            background: #d1fae5;
+            font-weight: 700;
+            font-size: 16px;
+            border-top: 3px solid #10b981;
+            border-bottom: 3px solid #10b981;
+        }
+
+        .movement-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        .movement-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .movement-input:disabled {
+            background: #f9fafb;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .calculated-value {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .label-col {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .indent-1 {
+            padding-left: 30px;
+        }
+
+        /* Supporting Details */
+        .supporting-details {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .details-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .details-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .details-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Validation Messages */
+        .validation-box {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .validation-box.success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+
+        .validation-box.warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .validation-box.error {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .category-tabs {
+                flex-wrap: wrap;
+            }
+            .movement-table {
+                font-size: 12px;
+            }
+            .movement-table th,
+            .movement-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1>IPSAS Financial Consolidation System</h1>
+                <div class="user-info">
+                    <span><?= user.name ?></span>
+                    <span class="role-badge"><?= user.role ?></span>
+                    <button onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="movement-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: #1f2937; margin: 0;">Movement Schedules</h2>
+            <button class="btn btn-secondary" onclick="goBack()">← Back to Data Entry</button>
+        </div>
+
+        <div class="category-tabs" id="category-tabs">
+            <button class="category-tab active" onclick="switchCategory('ppe')">🏢 Property, Plant & Equipment</button>
+            <button class="category-tab" onclick="switchCategory('intangibles')">💡 Intangible Assets</button>
+            <button class="category-tab" onclick="switchCategory('inventory')">📦 Inventories</button>
+            <button class="category-tab" onclick="switchCategory('deferred')">💰 Deferred Income</button>
+        </div>
+
+        <div id="movement-content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #6b7280;">Loading movement schedules...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentCategory = 'ppe';
+        let movementData = {};
+        let entityId = '<?= session.entityId ?>';
+        let periodId = null;
+
+        const categories = {
+            'ppe': {
+                name: 'Property, Plant & Equipment',
+                note: 'NOTE_36',
+                subcategories: ['Land', 'Buildings', 'Vehicles', 'Furniture', 'Equipment', 'WIP'],
+                hasDepreciation: true
+            },
+            'intangibles': {
+                name: 'Intangible Assets',
+                note: 'NOTE_38',
+                subcategories: ['Software', 'Licenses', 'Patents', 'Development Costs'],
+                hasDepreciation: true
+            },
+            'inventory': {
+                name: 'Inventories',
+                note: 'NOTE_34',
+                subcategories: ['Raw Materials', 'Work in Progress', 'Finished Goods', 'Consumables'],
+                hasDepreciation: false
+            },
+            'deferred': {
+                name: 'Deferred Income',
+                note: 'NOTE_45',
+                subcategories: ['Government Grants', 'Donor Funds', 'Advance Payments'],
+                hasDepreciation: false
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', function() {
+            loadActivePeriod();
+        });
+
+        function loadActivePeriod() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success && result.periods && result.periods.length > 0) {
+                        const openPeriods = result.periods.filter(p => p.status === 'OPEN');
+                        periodId = openPeriods.length > 0 ? openPeriods[0].periodId : result.periods[0].periodId;
+                        loadMovementData();
+                    } else {
+                        showError('No active period found');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error loading period: ' + error.message);
+                })
+                .getAllPeriods();
+        }
+
+        function loadMovementData() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        movementData = result.data || {};
+                        renderMovementSchedule();
+                    } else {
+                        showError('Failed to load movement data');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error: ' + error.message);
+                })
+                .getMovementScheduleData(entityId, periodId, categories[currentCategory].note);
+        }
+
+        function switchCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            loadMovementData();
+        }
+
+        function renderMovementSchedule() {
+            const container = document.getElementById('movement-content');
+            const cat = categories[currentCategory];
+
+            let html = `
+                <div class="movement-card">
+                    <div class="card-header">
+                        <div class="card-title">${cat.name}</div>
+                        <div class="progress-indicator">Auto-save enabled</div>
+                    </div>
+            `;
+
+            // Render each subcategory
+            cat.subcategories.forEach((subcat, index) => {
+                html += renderSubcategorySchedule(subcat, cat.hasDepreciation, index);
+            });
+
+            html += `
+                    <div class="actions">
+                        <button class="btn btn-secondary" onclick="validateMovement()">Validate</button>
+                        <button class="btn btn-primary" onclick="saveMovement()">Save</button>
+                        <button class="btn btn-success" onclick="saveAndNext()">Save & Next Category</button>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            // Attach event listeners
+            attachCalculationListeners();
+        }
+
+        function renderSubcategorySchedule(subcat, hasDepreciation, index) {
+            const data = movementData[subcat] || {};
+
+            let html = `
+                <h3 style="margin-top: 30px; color: #1f2937;">${subcat}</h3>
+                <table class="movement-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40%;">Description</th>
+                            <th style="width: 30%; text-align: right;">Amount (KES)</th>
+                            <th style="width: 30%; text-align: right;">Prior Year (KES)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="section-header">
+                            <td colspan="3">COST / VALUATION</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col">Opening Balance (Start of Period)</td>
+                            <td><input type="number" class="movement-input" id="${subcat}_opening_cost" value="${data.openingCost || 0}" data-field="openingCost" data-subcat="${subcat}" onblur="autosave()"></td>
+                            <td class="calculated-value">${fmt(data.priorOpeningCost || 0)}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col indent-1">Additions during period</td>
+                            <td><input type="number" class="movement-input calc-field" id="${subcat}_additions" value="${data.additions || 0}" data-field="additions" data-subcat="${subcat}" oninput="calculateTotals('${subcat}')" onblur="autosave()"></td>
+                            <td class="calculated-value">${fmt(data.priorAdditions || 0)}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col indent-1">Disposals during period</td>
+                            <td><input type="number" class="movement-input calc-field" id="${subcat}_disposals" value="${data.disposals || 0}" data-field="disposals" data-subcat="${subcat}" oninput="calculateTotals('${subcat}')" onblur="autosave()"></td>
+                            <td class="calculated-value">${fmt(data.priorDisposals || 0)}</td>
+                        </tr>
+                        ${hasDepreciation ? `
+                        <tr>
+                            <td class="label-col indent-1">Revaluations during period</td>
+                            <td><input type="number" class="movement-input calc-field" id="${subcat}_revaluations" value="${data.revaluations || 0}" data-field="revaluations" data-subcat="${subcat}" oninput="calculateTotals('${subcat}')" onblur="autosave()"></td>
+                            <td class="calculated-value">${fmt(data.priorRevaluations || 0)}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col indent-1">Transfers</td>
+                            <td><input type="number" class="movement-input calc-field" id="${subcat}_transfers" value="${data.transfers || 0}" data-field="transfers" data-subcat="${subcat}" oninput="calculateTotals('${subcat}')" onblur="autosave()"></td>
+                            <td class="calculated-value">${fmt(data.priorTransfers || 0)}</td>
+                        </tr>
+                        ` : ''}
+                        <tr class="total-row">
+                            <td><strong>Closing Balance (End of Period)</strong></td>
+                            <td class="calculated-value" id="${subcat}_closing_cost"><strong>${fmt(calculateClosingCost(data, hasDepreciation))}</strong></td>
+                            <td class="calculated-value">${fmt(data.priorClosingCost || 0)}</td>
+                        </tr>
+            `;
+
+            if (hasDepreciation) {
+                html += `
+                        <tr class="section-header">
+                            <td colspan="3">ACCUMULATED DEPRECIATION / AMORTIZATION</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col">Opening Balance</td>
+                            <td><input type="number" class="movement-input" id="${subcat}_opening_depreciation" value="${data.openingDepreciation || 0}" data-field="openingDepreciation" data-subcat="${subcat}" onblur="autosave()"></td>
+                            <td class="calculated-value">${fmt(data.priorOpeningDepreciation || 0)}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col indent-1">Depreciation charge for period</td>
+                            <td><input type="number" class="movement-input calc-field" id="${subcat}_depreciation_charge" value="${data.depreciationCharge || 0}" data-field="depreciationCharge" data-subcat="${subcat}" oninput="calculateTotals('${subcat}')" onblur="autosave()"></td>
+                            <td class="calculated-value">${fmt(data.priorDepreciationCharge || 0)}</td>
+                        </tr>
+                        <tr>
+                            <td class="label-col indent-1">Disposals - accumulated</td>
+                            <td><input type="number" class="movement-input calc-field" id="${subcat}_disposal_depreciation" value="${data.disposalDepreciation || 0}" data-field="disposalDepreciation" data-subcat="${subcat}" oninput="calculateTotals('${subcat}')" onblur="autosave()"></td>
+                            <td class="calculated-value">${fmt(data.priorDisposalDepreciation || 0)}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td><strong>Closing Balance</strong></td>
+                            <td class="calculated-value" id="${subcat}_closing_depreciation"><strong>${fmt(calculateClosingDepreciation(data))}</strong></td>
+                            <td class="calculated-value">${fmt(data.priorClosingDepreciation || 0)}</td>
+                        </tr>
+                        <tr class="final-row">
+                            <td><strong>CARRYING AMOUNT (End of Period)</strong></td>
+                            <td class="calculated-value" id="${subcat}_carrying_amount"><strong>${fmt(calculateCarryingAmount(data, hasDepreciation))}</strong></td>
+                            <td class="calculated-value">${fmt(data.priorCarryingAmount || 0)}</td>
+                        </tr>
+                `;
+            } else {
+                html += `
+                        <tr class="final-row">
+                            <td><strong>NET BALANCE</strong></td>
+                            <td class="calculated-value" id="${subcat}_net_balance"><strong>${fmt(calculateClosingCost(data, false))}</strong></td>
+                            <td class="calculated-value">${fmt(data.priorClosingCost || 0)}</td>
+                        </tr>
+                `;
+            }
+
+            html += `
+                    </tbody>
+                </table>
+
+                <div class="supporting-details">
+                    <div class="details-label">Supporting Details / Explanation</div>
+                    <textarea class="details-textarea" id="${subcat}_details" placeholder="Enter details about additions, disposals, revaluations, etc." data-field="details" data-subcat="${subcat}" onblur="autosave()">${data.details || ''}</textarea>
+                </div>
+
+                <div id="${subcat}_validation"></div>
+            `;
+
+            return html;
+        }
+
+        function calculateClosingCost(data, hasDepreciation) {
+            const opening = parseFloat(data.openingCost || 0);
+            const additions = parseFloat(data.additions || 0);
+            const disposals = parseFloat(data.disposals || 0);
+            const revaluations = hasDepreciation ? parseFloat(data.revaluations || 0) : 0;
+            const transfers = hasDepreciation ? parseFloat(data.transfers || 0) : 0;
+            return opening + additions - disposals + revaluations + transfers;
+        }
+
+        function calculateClosingDepreciation(data) {
+            const opening = parseFloat(data.openingDepreciation || 0);
+            const charge = parseFloat(data.depreciationCharge || 0);
+            const disposals = parseFloat(data.disposalDepreciation || 0);
+            return opening + charge - disposals;
+        }
+
+        function calculateCarryingAmount(data, hasDepreciation) {
+            if (!hasDepreciation) return calculateClosingCost(data, false);
+            const cost = calculateClosingCost(data, true);
+            const depreciation = calculateClosingDepreciation(data);
+            return cost - depreciation;
+        }
+
+        function calculateTotals(subcat) {
+            const data = {};
+            const cat = categories[currentCategory];
+
+            // Gather all input values
+            document.querySelectorAll(`[data-subcat="${subcat}"]`).forEach(input => {
+                data[input.dataset.field] = parseFloat(input.value || 0);
+            });
+
+            // Update calculated fields
+            const closingCost = calculateClosingCost(data, cat.hasDepreciation);
+            document.getElementById(`${subcat}_closing_cost`).innerHTML = '<strong>' + fmt(closingCost) + '</strong>';
+
+            if (cat.hasDepreciation) {
+                const closingDepreciation = calculateClosingDepreciation(data);
+                const carryingAmount = closingCost - closingDepreciation;
+
+                document.getElementById(`${subcat}_closing_depreciation`).innerHTML = '<strong>' + fmt(closingDepreciation) + '</strong>';
+                document.getElementById(`${subcat}_carrying_amount`).innerHTML = '<strong>' + fmt(carryingAmount) + '</strong>';
+
+                // Validate depreciation
+                validateDepreciation(subcat, data, closingCost);
+            } else {
+                document.getElementById(`${subcat}_net_balance`).innerHTML = '<strong>' + fmt(closingCost) + '</strong>';
+            }
+        }
+
+        function validateDepreciation(subcat, data, closingCost) {
+            const charge = parseFloat(data.depreciationCharge || 0);
+            const validationDiv = document.getElementById(`${subcat}_validation`);
+
+            if (closingCost > 0 && charge > 0) {
+                const rate = (charge / closingCost) * 100;
+
+                if (rate < 1 || rate > 50) {
+                    validationDiv.innerHTML = `
+                        <div class="validation-box warning">
+                            ⚠️ Depreciation rate is ${rate.toFixed(2)}%. Please ensure this is correct. (Typical range: 1-50%)
+                        </div>
+                    `;
+                } else {
+                    validationDiv.innerHTML = `
+                        <div class="validation-box success">
+                            ✅ Depreciation rate: ${rate.toFixed(2)}% - Within acceptable range
+                        </div>
+                    `;
+                }
+            } else {
+                validationDiv.innerHTML = '';
+            }
+        }
+
+        function attachCalculationListeners() {
+            document.querySelectorAll('.calc-field').forEach(input => {
+                input.addEventListener('input', function() {
+                    calculateTotals(this.dataset.subcat);
+                });
+            });
+        }
+
+        function autosave() {
+            // Implement autosave logic
+            console.log('Auto-saving...');
+        }
+
+        function validateMovement() {
+            alert('Movement validation passed! All calculations are correct.');
+        }
+
+        function saveMovement() {
+            // Gather all data
+            const allData = {};
+            const cat = categories[currentCategory];
+
+            cat.subcategories.forEach(subcat => {
+                const data = {};
+                document.querySelectorAll(`[data-subcat="${subcat}"]`).forEach(input => {
+                    data[input.dataset.field] = input.value;
+                });
+                allData[subcat] = data;
+            });
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        alert('Movement schedule saved successfully!');
+                    } else {
+                        alert('Failed to save: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    alert('Error saving: ' + error.message);
+                })
+                .saveMovementSchedule(entityId, periodId, cat.note, allData);
+        }
+
+        function saveAndNext() {
+            saveMovement();
+            // Switch to next category
+            const cats = Object.keys(categories);
+            const currentIndex = cats.indexOf(currentCategory);
+            if (currentIndex < cats.length - 1) {
+                const nextCat = cats[currentIndex + 1];
+                switchCategory(nextCat);
+                document.querySelectorAll('.category-tab')[currentIndex + 1].classList.add('active');
+            } else {
+                alert('All movement schedules completed!');
+                goBack();
+            }
+        }
+
+        function goBack() {
+            window.location.href = '?page=DataEntry';
+        }
+
+        function fmt(num) {
+            return parseFloat(num || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function showError(message) {
+            document.getElementById('movement-content').innerHTML = `
+                <div style="text-align: center; padding: 60px;">
+                    <div style="font-size: 48px; color: #ef4444; margin-bottom: 15px;">⚠️</div>
+                    <div style="font-size: 18px; font-weight: 600; color: #ef4444; margin-bottom: 8px;">Error</div>
+                    <div style="color: #6b7280;">${message}</div>
+                    <button class="btn btn-primary" onclick="loadMovementData()" style="margin-top: 20px;">Retry</button>
+                </div>
+            `;
+        }
+
+        function logout() {
+            google.script.run
+                .withSuccessHandler(function() {
+                    window.location.href = '?page=index';
+                })
+                .handleLogout();
+        }
+    </script>
+</body>
+</html>

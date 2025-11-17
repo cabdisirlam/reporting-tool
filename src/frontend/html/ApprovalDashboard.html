@@ -1,1 +1,775 @@
-<!DOCTYPE html><html><head><title>ApprovalDashboard</title></head><body><h1>ApprovalDashboard</h1><p>Page under construction</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Dashboard - IPSAS System</title>
+    <style>
+        <?!= include('css/main.css.html'); ?>
+        <?!= include('src/frontend/css/dashboard.css.html'); ?>
+
+        /* Approval Dashboard Specific Styles */
+        .approval-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card.pending {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .stat-card.approved {
+            border-left: 4px solid #10b981;
+        }
+
+        .stat-card.rejected {
+            border-left: 4px solid #ef4444;
+        }
+
+        .stat-card.total {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .stat-subtitle {
+            font-size: 13px;
+            color: #9ca3af;
+        }
+
+        /* Filter Panel */
+        .filter-panel {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .filter-input, .filter-select {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-filter {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-clear {
+            padding: 10px 20px;
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear:hover {
+            background: #e5e7eb;
+        }
+
+        /* Submissions Table */
+        .submissions-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .submissions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .submissions-table thead {
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .submissions-table th {
+            padding: 14px 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .submissions-table th:hover {
+            background: #f3f4f6;
+        }
+
+        .submissions-table th .sort-icon {
+            margin-left: 5px;
+            color: #9ca3af;
+            font-size: 11px;
+        }
+
+        .submissions-table tbody tr {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.2s;
+        }
+
+        .submissions-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .submissions-table td {
+            padding: 16px 12px;
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .entity-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .entity-code {
+            font-size: 12px;
+            color: #6b7280;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-submitted {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-review {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .btn-review:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtext {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .submissions-table {
+                font-size: 12px;
+            }
+
+            .submissions-table th,
+            .submissions-table td {
+                padding: 10px 8px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1>IPSAS Financial Consolidation System</h1>
+                <div class="user-info">
+                    <span><?= user.name ?></span>
+                    <span class="role-badge"><?= user.role ?></span>
+                    <button onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="approval-container">
+        <h2 style="margin-bottom: 20px; color: #1f2937;">Approval Dashboard</h2>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card pending">
+                <div class="stat-label">Pending Review</div>
+                <div class="stat-value" id="stat-pending">0</div>
+                <div class="stat-subtitle">Awaiting approval</div>
+            </div>
+
+            <div class="stat-card approved">
+                <div class="stat-label">Approved</div>
+                <div class="stat-value" id="stat-approved">0</div>
+                <div class="stat-subtitle">This period</div>
+            </div>
+
+            <div class="stat-card rejected">
+                <div class="stat-label">Rejected</div>
+                <div class="stat-value" id="stat-rejected">0</div>
+                <div class="stat-subtitle">Needs correction</div>
+            </div>
+
+            <div class="stat-card total">
+                <div class="stat-label">Total Entities</div>
+                <div class="stat-value" id="stat-total">0</div>
+                <div class="stat-subtitle">In system</div>
+            </div>
+        </div>
+
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select id="filter-status" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <option value="SUBMITTED">Submitted</option>
+                        <option value="APPROVED">Approved</option>
+                        <option value="REJECTED">Rejected</option>
+                        <option value="DRAFT">Draft</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Entity Type</label>
+                    <select id="filter-type" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="SAGA">SAGA</option>
+                        <option value="COUNTY">County</option>
+                        <option value="MDA">MDA</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <select id="filter-date" class="filter-select">
+                        <option value="">All Dates</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Search Entity</label>
+                    <input type="text" id="filter-search" class="filter-input" placeholder="Search by name or code...">
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn-clear" onclick="clearFilters()">Clear Filters</button>
+                <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+
+        <!-- Submissions Table -->
+        <div class="submissions-section">
+            <div class="section-header">
+                <h3 class="section-title">Submissions</h3>
+                <button class="btn-filter" onclick="refreshSubmissions()">
+                    🔄 Refresh
+                </button>
+            </div>
+
+            <div id="submissions-container">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 15px; color: #6b7280;">Loading submissions...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global state
+        let allSubmissions = [];
+        let filteredSubmissions = [];
+        let currentSort = { field: 'submittedDate', order: 'desc' };
+        let activePeriod = null;
+
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadApprovalData();
+        });
+
+        /**
+         * Load approval dashboard data
+         */
+        function loadApprovalData() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        updateStatistics(result.stats);
+                        activePeriod = result.activePeriod;
+                        allSubmissions = result.submissions || [];
+                        filteredSubmissions = [...allSubmissions];
+                        renderSubmissions();
+                    } else {
+                        showError('Failed to load approval data: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error loading data: ' + error.message);
+                })
+                .getApprovalDashboardData();
+        }
+
+        /**
+         * Update statistics cards
+         */
+        function updateStatistics(stats) {
+            document.getElementById('stat-pending').textContent = stats.pending || 0;
+            document.getElementById('stat-approved').textContent = stats.approved || 0;
+            document.getElementById('stat-rejected').textContent = stats.rejected || 0;
+            document.getElementById('stat-total').textContent = stats.total || 0;
+        }
+
+        /**
+         * Render submissions table
+         */
+        function renderSubmissions() {
+            const container = document.getElementById('submissions-container');
+
+            if (filteredSubmissions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div class="empty-text">No submissions found</div>
+                        <div class="empty-subtext">There are no submissions matching your filters</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort submissions
+            const sorted = sortSubmissions(filteredSubmissions);
+
+            let html = `
+                <table class="submissions-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortBy('entityName')">
+                                Entity
+                                <span class="sort-icon">${getSortIcon('entityName')}</span>
+                            </th>
+                            <th onclick="sortBy('submittedBy')">
+                                Submitted By
+                                <span class="sort-icon">${getSortIcon('submittedBy')}</span>
+                            </th>
+                            <th onclick="sortBy('submittedDate')">
+                                Date
+                                <span class="sort-icon">${getSortIcon('submittedDate')}</span>
+                            </th>
+                            <th onclick="sortBy('status')">
+                                Status
+                                <span class="sort-icon">${getSortIcon('status')}</span>
+                            </th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sorted.forEach(submission => {
+                html += `
+                    <tr>
+                        <td>
+                            <div class="entity-name">${escapeHtml(submission.entityName || 'Unknown')}</div>
+                            <span class="entity-code">${escapeHtml(submission.entityCode || submission.entityId)}</span>
+                        </td>
+                        <td>${escapeHtml(submission.submittedBy || 'N/A')}</td>
+                        <td>${formatDate(submission.submittedDate)}</td>
+                        <td>
+                            <span class="status-badge status-${(submission.status || 'pending').toLowerCase()}">
+                                ${submission.status || 'Pending'}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="?page=ApprovalReview&entityId=${submission.entityId}&periodId=${activePeriod ? activePeriod.periodId : ''}"
+                               class="btn-review">
+                                Review
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        /**
+         * Apply filters to submissions
+         */
+        function applyFilters() {
+            const statusFilter = document.getElementById('filter-status').value;
+            const typeFilter = document.getElementById('filter-type').value;
+            const dateFilter = document.getElementById('filter-date').value;
+            const searchFilter = document.getElementById('filter-search').value.toLowerCase();
+
+            filteredSubmissions = allSubmissions.filter(submission => {
+                // Status filter
+                if (statusFilter && submission.status !== statusFilter) {
+                    return false;
+                }
+
+                // Type filter
+                if (typeFilter && submission.entityType !== typeFilter) {
+                    return false;
+                }
+
+                // Date filter
+                if (dateFilter && !matchesDateFilter(submission.submittedDate, dateFilter)) {
+                    return false;
+                }
+
+                // Search filter
+                if (searchFilter) {
+                    const nameMatch = (submission.entityName || '').toLowerCase().includes(searchFilter);
+                    const codeMatch = (submission.entityCode || '').toLowerCase().includes(searchFilter);
+                    if (!nameMatch && !codeMatch) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            renderSubmissions();
+        }
+
+        /**
+         * Clear all filters
+         */
+        function clearFilters() {
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-date').value = '';
+            document.getElementById('filter-search').value = '';
+            filteredSubmissions = [...allSubmissions];
+            renderSubmissions();
+        }
+
+        /**
+         * Sort submissions by field
+         */
+        function sortBy(field) {
+            if (currentSort.field === field) {
+                currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.field = field;
+                currentSort.order = 'asc';
+            }
+            renderSubmissions();
+        }
+
+        /**
+         * Sort submissions array
+         */
+        function sortSubmissions(submissions) {
+            return [...submissions].sort((a, b) => {
+                let aVal = a[currentSort.field];
+                let bVal = b[currentSort.field];
+
+                // Handle dates
+                if (currentSort.field === 'submittedDate') {
+                    aVal = new Date(aVal || 0);
+                    bVal = new Date(bVal || 0);
+                }
+
+                // Handle strings
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = (bVal || '').toLowerCase();
+                }
+
+                if (currentSort.order === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+
+        /**
+         * Get sort icon for column
+         */
+        function getSortIcon(field) {
+            if (currentSort.field !== field) {
+                return '↕';
+            }
+            return currentSort.order === 'asc' ? '↑' : '↓';
+        }
+
+        /**
+         * Check if date matches filter
+         */
+        function matchesDateFilter(dateStr, filter) {
+            if (!dateStr) return false;
+
+            const date = new Date(dateStr);
+            const now = new Date();
+
+            switch (filter) {
+                case 'today':
+                    return date.toDateString() === now.toDateString();
+                case 'week':
+                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    return date >= weekAgo;
+                case 'month':
+                    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    return date >= monthAgo;
+                default:
+                    return true;
+            }
+        }
+
+        /**
+         * Refresh submissions
+         */
+        function refreshSubmissions() {
+            loadApprovalData();
+        }
+
+        /**
+         * Format date
+         */
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        /**
+         * Escape HTML
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Show error message
+         */
+        function showError(message) {
+            const container = document.getElementById('submissions-container');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon" style="color: #ef4444;">⚠️</div>
+                    <div class="empty-text" style="color: #ef4444;">Error Loading Data</div>
+                    <div class="empty-subtext">${escapeHtml(message)}</div>
+                    <button class="btn-filter" onclick="loadApprovalData()" style="margin-top: 15px;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+
+        /**
+         * Logout function
+         */
+        function logout() {
+            google.script.run
+                .withSuccessHandler(function() {
+                    window.location.href = '?page=index';
+                })
+                .handleLogout();
+        }
+    </script>
+</body>
+</html>

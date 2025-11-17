@@ -1,1 +1,290 @@
-<!DOCTYPE html><html><head><title>Statements</title></head><body><h1>Statements</h1><p>Page under construction</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Statements - IPSAS System</title>
+    <style>
+        <?!= include('css/main.css.html'); ?>
+
+        body { background: white; font-family: 'Times New Roman', serif; }
+        .statement-container { max-width: 210mm; margin: 20px auto; padding: 20px; }
+        .statement-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 15px; }
+        .coat-of-arms { width: 80px; height: 80px; margin: 0 auto 10px; }
+        .entity-name { font-size: 20px; font-weight: bold; margin: 10px 0; }
+        .statement-title { font-size: 18px; font-weight: bold; margin: 8px 0; }
+        .period-info { font-size: 14px; margin: 5px 0; }
+        .statement-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .statement-table th { text-align: left; padding: 10px; border-bottom: 2px solid #000; font-weight: bold; }
+        .statement-table td { padding: 8px 10px; border-bottom: 1px solid #ccc; }
+        .statement-table .indent-1 { padding-left: 30px; }
+        .statement-table .indent-2 { padding-left: 50px; }
+        .statement-table .total-row { border-top: 2px solid #000; border-bottom: 3px double #000; font-weight: bold; }
+        .amount { text-align: right; font-family: 'Courier New', monospace; }
+        .note-ref { color: #666; font-size: 12px; }
+        .actions { margin: 20px 0; text-align: center; }
+        .btn { padding: 10px 20px; margin: 0 5px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        @media print { .actions, .header { display: none; } }
+        .loading { text-align: center; padding: 60px; }
+        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="actions" id="actions">
+        <button class="btn btn-secondary" onclick="goBack()">← Back to Reports</button>
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
+        <button class="btn btn-primary" onclick="exportPDF()">📥 Download PDF</button>
+    </div>
+
+    <div class="statement-container" id="statement-container">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px;">Loading statement...</p>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const reportId = urlParams.get('reportId');
+        const entityId = urlParams.get('entityId');
+        const periodId = urlParams.get('periodId');
+
+        window.addEventListener('DOMContentLoaded', function() {
+            if (!reportId || !entityId || !periodId) {
+                showError('Missing required parameters');
+                return;
+            }
+            loadStatement();
+        });
+
+        function loadStatement() {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        renderStatement(result);
+                    } else {
+                        showError('Failed to load statement: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showError('Error loading statement: ' + error.message);
+                })
+                .getCompleteFinancialStatements({ entityId, periodId });
+        }
+
+        function renderStatement(data) {
+            const container = document.getElementById('statement-container');
+            const { entity, period, statements } = data;
+
+            let html = `
+                <div class="statement-header">
+                    <div style="font-weight: bold; font-size: 16px;">REPUBLIC OF KENYA</div>
+                    <div class="entity-name">${entity.name || 'Entity Name'}</div>
+                    <div class="statement-title">${getStatementTitle(reportId)}</div>
+                    <div class="period-info">For the Period: ${period.name || 'Period'} (${period.year || ''})</div>
+                </div>
+            `;
+
+            // Render specific statement based on reportId
+            switch (reportId) {
+                case 'statement_position':
+                    html += renderPositionStatement(statements.position);
+                    break;
+                case 'statement_performance':
+                    html += renderPerformanceStatement(statements.performance);
+                    break;
+                case 'statement_cashflow':
+                    html += renderCashFlowStatement(statements.cashflow);
+                    break;
+                case 'statement_changes':
+                    html += renderChangesStatement(statements.changes);
+                    break;
+                case 'complete_financial':
+                    html += renderPositionStatement(statements.position);
+                    html += '<div style="page-break-after: always;"></div>';
+                    html += renderPerformanceStatement(statements.performance);
+                    html += '<div style="page-break-after: always;"></div>';
+                    html += renderCashFlowStatement(statements.cashflow);
+                    html += '<div style="page-break-after: always;"></div>';
+                    html += renderChangesStatement(statements.changes);
+                    break;
+                default:
+                    html += '<p>Statement type not supported</p>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function getStatementTitle(reportId) {
+            const titles = {
+                'statement_position': 'STATEMENT OF FINANCIAL POSITION',
+                'statement_performance': 'STATEMENT OF FINANCIAL PERFORMANCE',
+                'statement_cashflow': 'STATEMENT OF CASH FLOWS',
+                'statement_changes': 'STATEMENT OF CHANGES IN NET ASSETS',
+                'complete_financial': 'COMPLETE FINANCIAL STATEMENTS'
+            };
+            return titles[reportId] || 'FINANCIAL STATEMENT';
+        }
+
+        function renderPositionStatement(statement) {
+            if (!statement) return '<p>Statement data not available</p>';
+
+            return `
+                <h3>ASSETS</h3>
+                <table class="statement-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="amount">Note</th>
+                            <th class="amount">Current Year (KES)</th>
+                            <th class="amount">Prior Year (KES)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4"><strong>Current Assets</strong></td></tr>
+                        <tr><td class="indent-1">Cash and Cash Equivalents</td><td class="amount note-ref">30</td><td class="amount">${fmt(statement.assets?.current?.cash || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td class="indent-1">Receivables</td><td class="amount note-ref">32</td><td class="amount">${fmt(statement.assets?.current?.receivables || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td class="indent-1">Inventories</td><td class="amount note-ref">34</td><td class="amount">${fmt(statement.assets?.current?.inventories || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Total Current Assets</strong></td><td></td><td class="amount"><strong>${fmt(statement.assets?.current?.total || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr><td colspan="4"><strong>Non-Current Assets</strong></td></tr>
+                        <tr><td class="indent-1">Property, Plant & Equipment</td><td class="amount note-ref">36</td><td class="amount">${fmt(statement.assets?.nonCurrent?.ppe || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td class="indent-1">Intangible Assets</td><td class="amount note-ref">37</td><td class="amount">${fmt(statement.assets?.nonCurrent?.intangibles || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Total Non-Current Assets</strong></td><td></td><td class="amount"><strong>${fmt(statement.assets?.nonCurrent?.total || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr class="total-row"><td><strong>TOTAL ASSETS</strong></td><td></td><td class="amount"><strong>${fmt(statement.assets?.total || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+                    </tbody>
+                </table>
+
+                <h3>LIABILITIES</h3>
+                <table class="statement-table">
+                    <tbody>
+                        <tr><td colspan="4"><strong>Current Liabilities</strong></td></tr>
+                        <tr><td class="indent-1">Payables</td><td class="amount note-ref">45</td><td class="amount">${fmt(statement.liabilities?.current?.payables || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Total Current Liabilities</strong></td><td></td><td class="amount"><strong>${fmt(statement.liabilities?.current?.total || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr><td colspan="4"><strong>Non-Current Liabilities</strong></td></tr>
+                        <tr><td class="indent-1">Borrowings</td><td class="amount note-ref">50</td><td class="amount">${fmt(statement.liabilities?.nonCurrent?.borrowings || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Total Non-Current Liabilities</strong></td><td></td><td class="amount"><strong>${fmt(statement.liabilities?.nonCurrent?.total || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr class="total-row"><td><strong>TOTAL LIABILITIES</strong></td><td></td><td class="amount"><strong>${fmt(statement.liabilities?.total || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+                        <tr class="total-row"><td><strong>NET ASSETS</strong></td><td></td><td class="amount"><strong>${fmt(statement.netAssets || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderPerformanceStatement(statement) {
+            if (!statement) return '<p>Statement data not available</p>';
+
+            return `
+                <table class="statement-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="amount">Note</th>
+                            <th class="amount">Current Year (KES)</th>
+                            <th class="amount">Prior Year (KES)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4"><strong>REVENUE</strong></td></tr>
+                        <tr><td class="indent-1">Exchange Revenue</td><td class="amount note-ref">6</td><td class="amount">${fmt(statement.revenue?.exchange || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td class="indent-1">Non-Exchange Revenue</td><td class="amount note-ref">7</td><td class="amount">${fmt(statement.revenue?.nonExchange || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Total Revenue</strong></td><td></td><td class="amount"><strong>${fmt(statement.revenue?.total || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr><td colspan="4"><strong>EXPENSES</strong></td></tr>
+                        <tr><td class="indent-1">Employee Costs</td><td class="amount note-ref">15</td><td class="amount">${fmt(statement.expenses?.employeeCosts || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td class="indent-1">Depreciation</td><td class="amount note-ref">16</td><td class="amount">${fmt(statement.expenses?.depreciation || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Total Expenses</strong></td><td></td><td class="amount"><strong>${fmt(statement.expenses?.total || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr class="total-row"><td><strong>SURPLUS/(DEFICIT)</strong></td><td></td><td class="amount"><strong>${fmt(statement.surplus || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderCashFlowStatement(statement) {
+            if (!statement) return '<p>Statement data not available</p>';
+
+            return `
+                <table class="statement-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="amount">Current Year (KES)</th>
+                            <th class="amount">Prior Year (KES)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="3"><strong>OPERATING ACTIVITIES</strong></td></tr>
+                        <tr><td class="indent-1">Cash Receipts from Operations</td><td class="amount">${fmt(statement.operating?.receipts || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td class="indent-1">Cash Payments for Operations</td><td class="amount">(${fmt(statement.operating?.payments || 0)})</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Net Cash from Operating Activities</strong></td><td class="amount"><strong>${fmt(statement.operating?.net || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr><td colspan="3"><strong>INVESTING ACTIVITIES</strong></td></tr>
+                        <tr><td class="indent-1">Purchase of PPE</td><td class="amount">(${fmt(statement.investing?.payments || 0)})</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Net Cash from Investing Activities</strong></td><td class="amount"><strong>${fmt(statement.investing?.net || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr><td colspan="3"><strong>FINANCING ACTIVITIES</strong></td></tr>
+                        <tr><td class="indent-1">Borrowings Received</td><td class="amount">${fmt(statement.financing?.receipts || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td class="indent-1">Borrowings Repaid</td><td class="amount">(${fmt(statement.financing?.payments || 0)})</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Net Cash from Financing Activities</strong></td><td class="amount"><strong>${fmt(statement.financing?.net || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+
+                        <tr class="total-row"><td><strong>NET INCREASE/(DECREASE) IN CASH</strong></td><td class="amount"><strong>${fmt(statement.netIncrease || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+                        <tr><td>Cash at Beginning of Period</td><td class="amount">${fmt(statement.openingCash || 0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>CASH AT END OF PERIOD</strong></td><td class="amount"><strong>${fmt(statement.closingCash || 0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderChangesStatement(statement) {
+            return `
+                <table class="statement-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="amount">Accumulated Surplus (KES)</th>
+                            <th class="amount">Revaluation Reserve (KES)</th>
+                            <th class="amount">Total (KES)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Opening Balance</td><td class="amount">${fmt(0)}</td><td class="amount">${fmt(0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td>Surplus for the Period</td><td class="amount">${fmt(0)}</td><td class="amount">-</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr><td>Revaluation</td><td class="amount">-</td><td class="amount">${fmt(0)}</td><td class="amount">${fmt(0)}</td></tr>
+                        <tr class="total-row"><td><strong>Closing Balance</strong></td><td class="amount"><strong>${fmt(0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td><td class="amount"><strong>${fmt(0)}</strong></td></tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function fmt(num) {
+            return parseFloat(num || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function goBack() {
+            window.location.href = '?page=Reports';
+        }
+
+        function exportPDF() {
+            alert('PDF export feature coming soon!');
+        }
+
+        function showError(message) {
+            document.getElementById('statement-container').innerHTML = `
+                <div style="text-align: center; padding: 60px;">
+                    <div style="font-size: 48px; color: #ef4444; margin-bottom: 15px;">⚠️</div>
+                    <div style="font-size: 20px; font-weight: 600; color: #ef4444; margin-bottom: 8px;">Error</div>
+                    <div style="color: #6b7280;">${message}</div>
+                    <button class="btn btn-primary" onclick="goBack()" style="margin-top: 20px;">Back to Reports</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
