@@ -493,9 +493,10 @@ function createMasterConfigSpreadsheet() {
   Logger.log('Spreadsheet URL: ' + ss.getUrl());
 
   // Initialize default period (Q2 2025/26) automatically during setup
+  // Pass ssId directly since CONFIG.MASTER_CONFIG_ID won't be updated until script reloads
   Logger.log('Initializing default period...');
   try {
-    const periodResult = initializeDefaultPeriod();
+    const periodResult = initializeDefaultPeriod(ssId);
     if (periodResult.success) {
       Logger.log('Default period created and opened: ' + periodResult.periodId);
     } else {

@@ -12,14 +12,15 @@
  * This function should be run once during initial system setup
  * Creates Q2 2025/26 as the default period and opens it
  *
+ * @param {string} masterConfigIdOverride - Optional master config ID (used during initial setup)
  * @returns {Object} Result with success status and message
  */
-function initializeDefaultPeriod() {
+function initializeDefaultPeriod(masterConfigIdOverride) {
   try {
     Logger.log('Starting default period initialization...');
 
-    // Get MASTER_CONFIG_ID
-    const masterConfigId = CONFIG.MASTER_CONFIG_ID;
+    // Get MASTER_CONFIG_ID - use override if provided (for initial setup), otherwise use CONFIG
+    const masterConfigId = masterConfigIdOverride || CONFIG.MASTER_CONFIG_ID;
     if (!masterConfigId) {
       return {
         success: false,
@@ -65,7 +66,7 @@ function initializeDefaultPeriod() {
 
     // Create the period (will be created as CLOSED by default)
     // We need to temporarily set a user context for this operation
-    const result = createPeriodWithoutAuth(periodData);
+    const result = createPeriodWithoutAuth(periodData, masterConfigId);
 
     if (!result.success) {
       return {
@@ -77,7 +78,7 @@ function initializeDefaultPeriod() {
     Logger.log(`Default period created: ${result.periodId}`);
 
     // Open the period to make it active
-    const openResult = openPeriodWithoutAuth(result.periodId);
+    const openResult = openPeriodWithoutAuth(result.periodId, masterConfigId);
 
     if (!openResult.success) {
       Logger.log(`Warning: Period created but could not be opened: ${openResult.error}`);
@@ -111,9 +112,10 @@ function initializeDefaultPeriod() {
  * Used during system initialization
  *
  * @param {Object} periodData - Period data
+ * @param {string} masterConfigIdOverride - Optional master config ID (used during initial setup)
  * @returns {Object} Creation result
  */
-function createPeriodWithoutAuth(periodData) {
+function createPeriodWithoutAuth(periodData, masterConfigIdOverride) {
   try {
     const { periodName, fiscalYear, quarter, startDate, endDate, deadlineDate } = periodData;
 
@@ -128,21 +130,25 @@ function createPeriodWithoutAuth(periodData) {
     // Generate period ID
     const periodId = `PER_${quarter}_${fiscalYear.replace('-', '')}`;
 
-    // Check if period already exists
-    if (periodExists(periodId)) {
-      return {
-        success: false,
-        error: 'Period already exists'
-      };
+    // Add period to config - use override if provided, otherwise use CONFIG
+    const masterConfigId = masterConfigIdOverride || CONFIG.MASTER_CONFIG_ID;
+    const ss = SpreadsheetApp.openById(masterConfigId);
+    const sheet = ss.getSheetByName('PeriodConfig');
+
+    // Check if period already exists in PeriodConfig
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === periodId) {
+        return {
+          success: false,
+          error: 'Period already exists'
+        };
+      }
     }
 
     // Create dedicated spreadsheet for this period
     const periodSpreadsheet = SpreadsheetApp.create(periodName);
     const spreadsheetId = periodSpreadsheet.getId();
-
-    // Add period to config
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
-    const sheet = ss.getSheetByName('PeriodConfig');
 
     sheet.appendRow([
       periodId,
@@ -190,15 +196,16 @@ function createPeriodWithoutAuth(periodData) {
  * Used during system initialization
  *
  * @param {string} periodId - Period ID
+ * @param {string} masterConfigIdOverride - Optional master config ID (used during initial setup)
  * @returns {Object} Result
  */
-function openPeriodWithoutAuth(periodId) {
+function openPeriodWithoutAuth(periodId, masterConfigIdOverride) {
   try {
     // Close any currently open periods
-    closeAllOpenPeriods();
+    closeAllOpenPeriods(masterConfigIdOverride);
 
     // Open the period
-    updatePeriodStatus(periodId, CONFIG.PERIOD_STATUS.OPEN);
+    updatePeriodStatus(periodId, CONFIG.PERIOD_STATUS.OPEN, masterConfigIdOverride);
 
     // Log activity
     try {
