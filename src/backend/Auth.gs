@@ -678,9 +678,11 @@ function getDefaultPageForRole(role) {
     case CONFIG.ROLES.APPROVER:
       return 'ApprovalDashboard';
     case CONFIG.ROLES.DATA_ENTRY:
-      return 'DataEntry';
+      // Use lowercase to match the doGet router case label
+      return 'dataEntry';
     default:
-      return 'Dashboard';
+      // Use lowercase to match the doGet router case label
+      return 'dashboard';
   }
 }
 
