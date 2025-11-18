@@ -146,8 +146,9 @@ function createPeriodWithoutAuth(periodData, masterConfigIdOverride) {
       }
     }
 
-    // Create dedicated spreadsheet for this period
-    const periodSpreadsheet = SpreadsheetApp.create(periodName);
+    // Create dedicated spreadsheet for this period with SAGA branding and timestamp
+    const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+    const periodSpreadsheet = SpreadsheetApp.create(`SAGA ${periodName} ${timestamp}`);
     const spreadsheetId = periodSpreadsheet.getId();
 
     sheet.appendRow([

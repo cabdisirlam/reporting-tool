@@ -305,8 +305,9 @@ function createPeriod(periodData) {
       };
     }
 
-    // Create dedicated spreadsheet for this period
-    const periodSpreadsheet = SpreadsheetApp.create(periodName);
+    // Create dedicated spreadsheet for this period with SAGA branding and timestamp
+    const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+    const periodSpreadsheet = SpreadsheetApp.create(`SAGA ${periodName} ${timestamp}`);
     const spreadsheetId = periodSpreadsheet.getId();
 
     // Add period to config
@@ -729,6 +730,40 @@ function createPeriodSheets(ss, periodId, periodName) {
   if (defaultSheet) {
     ss.deleteSheet(defaultSheet);
   }
+
+  // Create README sheet first
+  const readmeSheet = ss.insertSheet('README', 0);
+  const masterConfigId = CONFIG.MASTER_CONFIG_ID;
+  const readmeContent = [
+    [`SAGA Period: ${periodName}`],
+    [''],
+    ['This spreadsheet contains data for a specific reporting period.'],
+    [''],
+    ['Sheet Overview:'],
+    ['- SubmissionStatus: Tracks entity submission and approval status'],
+    ['- EntityNoteData: Stores financial data for all entities in this period'],
+    [''],
+    ['Configuration:'],
+    [`- Period ID: ${periodId}`],
+    [`- Period Name: ${periodName}`],
+    [`- Master Config ID: ${masterConfigId || 'Not set'}`],
+    [''],
+    ['Important Notes:'],
+    ['- All users, entities, and templates are defined in the Master Config'],
+    ['- This period references the Master Config for roles and permissions'],
+    ['- Do NOT delete or rename sheets'],
+    ['- Use the web interface for data entry'],
+    [''],
+    ['Created: ' + new Date().toString()],
+    ['Spreadsheet ID: ' + ss.getId()]
+  ];
+
+  readmeSheet.getRange(1, 1, readmeContent.length, 1).setValues(readmeContent);
+  readmeSheet.getRange('A1').setFontWeight('bold').setFontSize(14);
+  readmeSheet.getRange('A5').setFontWeight('bold');
+  readmeSheet.getRange('A9').setFontWeight('bold');
+  readmeSheet.getRange('A14').setFontWeight('bold');
+  readmeSheet.setColumnWidth(1, 600);
 
   // Create data sheets with simplified names if they don't exist
   if (!ss.getSheetByName('SubmissionStatus')) {
