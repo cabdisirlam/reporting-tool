@@ -725,12 +725,6 @@ function closeAllOpenPeriods(masterConfigIdOverride) {
 function createPeriodSheets(ss, periodId, periodName) {
   Logger.log(`Creating period sheets for ${periodId}...`);
 
-  // Remove default sheet if present
-  const defaultSheet = ss.getSheetByName('Sheet1');
-  if (defaultSheet) {
-    ss.deleteSheet(defaultSheet);
-  }
-
   // Create README sheet first
   const readmeSheet = ss.insertSheet('README', 0);
   const masterConfigId = CONFIG.MASTER_CONFIG_ID;
@@ -742,6 +736,7 @@ function createPeriodSheets(ss, periodId, periodName) {
     ['Sheet Overview:'],
     ['- SubmissionStatus: Tracks entity submission and approval status'],
     ['- EntityNoteData: Stores financial data for all entities in this period'],
+    ['- ValidationResults: Validation results for submissions'],
     [''],
     ['Configuration:'],
     [`- Period ID: ${periodId}`],
@@ -761,17 +756,23 @@ function createPeriodSheets(ss, periodId, periodName) {
   readmeSheet.getRange(1, 1, readmeContent.length, 1).setValues(readmeContent);
   readmeSheet.getRange('A1').setFontWeight('bold').setFontSize(14);
   readmeSheet.getRange('A5').setFontWeight('bold');
-  readmeSheet.getRange('A9').setFontWeight('bold');
-  readmeSheet.getRange('A14').setFontWeight('bold');
+  readmeSheet.getRange('A10').setFontWeight('bold');
+  readmeSheet.getRange('A15').setFontWeight('bold');
   readmeSheet.setColumnWidth(1, 600);
 
   // Create data sheets with simplified names if they don't exist
   if (!ss.getSheetByName('SubmissionStatus')) {
-    createSubmissionStatusSheet(ss);
+    createSubmissionStatusSheet(null, ss);
   }
 
   if (!ss.getSheetByName('EntityNoteData')) {
-    createEntityNoteDataSheet(ss);
+    createEntityNoteDataSheet(null, ss);
+  }
+
+  // Remove default Sheet1 AFTER creating all other sheets (Google Sheets requires at least one sheet)
+  const defaultSheet = ss.getSheetByName('Sheet1');
+  if (defaultSheet && ss.getSheets().length > 1) {
+    ss.deleteSheet(defaultSheet);
   }
 
   Logger.log(`Period sheets created successfully for ${periodId}`);
