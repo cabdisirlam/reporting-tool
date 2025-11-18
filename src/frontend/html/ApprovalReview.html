@@ -329,6 +329,76 @@
             color: #6b7280;
         }
 
+        /* Attachments Styles */
+        .attachments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .attachment-item:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .attachment-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .attachment-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .attachment-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .attachment-meta {
+            font-size: 13px;
+            color: #6b7280;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .attachment-actions {
+            flex-shrink: 0;
+        }
+
+        .btn-icon {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #374151;
+        }
+
+        .btn-icon:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
         .loading-spinner {
             text-align: center;
             padding: 40px;
@@ -692,7 +762,82 @@
          * Render attachments tab
          */
         function renderAttachmentsTab() {
-            return '<div class="empty-state"><p>Document attachments feature coming soon</p></div>';
+            if (!submissionData || !submissionData.attachments || submissionData.attachments.length === 0) {
+                return '<div class="empty-state"><div style="font-size: 48px; margin-bottom: 15px;">📎</div><p>No attachments uploaded for this submission</p></div>';
+            }
+
+            let html = '<div class="attachments-list">';
+
+            submissionData.attachments.forEach(file => {
+                const icon = getFileIcon(file.mimeType || file.type);
+                const sizeStr = formatFileSize(file.size);
+                const date = new Date(file.uploadedDate || file.uploadDate);
+                const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                html += `
+                    <div class="attachment-item">
+                        <div class="attachment-icon">${icon}</div>
+                        <div class="attachment-info">
+                            <div class="attachment-name">${escapeHtml(file.name || file.fileName)}</div>
+                            <div class="attachment-meta">
+                                <span>${sizeStr}</span>
+                                <span>•</span>
+                                <span>Uploaded ${dateStr}</span>
+                                ${file.uploadedBy ? `<span>•</span><span>by ${escapeHtml(file.uploadedBy)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="attachment-actions">
+                            <button class="btn-icon" onclick="downloadAttachment('${file.id || file.attachmentId}', '${escapeHtml(file.name || file.fileName)}')">
+                                📥 Download
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        /**
+         * Get file icon based on MIME type
+         */
+        function getFileIcon(mimeType) {
+            if (!mimeType) return '📄';
+            if (mimeType.includes('pdf')) return '📄';
+            if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊';
+            if (mimeType.includes('word') || mimeType.includes('document')) return '📝';
+            if (mimeType.includes('image')) return '🖼️';
+            return '📄';
+        }
+
+        /**
+         * Format file size
+         */
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        /**
+         * Download attachment
+         */
+        function downloadAttachment(fileId, fileName) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success && result.url) {
+                        window.open(result.url, '_blank');
+                    } else {
+                        alert('Failed to download file: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    alert('Download error: ' + error.message);
+                })
+                .getAttachmentDownloadUrl({ fileId: fileId });
         }
 
         /**
