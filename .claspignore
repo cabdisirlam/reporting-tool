@@ -1,28 +1,6 @@
-# Ignore everything by default
-**/**
+# Ignore system files
+.DS_Store
+Thumbs.db
 
-# Include the project manifest (REQUIRED)
-!appsscript.json
-
-# Include all backend .gs code files at root
-!*.gs
-
-# Include all HTML files at root (pages, partials, CSS, JS)
-!*.html
-
-# Explicitly ignore directories and config files
-.git/**
-node_modules/**
-.clasp.json
-src/**
-css/**
-docs/**
-tests/**
-config/**
-sheets/**
-images/**
-.github/**
-*.md
-*.png
-*.json
-!appsscript.json
+# You generally don't need to ignore much else
+# because "rootDir": "./src" handles the rest.
