@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - IPSAS System</title>
     <style>
-        <?!= include('frontend/css/main.css.html'); ?>
-        <?!= include('frontend/css/dashboard.css.html'); ?>
+        <?!= include('frontend/css/main.css'); ?>
+        <?!= include('frontend/css/dashboard.css'); ?>
     </style>
 </head>
 <body>
@@ -31,11 +31,11 @@
 
             <!-- Role-specific dashboard -->
             <? if (role === 'DATA_ENTRY') { ?>
-                <?!= include('frontend/html/DataEntryDashboard'); ?>
+                <?!= include('frontend/html/partials/DataEntryDashboard'); ?>
             <? } else if (role === 'APPROVER') { ?>
-                <?!= include('frontend/html/ApproverDashboard'); ?>
+                <?!= include('frontend/html/partials/ApproverDashboard'); ?>
             <? } else if (role === 'ADMIN') { ?>
-                <?!= include('frontend/html/AdminDashboard'); ?>
+                <?!= include('frontend/html/partials/AdminDashboard'); ?>
             <? } ?>
         </div>
     </main>
@@ -47,16 +47,6 @@
                     window.location.href = '?page=index';
                 })
                 .handleLogout();
-        }
-
-        // Load dashboard data on page load
-        window.addEventListener('DOMContentLoaded', function() {
-            loadDashboardData();
-        });
-
-        function loadDashboardData() {
-            // Implementation depends on role
-            console.log('Loading dashboard data...');
         }
     </script>
 </body>
