@@ -938,13 +938,20 @@ function getSubmissionForReview(params) {
     // Get validation results
     const validationResult = getValidationSummary(entityId, periodId);
 
+    // Get attachments
+    const attachmentsResult = getAttachments({
+      entityId: entityId,
+      periodId: periodId
+    });
+
     return {
       success: true,
       entity: entityResult.entity,
       period: periodResult.period,
       submission: {
         ...submissionData,
-        notes
+        notes,
+        attachments: attachmentsResult.success ? attachmentsResult.attachments : []
       },
       validation: validationResult.success ? validationResult.summary : {
         errorCount: 0,
