@@ -134,8 +134,12 @@ If you don't have a Master Configuration spreadsheet yet:
 1. Open Apps Script editor
 2. Select the function `setupSystemNoUI` from `src/backend/Code.gs`
 3. Run it (▶️)
-4. Check the **Execution log** - it will show the new Spreadsheet ID
+4. Check the **Execution log** - it will show:
+   - The new Spreadsheet ID
+   - Confirmation that the default period (Q2 2025/26) was created and opened
 5. Use that ID in Step 2 above to set `MASTER_CONFIG_ID`
+
+**Note:** The setup now automatically creates a default period (Q2 2025/26) that is ready for data entry. All admin structures (Users, Entities, NoteTemplates, etc.) are also created during this process.
 
 ---
 

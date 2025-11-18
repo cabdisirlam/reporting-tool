@@ -541,10 +541,12 @@ function rolloverOpeningBalances(fromPeriodId, toPeriodId) {
 
 /**
  * Gets PeriodConfig context (sheet, data, header map)
+ * @param {string} masterConfigIdOverride - Optional master config ID (used during initial setup)
  * @returns {Object} Context with sheet, data array, and headerIndex map
  */
-function getPeriodConfigContext() {
-  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+function getPeriodConfigContext(masterConfigIdOverride) {
+  const masterConfigId = masterConfigIdOverride || CONFIG.MASTER_CONFIG_ID;
+  const ss = SpreadsheetApp.openById(masterConfigId);
   const sheet = ss.getSheetByName('PeriodConfig');
 
   if (!sheet) {
@@ -673,9 +675,10 @@ function periodExists(periodId) {
  * Updates period status
  * @param {string} periodId - Period ID
  * @param {string} status - New status
+ * @param {string} masterConfigIdOverride - Optional master config ID (used during initial setup)
  */
-function updatePeriodStatus(periodId, status) {
-  const context = getPeriodConfigContext();
+function updatePeriodStatus(periodId, status, masterConfigIdOverride) {
+  const context = getPeriodConfigContext(masterConfigIdOverride);
   const statusIndex = context.headerIndex[PERIOD_CONFIG_HEADERS.STATUS];
   if (statusIndex === undefined) {
     throw new Error('Status column not found in PeriodConfig');
@@ -694,9 +697,10 @@ function updatePeriodStatus(periodId, status) {
 
 /**
  * Closes all currently open periods
+ * @param {string} masterConfigIdOverride - Optional master config ID (used during initial setup)
  */
-function closeAllOpenPeriods() {
-  const context = getPeriodConfigContext();
+function closeAllOpenPeriods(masterConfigIdOverride) {
+  const context = getPeriodConfigContext(masterConfigIdOverride);
   const statusIndex = context.headerIndex[PERIOD_CONFIG_HEADERS.STATUS];
   if (statusIndex === undefined) {
     throw new Error('Status column not found in PeriodConfig');

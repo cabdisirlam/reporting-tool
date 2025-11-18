@@ -8,8 +8,17 @@ This guide explains how the reporting system handles period configuration and pr
 
 ### Automatic Initialization
 
-When you log in to the admin dashboard for the first time, the system will automatically:
+The system automatically creates the default period in two scenarios:
 
+**1. During Initial System Setup** (Recommended)
+When you run `setupSystemNoUI()` from `Code.gs`, the system will:
+1. Create the master configuration spreadsheet
+2. Set up all required sheets (Users, Entities, PeriodConfig, etc.)
+3. **Automatically create Q2 2025/26** as the default period
+4. **Open the period** for immediate data entry
+
+**2. On First Admin Login** (Fallback)
+If the system setup didn't create a period, when you log in to the admin dashboard, the system will:
 1. **Check System Health**: Verify that all required components are configured
 2. **Create Default Period**: If no periods exist, automatically create **Q2 2025/26** as the initial reporting period
 3. **Activate Period**: Open the default period for data entry
