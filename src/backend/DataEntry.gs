@@ -40,13 +40,7 @@ function saveNoteData(params) {
     // Get or create EntityNoteData sheet
     let dataSheet = ss.getSheetByName(sheetName);
     if (!dataSheet) {
-      // Sheet creation disabled - period spreadsheets have no tabs
-      Logger.log(`EntityNoteData save skipped for ${entityId}/${noteId} in ${periodId} - period sheets disabled`);
-      return {
-        success: true,
-        message: 'Data save skipped - period sheets disabled',
-        timestamp: new Date()
-      };
+      dataSheet = createEntityNoteDataSheet(ss);
     }
 
     // Save data

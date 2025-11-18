@@ -386,9 +386,9 @@ function saveValidationResults(entityId, periodId, results) {
     let resultsSheet = ss.getSheetByName(sheetName);
 
     if (!resultsSheet) {
-      // Sheet creation disabled - period spreadsheets have no tabs
-      Logger.log(`ValidationResults save skipped for ${entityId} in ${periodId} - period sheets disabled`);
-      return;
+      resultsSheet = ss.insertSheet(sheetName);
+      resultsSheet.appendRow(['EntityID', 'RunDate', 'Status', 'Errors', 'Warnings', 'ResultsJSON']);
+      resultsSheet.getRange(1, 1, 1, 6).setFontWeight('bold');
     }
 
     const status = results.summary.errorsCount === 0 ? 'PASSED' : 'FAILED';

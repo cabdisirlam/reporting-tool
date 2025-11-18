@@ -526,9 +526,20 @@ function createNoteLineSheet(ss) {
  * @param {Spreadsheet} ss - Spreadsheet object
  */
 function createEntityNoteDataSheet(periodId, ss) {
-  // Sheet creation disabled - period spreadsheets have no tabs/sheets
-  Logger.log('EntityNoteData sheet creation skipped - period spreadsheets remain empty');
-  return null;
+  const targetSs = ss || periodId;
+  const sheetName = 'EntityNoteData';
+  const sheet = targetSs.insertSheet(sheetName);
+
+  const headers = [
+    'EntityID', 'NoteID', 'LineID', 'Value', 'LastUpdated', 'UpdatedBy'
+  ];
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, headers.length);
+
+  return sheet; // Fix: Return the created sheet
 }
 
 /**
