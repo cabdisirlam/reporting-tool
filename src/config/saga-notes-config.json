@@ -1,0 +1,4603 @@
+{
+  "notes": [
+    {
+      "noteNumber": 6,
+      "noteTitle": "Revenue from Exchange Transactions",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n6_sale_goods",
+          "label": "Sale of goods",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n6_rendering_services",
+          "label": "Rendering of services",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n6_interest_revenue",
+          "label": "Interest revenue",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n6_dividend_revenue",
+          "label": "Dividend revenue",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n6_rental_income",
+          "label": "Rental income",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n6_commissions_fees",
+          "label": "Commissions and fees",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n6_other_revenue",
+          "label": "Other revenue from exchange transactions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n6_other_revenue_sub1",
+          "label": "Specify: [sub-item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n6_other_revenue"
+        },
+        {
+          "id": "n6_other_revenue_sub2",
+          "label": "Specify: [sub-item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n6_other_revenue"
+        }
+      ]
+    },
+    {
+      "noteNumber": 7,
+      "noteTitle": "Revenue from Non-Exchange Transactions",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n7_transfers_national_govt",
+          "label": "Transfers from National Government",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n7_recurrent_grants",
+          "label": "Recurrent grants",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n7_transfers_national_govt"
+        },
+        {
+          "id": "n7_development_grants",
+          "label": "Development grants",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n7_transfers_national_govt"
+        },
+        {
+          "id": "n7_transfers_other_govt",
+          "label": "Transfers from other government entities",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n7_donor_grants",
+          "label": "Donor grants",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n7_donor1",
+          "label": "Donor 1: [specify]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n7_donor_grants"
+        },
+        {
+          "id": "n7_donor2",
+          "label": "Donor 2: [specify]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n7_donor_grants"
+        },
+        {
+          "id": "n7_other_donors",
+          "label": "Other donors",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n7_donor_grants"
+        },
+        {
+          "id": "n7_released_deferred",
+          "label": "Released from deferred income (Note 45)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "linkedNote": 45
+        },
+        {
+          "id": "n7_other_nonexchange",
+          "label": "Other non-exchange revenue",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n7_other_specify",
+          "label": "Specify: [details]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n7_other_nonexchange"
+        }
+      ]
+    },
+    {
+      "noteNumber": 8,
+      "noteTitle": "Cost of Sales",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n8_opening_inventory",
+          "label": "Opening inventory",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n8_purchases",
+          "label": "Purchases",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n8_direct_labor",
+          "label": "Direct labor costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n8_direct_overheads",
+          "label": "Direct production overheads",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n8_closing_inventory",
+          "label": "Less: Closing inventory",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isNegative": true
+        },
+        {
+          "id": "n8_cost_of_sales",
+          "label": "Cost of sales (calculated)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "formula": "n8_opening_inventory + n8_purchases + n8_direct_labor + n8_direct_overheads - n8_closing_inventory"
+        }
+      ]
+    },
+    {
+      "noteNumber": 9,
+      "noteTitle": "Employee Costs",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n9_salaries_wages",
+          "label": "Salaries and wages",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n9_basic_salaries",
+          "label": "Basic salaries",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_salaries_wages"
+        },
+        {
+          "id": "n9_house_allowance",
+          "label": "House allowance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_salaries_wages"
+        },
+        {
+          "id": "n9_commuter_allowance",
+          "label": "Commuter allowance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_salaries_wages"
+        },
+        {
+          "id": "n9_other_allowances",
+          "label": "Other allowances",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_salaries_wages"
+        },
+        {
+          "id": "n9_social_security",
+          "label": "Social security contributions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n9_nssf",
+          "label": "NSSF contributions",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_social_security"
+        },
+        {
+          "id": "n9_nhif",
+          "label": "NHIF contributions",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_social_security"
+        },
+        {
+          "id": "n9_other_statutory",
+          "label": "Other statutory contributions",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_social_security"
+        },
+        {
+          "id": "n9_pension_costs",
+          "label": "Pension costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n9_defined_contribution",
+          "label": "Defined contribution plans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_pension_costs"
+        },
+        {
+          "id": "n9_defined_benefit",
+          "label": "Defined benefit plans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_pension_costs"
+        },
+        {
+          "id": "n9_other_staff_costs",
+          "label": "Other staff costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n9_staff_training",
+          "label": "Staff training",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_other_staff_costs"
+        },
+        {
+          "id": "n9_staff_welfare",
+          "label": "Staff welfare",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_other_staff_costs"
+        },
+        {
+          "id": "n9_medical_expenses",
+          "label": "Medical expenses",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_other_staff_costs"
+        },
+        {
+          "id": "n9_leave_pay",
+          "label": "Leave pay expense",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n9_other_staff_costs"
+        },
+        {
+          "id": "n9_total",
+          "label": "Total employee costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 10,
+      "noteTitle": "Depreciation and Amortization",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n10_depr_ppe",
+          "label": "Depreciation of property, plant and equipment (Note 36)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true,
+          "linkedNote": 36
+        },
+        {
+          "id": "n10_buildings",
+          "label": "Buildings",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_depr_ppe"
+        },
+        {
+          "id": "n10_motor_vehicles",
+          "label": "Motor vehicles",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_depr_ppe"
+        },
+        {
+          "id": "n10_furniture",
+          "label": "Furniture and fittings",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_depr_ppe"
+        },
+        {
+          "id": "n10_office_equip",
+          "label": "Office equipment",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_depr_ppe"
+        },
+        {
+          "id": "n10_computer_equip",
+          "label": "Computer equipment",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_depr_ppe"
+        },
+        {
+          "id": "n10_plant_machinery",
+          "label": "Plant and machinery",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_depr_ppe"
+        },
+        {
+          "id": "n10_amort_intangibles",
+          "label": "Amortization of intangible assets (Note 38)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true,
+          "linkedNote": 38
+        },
+        {
+          "id": "n10_software",
+          "label": "Computer software",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_amort_intangibles"
+        },
+        {
+          "id": "n10_licenses",
+          "label": "Licenses",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_amort_intangibles"
+        },
+        {
+          "id": "n10_other_intangibles",
+          "label": "Other intangibles",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n10_amort_intangibles"
+        },
+        {
+          "id": "n10_depr_rou",
+          "label": "Depreciation of right-of-use assets (Note 37)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "linkedNote": 37
+        },
+        {
+          "id": "n10_total",
+          "label": "Total depreciation and amortization",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 11,
+      "noteTitle": "Finance Costs",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n11_interest_bank_loans",
+          "label": "Interest on bank loans",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n11_interest_govt_loans",
+          "label": "Interest on government loans",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n11_interest_bonds",
+          "label": "Interest on bonds",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n11_interest_lease",
+          "label": "Interest on lease liabilities",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n11_bank_charges",
+          "label": "Bank charges and commissions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n11_fx_losses",
+          "label": "Foreign exchange losses",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n11_other_finance",
+          "label": "Other finance costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 12,
+      "noteTitle": "Impairment Losses",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n12_impair_receivables",
+          "label": "Impairment of receivables (Note 32)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "linkedNote": 32
+        },
+        {
+          "id": "n12_impair_inventories",
+          "label": "Impairment of inventories (Note 34)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "linkedNote": 34
+        },
+        {
+          "id": "n12_impair_ppe",
+          "label": "Impairment of property, plant and equipment (Note 36)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "linkedNote": 36
+        },
+        {
+          "id": "n12_impair_intangibles",
+          "label": "Impairment of intangible assets (Note 38)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "linkedNote": 38
+        },
+        {
+          "id": "n12_impair_investments",
+          "label": "Impairment of investments (Note 39)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "linkedNote": 39
+        },
+        {
+          "id": "n12_total",
+          "label": "Total impairment losses",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 13,
+      "noteTitle": "Operating Lease Expenses",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n13_lease_buildings",
+          "label": "Operating lease rentals - buildings",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n13_lease_equipment",
+          "label": "Operating lease rentals - equipment",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n13_lease_vehicles",
+          "label": "Operating lease rentals - motor vehicles",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n13_other_lease",
+          "label": "Other operating lease expenses",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 14,
+      "noteTitle": "General Expenses",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n14_audit_fees",
+          "label": "Audit fees",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n14_external_audit",
+          "label": "External audit",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_audit_fees"
+        },
+        {
+          "id": "n14_internal_audit",
+          "label": "Internal audit",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_audit_fees"
+        },
+        {
+          "id": "n14_legal_professional",
+          "label": "Legal and professional fees",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_insurance",
+          "label": "Insurance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n14_building_insurance",
+          "label": "Building insurance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_insurance"
+        },
+        {
+          "id": "n14_vehicle_insurance",
+          "label": "Motor vehicle insurance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_insurance"
+        },
+        {
+          "id": "n14_liability_insurance",
+          "label": "Public liability insurance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_insurance"
+        },
+        {
+          "id": "n14_other_insurance",
+          "label": "Other insurance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_insurance"
+        },
+        {
+          "id": "n14_security",
+          "label": "Security services",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_cleaning",
+          "label": "Cleaning services",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_printing",
+          "label": "Printing and stationery",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_postage",
+          "label": "Postage and courier",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_telephone",
+          "label": "Telephone and internet",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_utilities",
+          "label": "Electricity and water",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_repairs",
+          "label": "Repairs and maintenance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n14_repairs_buildings",
+          "label": "Buildings",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_repairs"
+        },
+        {
+          "id": "n14_repairs_vehicles",
+          "label": "Motor vehicles",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_repairs"
+        },
+        {
+          "id": "n14_repairs_equipment",
+          "label": "Equipment",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_repairs"
+        },
+        {
+          "id": "n14_repairs_other",
+          "label": "Other assets",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_repairs"
+        },
+        {
+          "id": "n14_fuel",
+          "label": "Fuel and lubricants",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_travel",
+          "label": "Travel and accommodation",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n14_local_travel",
+          "label": "Local travel",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_travel"
+        },
+        {
+          "id": "n14_international_travel",
+          "label": "International travel",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_travel"
+        },
+        {
+          "id": "n14_board_expenses",
+          "label": "Board expenses",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_travel"
+        },
+        {
+          "id": "n14_advertising",
+          "label": "Advertising and marketing",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_subscriptions",
+          "label": "Subscriptions and memberships",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_donations",
+          "label": "Donations and sponsorships",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_entertainment",
+          "label": "Entertainment and hospitality",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_bad_debts",
+          "label": "Bad debts written off",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n14_other_expenses",
+          "label": "Other general expenses",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n14_other_exp1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_other_expenses"
+        },
+        {
+          "id": "n14_other_exp2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_other_expenses"
+        },
+        {
+          "id": "n14_other_exp3",
+          "label": "Specify: [item 3]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n14_other_expenses"
+        }
+      ]
+    },
+    {
+      "noteNumber": 15,
+      "noteTitle": "Other income",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n15_sundry_income",
+          "label": "Sundry income",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n15_gain_disposal_assets",
+          "label": "Gain on disposal of assets",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n15_insurance_claims",
+          "label": "Insurance claims recovered",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n15_reimbursements",
+          "label": "Reimbursements received",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n15_other",
+          "label": "Other miscellaneous income",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n15_other_sub1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n15_other"
+        },
+        {
+          "id": "n15_other_sub2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n15_other"
+        }
+      ]
+    },
+    {
+      "noteNumber": 16,
+      "noteTitle": "Use of goods and services",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n16_office_supplies",
+          "label": "Office supplies and stationery",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n16_utilities",
+          "label": "Utilities",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n16_electricity",
+          "label": "Electricity",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n16_utilities"
+        },
+        {
+          "id": "n16_water",
+          "label": "Water",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n16_utilities"
+        },
+        {
+          "id": "n16_telephone",
+          "label": "Telephone and internet",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n16_utilities"
+        },
+        {
+          "id": "n16_fuel",
+          "label": "Fuel and oil",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n16_travel",
+          "label": "Travel and accommodation",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n16_domestic_travel",
+          "label": "Domestic travel",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n16_travel"
+        },
+        {
+          "id": "n16_international_travel",
+          "label": "International travel",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n16_travel"
+        },
+        {
+          "id": "n16_accommodation",
+          "label": "Accommodation",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n16_travel"
+        },
+        {
+          "id": "n16_printing",
+          "label": "Printing and publication",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n16_communication",
+          "label": "Communication costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n16_insurance",
+          "label": "Insurance premiums",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n16_rent",
+          "label": "Rent and rates",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n16_cleaning",
+          "label": "Cleaning and sanitation",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n16_security",
+          "label": "Security services",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n16_other",
+          "label": "Other goods and services",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n16_other_sub1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n16_other"
+        },
+        {
+          "id": "n16_other_sub2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n16_other"
+        }
+      ]
+    },
+    {
+      "noteNumber": 17,
+      "noteTitle": "Employee costs",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n17_salaries_wages",
+          "label": "Salaries and wages",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n17_basic_salaries",
+          "label": "Basic salaries",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_salaries_wages"
+        },
+        {
+          "id": "n17_house_allowance",
+          "label": "House allowance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_salaries_wages"
+        },
+        {
+          "id": "n17_commuter_allowance",
+          "label": "Commuter allowance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_salaries_wages"
+        },
+        {
+          "id": "n17_other_allowances",
+          "label": "Other allowances",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_salaries_wages"
+        },
+        {
+          "id": "n17_social_security",
+          "label": "Social security contributions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n17_nssf",
+          "label": "NSSF contributions",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_social_security"
+        },
+        {
+          "id": "n17_nhif",
+          "label": "NHIF contributions",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_social_security"
+        },
+        {
+          "id": "n17_other_statutory",
+          "label": "Other statutory contributions",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_social_security"
+        },
+        {
+          "id": "n17_pension_costs",
+          "label": "Pension costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n17_defined_contribution",
+          "label": "Defined contribution plans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_pension_costs"
+        },
+        {
+          "id": "n17_defined_benefit",
+          "label": "Defined benefit plans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_pension_costs"
+        },
+        {
+          "id": "n17_other_staff_costs",
+          "label": "Other staff costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n17_staff_training",
+          "label": "Staff training",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_other_staff_costs"
+        },
+        {
+          "id": "n17_staff_welfare",
+          "label": "Staff welfare",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_other_staff_costs"
+        },
+        {
+          "id": "n17_medical_expenses",
+          "label": "Medical expenses",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_other_staff_costs"
+        },
+        {
+          "id": "n17_leave_pay",
+          "label": "Leave pay expense",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n17_other_staff_costs"
+        }
+      ]
+    },
+    {
+      "noteNumber": 18,
+      "noteTitle": "Board Expenses",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n18_sitting_allowances",
+          "label": "Board sitting allowances",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n18_travel_costs",
+          "label": "Board travel and accommodation",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n18_honoraria",
+          "label": "Board honoraria",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n18_training",
+          "label": "Board training and development",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n18_other",
+          "label": "Other board expenses",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n18_other_sub1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n18_other"
+        },
+        {
+          "id": "n18_other_sub2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n18_other"
+        }
+      ]
+    },
+    {
+      "noteNumber": 19,
+      "noteTitle": "Depreciation and amortization expense",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n19_ppe_depreciation",
+          "label": "Depreciation of property, plant and equipment",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n19_buildings",
+          "label": "Buildings",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_ppe_depreciation"
+        },
+        {
+          "id": "n19_infrastructure",
+          "label": "Infrastructure assets",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_ppe_depreciation"
+        },
+        {
+          "id": "n19_plant_equipment",
+          "label": "Plant and equipment",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_ppe_depreciation"
+        },
+        {
+          "id": "n19_furniture",
+          "label": "Furniture and fittings",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_ppe_depreciation"
+        },
+        {
+          "id": "n19_motor_vehicles",
+          "label": "Motor vehicles",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_ppe_depreciation"
+        },
+        {
+          "id": "n19_computers",
+          "label": "Computer equipment",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_ppe_depreciation"
+        },
+        {
+          "id": "n19_intangible_amortization",
+          "label": "Amortization of intangible assets",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n19_software",
+          "label": "Computer software",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_intangible_amortization"
+        },
+        {
+          "id": "n19_licenses",
+          "label": "Licenses and rights",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_intangible_amortization"
+        },
+        {
+          "id": "n19_other_intangibles",
+          "label": "Other intangible assets",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n19_intangible_amortization"
+        },
+        {
+          "id": "n19_investment_property",
+          "label": "Depreciation of investment property",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 20,
+      "noteTitle": "Repairs and maintenance",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n20_building_repairs",
+          "label": "Building repairs and maintenance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n20_infrastructure",
+          "label": "Infrastructure maintenance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n20_plant_equipment",
+          "label": "Plant and equipment maintenance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n20_motor_vehicles",
+          "label": "Motor vehicle repairs and maintenance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n20_computer_maintenance",
+          "label": "Computer equipment maintenance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n20_furniture",
+          "label": "Furniture and fittings maintenance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n20_other",
+          "label": "Other repairs and maintenance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n20_other_sub1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n20_other"
+        },
+        {
+          "id": "n20_other_sub2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n20_other"
+        }
+      ]
+    },
+    {
+      "noteNumber": 21,
+      "noteTitle": "Contracted services",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n21_professional_fees",
+          "label": "Professional fees",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n21_audit_fees",
+          "label": "Audit fees",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_professional_fees"
+        },
+        {
+          "id": "n21_legal_fees",
+          "label": "Legal fees",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_professional_fees"
+        },
+        {
+          "id": "n21_consulting_fees",
+          "label": "Consulting fees",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_professional_fees"
+        },
+        {
+          "id": "n21_accounting_fees",
+          "label": "Accounting services",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_professional_fees"
+        },
+        {
+          "id": "n21_it_services",
+          "label": "IT and technical services",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n21_software_maintenance",
+          "label": "Software maintenance and support",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_it_services"
+        },
+        {
+          "id": "n21_it_consultancy",
+          "label": "IT consultancy",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_it_services"
+        },
+        {
+          "id": "n21_outsourced_services",
+          "label": "Outsourced services",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n21_cleaning_contracted",
+          "label": "Cleaning services",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_outsourced_services"
+        },
+        {
+          "id": "n21_security_contracted",
+          "label": "Security services",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_outsourced_services"
+        },
+        {
+          "id": "n21_catering",
+          "label": "Catering services",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_outsourced_services"
+        },
+        {
+          "id": "n21_other",
+          "label": "Other contracted services",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n21_other_sub1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_other"
+        },
+        {
+          "id": "n21_other_sub2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n21_other"
+        }
+      ]
+    },
+    {
+      "noteNumber": 22,
+      "noteTitle": "Grants and subsidies",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n22_grants_individuals",
+          "label": "Grants to individuals",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n22_education_grants",
+          "label": "Education grants",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_grants_individuals"
+        },
+        {
+          "id": "n22_health_grants",
+          "label": "Health grants",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_grants_individuals"
+        },
+        {
+          "id": "n22_welfare_grants",
+          "label": "Welfare grants",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_grants_individuals"
+        },
+        {
+          "id": "n22_grants_organizations",
+          "label": "Grants to organizations",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n22_ngo_grants",
+          "label": "Grants to NGOs",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_grants_organizations"
+        },
+        {
+          "id": "n22_community_grants",
+          "label": "Community organization grants",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_grants_organizations"
+        },
+        {
+          "id": "n22_institutional_grants",
+          "label": "Institutional grants",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_grants_organizations"
+        },
+        {
+          "id": "n22_subsidies",
+          "label": "Subsidies",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n22_agricultural_subsidies",
+          "label": "Agricultural subsidies",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_subsidies"
+        },
+        {
+          "id": "n22_transport_subsidies",
+          "label": "Transport subsidies",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_subsidies"
+        },
+        {
+          "id": "n22_other_subsidies",
+          "label": "Other subsidies",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n22_subsidies"
+        }
+      ]
+    },
+    {
+      "noteNumber": 23,
+      "noteTitle": "Finance costs",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n23_interest_borrowings",
+          "label": "Interest on borrowings",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n23_bank_loans",
+          "label": "Interest on bank loans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n23_interest_borrowings"
+        },
+        {
+          "id": "n23_bonds",
+          "label": "Interest on bonds",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n23_interest_borrowings"
+        },
+        {
+          "id": "n23_overdraft",
+          "label": "Bank overdraft interest",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n23_interest_borrowings"
+        },
+        {
+          "id": "n23_finance_lease",
+          "label": "Finance lease interest",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n23_unwinding_discount",
+          "label": "Unwinding of discount on provisions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n23_bank_charges",
+          "label": "Bank charges and fees",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n23_other",
+          "label": "Other finance costs",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n23_other_sub1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n23_other"
+        },
+        {
+          "id": "n23_other_sub2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n23_other"
+        }
+      ]
+    },
+    {
+      "noteNumber": 24,
+      "noteTitle": "Social Benefits expenses",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n24_cash_benefits",
+          "label": "Cash social benefits",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n24_pension_benefits",
+          "label": "Pension benefits paid",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_cash_benefits"
+        },
+        {
+          "id": "n24_unemployment_benefits",
+          "label": "Unemployment benefits",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_cash_benefits"
+        },
+        {
+          "id": "n24_disability_benefits",
+          "label": "Disability benefits",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_cash_benefits"
+        },
+        {
+          "id": "n24_family_benefits",
+          "label": "Family and child benefits",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_cash_benefits"
+        },
+        {
+          "id": "n24_in_kind_benefits",
+          "label": "Social benefits in kind",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n24_medical_services",
+          "label": "Medical services provided",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_in_kind_benefits"
+        },
+        {
+          "id": "n24_housing_benefits",
+          "label": "Housing benefits",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_in_kind_benefits"
+        },
+        {
+          "id": "n24_food_assistance",
+          "label": "Food assistance",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_in_kind_benefits"
+        },
+        {
+          "id": "n24_other_benefits",
+          "label": "Other social benefits",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n24_other_sub1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_other_benefits"
+        },
+        {
+          "id": "n24_other_sub2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n24_other_benefits"
+        }
+      ]
+    },
+    {
+      "noteNumber": 25,
+      "noteTitle": "Gain/Loss on sale of assets",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n25_ppe_disposal",
+          "label": "Gain/(Loss) on disposal of PPE",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n25_buildings",
+          "label": "Buildings",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n25_ppe_disposal"
+        },
+        {
+          "id": "n25_infrastructure",
+          "label": "Infrastructure assets",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n25_ppe_disposal"
+        },
+        {
+          "id": "n25_plant_equipment",
+          "label": "Plant and equipment",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n25_ppe_disposal"
+        },
+        {
+          "id": "n25_motor_vehicles",
+          "label": "Motor vehicles",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n25_ppe_disposal"
+        },
+        {
+          "id": "n25_furniture",
+          "label": "Furniture and fittings",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n25_ppe_disposal"
+        },
+        {
+          "id": "n25_intangible_disposal",
+          "label": "Gain/(Loss) on disposal of intangible assets",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n25_investment_property",
+          "label": "Gain/(Loss) on disposal of investment property",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n25_investments",
+          "label": "Gain/(Loss) on disposal of investments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 26,
+      "noteTitle": "Gain/Loss on foreign exchange transactions",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n26_realized_gains",
+          "label": "Realized foreign exchange gains",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n26_realized_losses",
+          "label": "Realized foreign exchange losses",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isNegative": true
+        },
+        {
+          "id": "n26_unrealized_gains",
+          "label": "Unrealized foreign exchange gains",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n26_unrealized_losses",
+          "label": "Unrealized foreign exchange losses",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isNegative": true
+        },
+        {
+          "id": "n26_net_forex",
+          "label": "Net foreign exchange gain/(loss)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "formula": "n26_realized_gains - n26_realized_losses + n26_unrealized_gains - n26_unrealized_losses"
+        }
+      ]
+    },
+    {
+      "noteNumber": 27,
+      "noteTitle": "Gain/Loss on fair value of investments",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n27_fair_value_gains",
+          "label": "Fair value gains on investments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n27_equity_instruments",
+          "label": "Equity instruments",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n27_fair_value_gains"
+        },
+        {
+          "id": "n27_debt_instruments",
+          "label": "Debt instruments",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n27_fair_value_gains"
+        },
+        {
+          "id": "n27_derivatives",
+          "label": "Derivative instruments",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n27_fair_value_gains"
+        },
+        {
+          "id": "n27_fair_value_losses",
+          "label": "Fair value losses on investments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true,
+          "isNegative": true
+        },
+        {
+          "id": "n27_equity_losses",
+          "label": "Equity instruments",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n27_fair_value_losses"
+        },
+        {
+          "id": "n27_debt_losses",
+          "label": "Debt instruments",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n27_fair_value_losses"
+        },
+        {
+          "id": "n27_derivative_losses",
+          "label": "Derivative instruments",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n27_fair_value_losses"
+        },
+        {
+          "id": "n27_net_fair_value",
+          "label": "Net fair value gain/(loss)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 28,
+      "noteTitle": "Impairment loss",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n28_receivables_impairment",
+          "label": "Impairment loss on receivables",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n28_trade_receivables",
+          "label": "Trade receivables",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n28_receivables_impairment"
+        },
+        {
+          "id": "n28_loans_receivables",
+          "label": "Loans and advances",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n28_receivables_impairment"
+        },
+        {
+          "id": "n28_other_receivables",
+          "label": "Other receivables",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n28_receivables_impairment"
+        },
+        {
+          "id": "n28_ppe_impairment",
+          "label": "Impairment loss on PPE",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n28_buildings_impair",
+          "label": "Buildings",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n28_ppe_impairment"
+        },
+        {
+          "id": "n28_infrastructure_impair",
+          "label": "Infrastructure assets",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n28_ppe_impairment"
+        },
+        {
+          "id": "n28_equipment_impair",
+          "label": "Plant and equipment",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n28_ppe_impairment"
+        },
+        {
+          "id": "n28_intangibles_impairment",
+          "label": "Impairment loss on intangible assets",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n28_investments_impairment",
+          "label": "Impairment loss on investments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n28_inventory_impairment",
+          "label": "Impairment loss on inventory",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 29,
+      "noteTitle": "Taxation",
+      "statementCategory": "Performance",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n29_current_tax",
+          "label": "Current tax expense",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n29_corporate_tax",
+          "label": "Corporate income tax",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n29_current_tax"
+        },
+        {
+          "id": "n29_withholding_tax",
+          "label": "Withholding tax",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n29_current_tax"
+        },
+        {
+          "id": "n29_property_tax",
+          "label": "Property tax",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n29_current_tax"
+        },
+        {
+          "id": "n29_deferred_tax",
+          "label": "Deferred tax expense/(income)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n29_deferred_current_year",
+          "label": "Current year deferred tax",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n29_deferred_tax"
+        },
+        {
+          "id": "n29_deferred_adjustments",
+          "label": "Adjustments for prior years",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n29_deferred_tax"
+        },
+        {
+          "id": "n29_other_taxes",
+          "label": "Other taxes",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n29_other_sub1",
+          "label": "Specify: [item 1]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n29_other_taxes"
+        },
+        {
+          "id": "n29_other_sub2",
+          "label": "Specify: [item 2]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n29_other_taxes"
+        }
+      ]
+    },
+    {
+      "noteNumber": 30,
+      "noteTitle": "Cash and Cash Equivalents",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n30_cash_hand",
+          "label": "Cash on hand",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n30_petty_cash",
+          "label": "Petty cash",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n30_cash_hand"
+        },
+        {
+          "id": "n30_cashiers",
+          "label": "Cash at cashiers",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n30_cash_hand"
+        },
+        {
+          "id": "n30_bank_accounts",
+          "label": "Bank accounts",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n30_current_accounts",
+          "label": "Current accounts",
+          "indent": 1,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true,
+          "parentId": "n30_bank_accounts"
+        },
+        {
+          "id": "n30_bank1",
+          "label": "Bank 1: [specify]",
+          "indent": 2,
+          "fieldType": "number",
+          "parentId": "n30_current_accounts"
+        },
+        {
+          "id": "n30_bank2",
+          "label": "Bank 2: [specify]",
+          "indent": 2,
+          "fieldType": "number",
+          "parentId": "n30_current_accounts"
+        },
+        {
+          "id": "n30_other_banks",
+          "label": "Other banks",
+          "indent": 2,
+          "fieldType": "number",
+          "parentId": "n30_current_accounts"
+        },
+        {
+          "id": "n30_savings_accounts",
+          "label": "Savings accounts",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n30_bank_accounts"
+        },
+        {
+          "id": "n30_call_deposits",
+          "label": "Call deposits",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n30_bank_accounts"
+        },
+        {
+          "id": "n30_short_term_deposits",
+          "label": "Short-term deposits (less than 3 months)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n30_total",
+          "label": "Total cash and cash equivalents",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 31,
+      "noteTitle": "Receivables from Exchange Transactions",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n31_trade_receivables",
+          "label": "Trade receivables",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n31_customer_a",
+          "label": "Customer A: [specify]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n31_trade_receivables"
+        },
+        {
+          "id": "n31_customer_b",
+          "label": "Customer B: [specify]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n31_trade_receivables"
+        },
+        {
+          "id": "n31_other_trade",
+          "label": "Other trade receivables",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n31_trade_receivables"
+        },
+        {
+          "id": "n31_impairment",
+          "label": "Less: Allowance for impairment",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isNegative": true
+        },
+        {
+          "id": "n31_net_trade",
+          "label": "Net trade receivables",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        },
+        {
+          "id": "n31_staff_debtors",
+          "label": "Staff debtors",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n31_salary_advances",
+          "label": "Salary advances",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n31_staff_debtors"
+        },
+        {
+          "id": "n31_car_loans",
+          "label": "Car loans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n31_staff_debtors"
+        },
+        {
+          "id": "n31_other_staff_loans",
+          "label": "Other staff loans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n31_staff_debtors"
+        },
+        {
+          "id": "n31_sundry_debtors",
+          "label": "Sundry debtors",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n31_total",
+          "label": "Total receivables from exchange transactions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 32,
+      "noteTitle": "Receivables from Non-Exchange Transactions",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n32_national_govt",
+          "label": "Receivables from national government",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n32_other_govt",
+          "label": "Receivables from other government entities",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n32_donors",
+          "label": "Receivables from donors",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n32_donor1",
+          "label": "Donor 1: [specify]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n32_donors"
+        },
+        {
+          "id": "n32_donor2",
+          "label": "Donor 2: [specify]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n32_donors"
+        },
+        {
+          "id": "n32_other_donors",
+          "label": "Other donors",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n32_donors"
+        },
+        {
+          "id": "n32_tax_receivables",
+          "label": "Tax receivables",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n32_vat_refundable",
+          "label": "VAT refundable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n32_tax_receivables"
+        },
+        {
+          "id": "n32_wht_receivable",
+          "label": "Withholding tax receivable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n32_tax_receivables"
+        },
+        {
+          "id": "n32_other_tax",
+          "label": "Other tax receivables",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n32_tax_receivables"
+        },
+        {
+          "id": "n32_total",
+          "label": "Total receivables from non-exchange transactions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 33,
+      "noteTitle": "Prepayments and Advances",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n33_prepaid_rent",
+          "label": "Prepaid rent",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n33_prepaid_insurance",
+          "label": "Prepaid insurance",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n33_prepaid_subscriptions",
+          "label": "Prepaid subscriptions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n33_advances_suppliers",
+          "label": "Advances to suppliers",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n33_advances_contractors",
+          "label": "Advances to contractors",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n33_other_prepayments",
+          "label": "Other prepayments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 34,
+      "noteTitle": "Inventories",
+      "statementCategory": "Position",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n34_raw_materials",
+          "label": "Raw materials",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n34_wip",
+          "label": "Work in progress",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n34_finished_goods",
+          "label": "Finished goods",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n34_consumables",
+          "label": "Consumables and spare parts",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n34_office_supplies",
+          "label": "Office supplies",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n34_consumables"
+        },
+        {
+          "id": "n34_spare_parts",
+          "label": "Spare parts",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n34_consumables"
+        },
+        {
+          "id": "n34_other_consumables",
+          "label": "Other consumables",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n34_consumables"
+        },
+        {
+          "id": "n34_provision_obsolete",
+          "label": "Less: Provision for obsolete inventory",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isNegative": true
+        },
+        {
+          "id": "n34_total",
+          "label": "Total inventories (net)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 35,
+      "noteTitle": "Other Current Assets",
+      "statementCategory": "Position",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n35_short_term_investments",
+          "label": "Short-term investments (3-12 months)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n35_accrued_income",
+          "label": "Accrued income",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n35_interest_receivable",
+          "label": "Interest receivable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n35_accrued_income"
+        },
+        {
+          "id": "n35_rent_receivable",
+          "label": "Rent receivable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n35_accrued_income"
+        },
+        {
+          "id": "n35_other_accrued",
+          "label": "Other accrued income",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n35_accrued_income"
+        },
+        {
+          "id": "n35_other_assets",
+          "label": "Other current assets (specify)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 36,
+      "noteTitle": "Property, Plant and Equipment",
+      "statementCategory": "Position",
+      "classificationType": "Movement",
+      "categories": [
+        {
+          "id": "land",
+          "label": "Land",
+          "hasDepreciation": false
+        },
+        {
+          "id": "buildings",
+          "label": "Buildings",
+          "hasDepreciation": true,
+          "subCategories": [
+            {
+              "id": "buildings_office",
+              "label": "Office buildings"
+            },
+            {
+              "id": "buildings_warehouses",
+              "label": "Warehouses"
+            },
+            {
+              "id": "buildings_residential",
+              "label": "Residential buildings"
+            }
+          ]
+        },
+        {
+          "id": "motor_vehicles",
+          "label": "Motor vehicles",
+          "hasDepreciation": true,
+          "subCategories": [
+            {
+              "id": "vehicles_saloon",
+              "label": "Saloon cars"
+            },
+            {
+              "id": "vehicles_wagons",
+              "label": "Station wagons"
+            },
+            {
+              "id": "vehicles_buses",
+              "label": "Buses"
+            },
+            {
+              "id": "vehicles_trucks",
+              "label": "Lorries/Trucks"
+            }
+          ]
+        },
+        {
+          "id": "furniture",
+          "label": "Furniture and fittings",
+          "hasDepreciation": true,
+          "subCategories": [
+            {
+              "id": "furniture_office",
+              "label": "Office furniture"
+            },
+            {
+              "id": "furniture_fixtures",
+              "label": "Fixtures"
+            },
+            {
+              "id": "furniture_partitioning",
+              "label": "Partitioning"
+            }
+          ]
+        },
+        {
+          "id": "office_equipment",
+          "label": "Office equipment",
+          "hasDepreciation": true,
+          "subCategories": [
+            {
+              "id": "office_photocopiers",
+              "label": "Photocopiers"
+            },
+            {
+              "id": "office_printers",
+              "label": "Printers"
+            },
+            {
+              "id": "office_scanners",
+              "label": "Scanners"
+            },
+            {
+              "id": "office_other",
+              "label": "Other office equipment"
+            }
+          ]
+        },
+        {
+          "id": "computer_equipment",
+          "label": "Computer equipment",
+          "hasDepreciation": true,
+          "subCategories": [
+            {
+              "id": "computer_laptops",
+              "label": "Computers/Laptops"
+            },
+            {
+              "id": "computer_servers",
+              "label": "Servers"
+            },
+            {
+              "id": "computer_networking",
+              "label": "Networking equipment"
+            },
+            {
+              "id": "computer_other",
+              "label": "Other IT equipment"
+            }
+          ]
+        },
+        {
+          "id": "plant_machinery",
+          "label": "Plant and machinery",
+          "hasDepreciation": true,
+          "subCategories": [
+            {
+              "id": "plant_production",
+              "label": "Production machinery"
+            },
+            {
+              "id": "plant_generators",
+              "label": "Generators"
+            },
+            {
+              "id": "plant_other",
+              "label": "Other plant"
+            }
+          ]
+        },
+        {
+          "id": "wip_capital",
+          "label": "Work in progress (capital)",
+          "hasDepreciation": false
+        }
+      ],
+      "movementLineItems": [
+        {
+          "id": "cost_opening",
+          "label": "Opening balance",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_additions",
+          "label": "Additions",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_disposals",
+          "label": "Disposals",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0,
+          "isNegative": true
+        },
+        {
+          "id": "cost_transfers",
+          "label": "Transfers (to/from WIP)",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_revaluations",
+          "label": "Revaluations",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_closing",
+          "label": "Closing balance",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true
+        },
+        {
+          "id": "depr_opening",
+          "label": "Opening balance",
+          "section": "depreciation",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "depr_charge",
+          "label": "Depreciation charge for the year/period",
+          "section": "depreciation",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "depr_disposals",
+          "label": "Disposals",
+          "section": "depreciation",
+          "fieldType": "number",
+          "indent": 0,
+          "isNegative": true
+        },
+        {
+          "id": "depr_closing",
+          "label": "Closing balance",
+          "section": "depreciation",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true
+        },
+        {
+          "id": "carrying_amount",
+          "label": "Carrying amount",
+          "section": "carrying",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true,
+          "formula": "cost_closing - depr_closing"
+        }
+      ]
+    },
+    {
+      "noteNumber": 37,
+      "noteTitle": "Right-of-Use Assets (Leases)",
+      "statementCategory": "Position",
+      "classificationType": "Movement",
+      "categories": [
+        {
+          "id": "leased_buildings",
+          "label": "Leased buildings",
+          "hasDepreciation": true
+        },
+        {
+          "id": "leased_equipment",
+          "label": "Leased equipment",
+          "hasDepreciation": true
+        },
+        {
+          "id": "leased_vehicles",
+          "label": "Leased motor vehicles",
+          "hasDepreciation": true
+        },
+        {
+          "id": "leased_other",
+          "label": "Other leased assets",
+          "hasDepreciation": true
+        }
+      ],
+      "movementLineItems": [
+        {
+          "id": "cost_opening",
+          "label": "Opening balance",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_additions",
+          "label": "Additions (new leases)",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_terminations",
+          "label": "Terminations",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0,
+          "isNegative": true
+        },
+        {
+          "id": "cost_modifications",
+          "label": "Modifications",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_closing",
+          "label": "Closing balance",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true
+        },
+        {
+          "id": "depr_opening",
+          "label": "Opening balance",
+          "section": "depreciation",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "depr_charge",
+          "label": "Depreciation charge",
+          "section": "depreciation",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "depr_terminations",
+          "label": "Terminations",
+          "section": "depreciation",
+          "fieldType": "number",
+          "indent": 0,
+          "isNegative": true
+        },
+        {
+          "id": "depr_closing",
+          "label": "Closing balance",
+          "section": "depreciation",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true
+        },
+        {
+          "id": "carrying_amount",
+          "label": "Carrying amount",
+          "section": "carrying",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true,
+          "formula": "cost_closing - depr_closing"
+        }
+      ]
+    },
+    {
+      "noteNumber": 38,
+      "noteTitle": "Intangible Assets",
+      "statementCategory": "Position",
+      "classificationType": "Movement",
+      "categories": [
+        {
+          "id": "computer_software",
+          "label": "Computer software",
+          "hasAmortization": true,
+          "subCategories": [
+            {
+              "id": "software_purchased",
+              "label": "Purchased software"
+            },
+            {
+              "id": "software_developed",
+              "label": "Internally developed software"
+            }
+          ]
+        },
+        {
+          "id": "licenses",
+          "label": "Licenses and franchises",
+          "hasAmortization": true
+        },
+        {
+          "id": "patents",
+          "label": "Patents and trademarks",
+          "hasAmortization": true
+        },
+        {
+          "id": "development_costs",
+          "label": "Development costs",
+          "hasAmortization": true
+        },
+        {
+          "id": "wip_intangibles",
+          "label": "Work in progress (intangibles)",
+          "hasAmortization": false
+        }
+      ],
+      "movementLineItems": [
+        {
+          "id": "cost_opening",
+          "label": "Opening balance",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_additions",
+          "label": "Additions",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0,
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "cost_additions_purchased",
+          "label": "Purchased",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 1,
+          "parentId": "cost_additions"
+        },
+        {
+          "id": "cost_additions_developed",
+          "label": "Internally developed",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 1,
+          "parentId": "cost_additions"
+        },
+        {
+          "id": "cost_disposals",
+          "label": "Disposals",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0,
+          "isNegative": true
+        },
+        {
+          "id": "cost_transfers",
+          "label": "Transfers",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "cost_closing",
+          "label": "Closing balance",
+          "section": "cost",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true
+        },
+        {
+          "id": "amort_opening",
+          "label": "Opening balance",
+          "section": "amortization",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "amort_charge",
+          "label": "Amortization charge",
+          "section": "amortization",
+          "fieldType": "number",
+          "indent": 0
+        },
+        {
+          "id": "amort_disposals",
+          "label": "Disposals",
+          "section": "amortization",
+          "fieldType": "number",
+          "indent": 0,
+          "isNegative": true
+        },
+        {
+          "id": "amort_closing",
+          "label": "Closing balance",
+          "section": "amortization",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true
+        },
+        {
+          "id": "carrying_amount",
+          "label": "Carrying amount",
+          "section": "carrying",
+          "fieldType": "number",
+          "indent": 0,
+          "isCalculated": true,
+          "isBold": true,
+          "formula": "cost_closing - amort_closing"
+        }
+      ]
+    },
+    {
+      "noteNumber": 39,
+      "noteTitle": "Investment Property",
+      "statementCategory": "Position",
+      "classificationType": "Movement",
+      "lineItems": [
+        {
+          "id": "n39_cost_opening",
+          "label": "Opening balance",
+          "section": "cost",
+          "indent": 0,
+          "fieldType": "number"
+        },
+        {
+          "id": "n39_cost_additions",
+          "label": "Additions",
+          "section": "cost",
+          "indent": 0,
+          "fieldType": "number"
+        },
+        {
+          "id": "n39_cost_disposals",
+          "label": "Disposals",
+          "section": "cost",
+          "indent": 0,
+          "fieldType": "number",
+          "isNegative": true
+        },
+        {
+          "id": "n39_cost_fv_adjustments",
+          "label": "Fair value adjustments",
+          "section": "cost",
+          "indent": 0,
+          "fieldType": "number"
+        },
+        {
+          "id": "n39_cost_transfers",
+          "label": "Transfers to/from PPE",
+          "section": "cost",
+          "indent": 0,
+          "fieldType": "number"
+        },
+        {
+          "id": "n39_cost_closing",
+          "label": "Closing balance",
+          "section": "cost",
+          "indent": 0,
+          "fieldType": "number",
+          "isCalculated": true,
+          "isBold": true
+        },
+        {
+          "id": "n39_depr_opening",
+          "label": "Opening balance",
+          "section": "depreciation",
+          "indent": 0,
+          "fieldType": "number",
+          "note": "If cost model used"
+        },
+        {
+          "id": "n39_depr_charge",
+          "label": "Depreciation charge",
+          "section": "depreciation",
+          "indent": 0,
+          "fieldType": "number",
+          "note": "If cost model used"
+        },
+        {
+          "id": "n39_depr_disposals",
+          "label": "Disposals",
+          "section": "depreciation",
+          "indent": 0,
+          "fieldType": "number",
+          "isNegative": true,
+          "note": "If cost model used"
+        },
+        {
+          "id": "n39_depr_closing",
+          "label": "Closing balance",
+          "section": "depreciation",
+          "indent": 0,
+          "fieldType": "number",
+          "isCalculated": true,
+          "isBold": true,
+          "note": "If cost model used"
+        },
+        {
+          "id": "n39_carrying_amount",
+          "label": "Carrying amount",
+          "section": "carrying",
+          "indent": 0,
+          "fieldType": "number",
+          "isCalculated": true,
+          "isBold": true,
+          "formula": "cost_closing - depr_closing (if applicable)"
+        }
+      ]
+    },
+    {
+      "noteNumber": 40,
+      "noteTitle": "Investments in Subsidiaries, Associates and Joint Ventures",
+      "statementCategory": "Position",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n40_subsidiaries",
+          "label": "Investment in subsidiaries",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n40_subsidiary1",
+          "label": "Subsidiary 1: [name]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n40_subsidiaries"
+        },
+        {
+          "id": "n40_subsidiary2",
+          "label": "Subsidiary 2: [name]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n40_subsidiaries"
+        },
+        {
+          "id": "n40_other_subsidiaries",
+          "label": "Other subsidiaries",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n40_subsidiaries"
+        },
+        {
+          "id": "n40_associates",
+          "label": "Investment in associates",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n40_associate1",
+          "label": "Associate 1: [name]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n40_associates"
+        },
+        {
+          "id": "n40_other_associates",
+          "label": "Other associates",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n40_associates"
+        },
+        {
+          "id": "n40_joint_ventures",
+          "label": "Investment in joint ventures",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n40_jv1",
+          "label": "Joint venture 1: [name]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n40_joint_ventures"
+        },
+        {
+          "id": "n40_other_jv",
+          "label": "Other joint ventures",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n40_joint_ventures"
+        },
+        {
+          "id": "n40_total",
+          "label": "Total investments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 41,
+      "noteTitle": "Other Financial Assets",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n41_long_term_deposits",
+          "label": "Long-term deposits (over 12 months)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n41_govt_bonds",
+          "label": "Government bonds and securities",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n41_corporate_bonds",
+          "label": "Corporate bonds",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n41_equity_investments",
+          "label": "Equity investments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n41_listed_securities",
+          "label": "Listed securities",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n41_equity_investments"
+        },
+        {
+          "id": "n41_unlisted_securities",
+          "label": "Unlisted securities",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n41_equity_investments"
+        },
+        {
+          "id": "n41_unit_trusts",
+          "label": "Unit trusts",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n41_other",
+          "label": "Other financial assets",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 42,
+      "noteTitle": "Payables from Exchange Transactions",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n42_trade_payables",
+          "label": "Trade payables",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n42_supplier_a",
+          "label": "Supplier A: [specify]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n42_trade_payables"
+        },
+        {
+          "id": "n42_supplier_b",
+          "label": "Supplier B: [specify]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n42_trade_payables"
+        },
+        {
+          "id": "n42_other_trade",
+          "label": "Other trade payables",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n42_trade_payables"
+        },
+        {
+          "id": "n42_accrued_expenses",
+          "label": "Accrued expenses",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n42_accrued_salaries",
+          "label": "Accrued salaries and wages",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n42_accrued_expenses"
+        },
+        {
+          "id": "n42_accrued_utilities",
+          "label": "Accrued utilities",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n42_accrued_expenses"
+        },
+        {
+          "id": "n42_accrued_interest",
+          "label": "Accrued interest",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n42_accrued_expenses"
+        },
+        {
+          "id": "n42_other_accruals",
+          "label": "Other accruals",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n42_accrued_expenses"
+        },
+        {
+          "id": "n42_deposits_retention",
+          "label": "Deposits and retention money",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n42_sundry_payables",
+          "label": "Sundry payables",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n42_total",
+          "label": "Total payables from exchange transactions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 43,
+      "noteTitle": "Payables from Non-Exchange Transactions",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n43_tax_payables",
+          "label": "Tax payables",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n43_vat_payable",
+          "label": "VAT payable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n43_tax_payables"
+        },
+        {
+          "id": "n43_paye_payable",
+          "label": "PAYE payable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n43_tax_payables"
+        },
+        {
+          "id": "n43_wht_payable",
+          "label": "WHT payable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n43_tax_payables"
+        },
+        {
+          "id": "n43_other_tax",
+          "label": "Other tax payables",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n43_tax_payables"
+        },
+        {
+          "id": "n43_statutory_deductions",
+          "label": "Statutory deductions payable",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n43_nssf_payable",
+          "label": "NSSF payable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n43_statutory_deductions"
+        },
+        {
+          "id": "n43_nhif_payable",
+          "label": "NHIF payable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n43_statutory_deductions"
+        },
+        {
+          "id": "n43_helb_payable",
+          "label": "HELB payable",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n43_statutory_deductions"
+        },
+        {
+          "id": "n43_other_statutory",
+          "label": "Other statutory payables",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n43_statutory_deductions"
+        },
+        {
+          "id": "n43_total",
+          "label": "Total payables from non-exchange transactions",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 44,
+      "noteTitle": "Borrowings",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n44_bank_loans",
+          "label": "Bank loans",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n44_loan1",
+          "label": "Loan 1: [bank name, terms]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n44_bank_loans"
+        },
+        {
+          "id": "n44_loan2",
+          "label": "Loan 2: [bank name, terms]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n44_bank_loans"
+        },
+        {
+          "id": "n44_other_bank_loans",
+          "label": "Other bank loans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n44_bank_loans"
+        },
+        {
+          "id": "n44_govt_loans",
+          "label": "Government loans",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n44_treasury_loans",
+          "label": "National Treasury loans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n44_govt_loans"
+        },
+        {
+          "id": "n44_other_govt_loans",
+          "label": "Other government loans",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n44_govt_loans"
+        },
+        {
+          "id": "n44_bonds",
+          "label": "Bonds and debentures",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n44_bond1",
+          "label": "Bond issue 1: [details]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n44_bonds"
+        },
+        {
+          "id": "n44_other_bonds",
+          "label": "Other bonds",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n44_bonds"
+        },
+        {
+          "id": "n44_lease_liabilities",
+          "label": "Lease liabilities (Note 37)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "linkedNote": 37
+        },
+        {
+          "id": "n44_total_borrowings",
+          "label": "Total borrowings",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false,
+          "isCalculated": true,
+          "isBold": true
+        }
+      ],
+      "movementSchedule": {
+        "lineItems": [
+          {
+            "id": "n44_mov_opening",
+            "label": "Opening balance",
+            "indent": 0,
+            "fieldType": "number"
+          },
+          {
+            "id": "n44_mov_new_borrowings",
+            "label": "New borrowings",
+            "indent": 0,
+            "fieldType": "number"
+          },
+          {
+            "id": "n44_mov_repayments",
+            "label": "Repayments",
+            "indent": 0,
+            "fieldType": "number",
+            "isParent": true,
+            "isCalculated": true,
+            "isNegative": true
+          },
+          {
+            "id": "n44_mov_principal",
+            "label": "Principal repayments",
+            "indent": 1,
+            "fieldType": "number",
+            "parentId": "n44_mov_repayments"
+          },
+          {
+            "id": "n44_mov_interest",
+            "label": "Interest paid",
+            "indent": 1,
+            "fieldType": "number",
+            "parentId": "n44_mov_repayments"
+          },
+          {
+            "id": "n44_mov_accrued_interest",
+            "label": "Accrued interest",
+            "indent": 0,
+            "fieldType": "number"
+          },
+          {
+            "id": "n44_mov_closing",
+            "label": "Closing balance",
+            "indent": 0,
+            "fieldType": "number",
+            "isCalculated": true,
+            "isBold": true
+          }
+        ]
+      },
+      "maturityAnalysis": {
+        "lineItems": [
+          {
+            "id": "n44_mat_within_1yr",
+            "label": "Within 1 year (Current)",
+            "indent": 0,
+            "fieldType": "number"
+          },
+          {
+            "id": "n44_mat_1_2yrs",
+            "label": "1-2 years",
+            "indent": 0,
+            "fieldType": "number"
+          },
+          {
+            "id": "n44_mat_2_5yrs",
+            "label": "2-5 years",
+            "indent": 0,
+            "fieldType": "number"
+          },
+          {
+            "id": "n44_mat_over_5yrs",
+            "label": "Over 5 years",
+            "indent": 0,
+            "fieldType": "number"
+          },
+          {
+            "id": "n44_mat_total_noncurrent",
+            "label": "Total (Non-Current)",
+            "indent": 0,
+            "fieldType": "number",
+            "isCalculated": true,
+            "isBold": true
+          }
+        ]
+      }
+    },
+    {
+      "noteNumber": 45,
+      "noteTitle": "Deferred Income",
+      "statementCategory": "Position",
+      "classificationType": "Movement",
+      "movementLineItems": [
+        {
+          "id": "n45_mov_opening",
+          "label": "Opening balance",
+          "indent": 0,
+          "fieldType": "number"
+        },
+        {
+          "id": "n45_mov_grants_received",
+          "label": "Grants/revenue received during period",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n45_grant1",
+          "label": "Grant 1: [donor/source, conditions]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n45_mov_grants_received"
+        },
+        {
+          "id": "n45_grant2",
+          "label": "Grant 2: [donor/source, conditions]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n45_mov_grants_received"
+        },
+        {
+          "id": "n45_other_grants",
+          "label": "Other grants",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n45_mov_grants_received"
+        },
+        {
+          "id": "n45_mov_released",
+          "label": "Less: Revenue recognized (conditions met)",
+          "indent": 0,
+          "fieldType": "number",
+          "isNegative": true,
+          "linkedNote": 7,
+          "note": "Links to Note 7 - Revenue from Non-Exchange"
+        },
+        {
+          "id": "n45_mov_adjustments",
+          "label": "Adjustments",
+          "indent": 0,
+          "fieldType": "number"
+        },
+        {
+          "id": "n45_mov_closing",
+          "label": "Closing balance",
+          "indent": 0,
+          "fieldType": "number",
+          "isCalculated": true,
+          "isBold": true
+        }
+      ],
+      "analysisBySource": {
+        "lineItems": [
+          {
+            "id": "n45_analysis_govt_grants",
+            "label": "Government grants",
+            "indent": 0,
+            "fieldType": "number"
+          },
+          {
+            "id": "n45_analysis_donor_grants",
+            "label": "Donor grants",
+            "indent": 0,
+            "fieldType": "number",
+            "isParent": true,
+            "isCalculated": true
+          },
+          {
+            "id": "n45_donor_a",
+            "label": "Donor A",
+            "indent": 1,
+            "fieldType": "number",
+            "parentId": "n45_analysis_donor_grants"
+          },
+          {
+            "id": "n45_donor_b",
+            "label": "Donor B",
+            "indent": 1,
+            "fieldType": "number",
+            "parentId": "n45_analysis_donor_grants"
+          },
+          {
+            "id": "n45_other_donors",
+            "label": "Other donors",
+            "indent": 1,
+            "fieldType": "number",
+            "parentId": "n45_analysis_donor_grants"
+          },
+          {
+            "id": "n45_other_deferred",
+            "label": "Other deferred income",
+            "indent": 0,
+            "fieldType": "number"
+          }
+        ]
+      }
+    },
+    {
+      "noteNumber": 46,
+      "noteTitle": "Provisions",
+      "statementCategory": "Position",
+      "classificationType": "Movement",
+      "categories": [
+        {
+          "id": "legal_claims",
+          "label": "Provision for legal claims"
+        },
+        {
+          "id": "warranties",
+          "label": "Provision for warranties"
+        },
+        {
+          "id": "restructuring",
+          "label": "Provision for restructuring"
+        },
+        {
+          "id": "environmental",
+          "label": "Provision for environmental obligations"
+        },
+        {
+          "id": "onerous_contracts",
+          "label": "Provision for onerous contracts"
+        },
+        {
+          "id": "other_provisions",
+          "label": "Other provisions"
+        }
+      ],
+      "movementLineItems": [
+        {
+          "id": "mov_opening",
+          "label": "Opening balance",
+          "indent": 0,
+          "fieldType": "number"
+        },
+        {
+          "id": "mov_made",
+          "label": "Provisions made during period",
+          "indent": 0,
+          "fieldType": "number"
+        },
+        {
+          "id": "mov_used",
+          "label": "Provisions used during period",
+          "indent": 0,
+          "fieldType": "number",
+          "isNegative": true
+        },
+        {
+          "id": "mov_reversed",
+          "label": "Provisions reversed (no longer required)",
+          "indent": 0,
+          "fieldType": "number",
+          "isNegative": true
+        },
+        {
+          "id": "mov_closing",
+          "label": "Closing balance",
+          "indent": 0,
+          "fieldType": "number",
+          "isCalculated": true,
+          "isBold": true
+        }
+      ]
+    },
+    {
+      "noteNumber": 47,
+      "noteTitle": "Employee Benefit Obligations",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "benefitTypes": [
+        {
+          "id": "leave_pay",
+          "label": "Leave pay accrual",
+          "movementLineItems": [
+            {
+              "id": "leave_opening",
+              "label": "Opening obligation",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "leave_service_cost",
+              "label": "Current service cost",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "leave_taken",
+              "label": "Leave taken",
+              "indent": 0,
+              "fieldType": "number",
+              "isNegative": true
+            },
+            {
+              "id": "leave_actuarial",
+              "label": "Actuarial gains/losses",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "leave_closing",
+              "label": "Closing obligation",
+              "indent": 0,
+              "fieldType": "number",
+              "isCalculated": true,
+              "isBold": true
+            }
+          ]
+        },
+        {
+          "id": "gratuity",
+          "label": "Gratuity",
+          "movementLineItems": [
+            {
+              "id": "gratuity_opening",
+              "label": "Opening obligation",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "gratuity_service_cost",
+              "label": "Current service cost",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "gratuity_interest_cost",
+              "label": "Interest cost",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "gratuity_benefits_paid",
+              "label": "Benefits paid",
+              "indent": 0,
+              "fieldType": "number",
+              "isNegative": true
+            },
+            {
+              "id": "gratuity_actuarial",
+              "label": "Actuarial gains/losses",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "gratuity_closing",
+              "label": "Closing obligation",
+              "indent": 0,
+              "fieldType": "number",
+              "isCalculated": true,
+              "isBold": true
+            }
+          ]
+        },
+        {
+          "id": "pension",
+          "label": "Pension obligations",
+          "movementLineItems": [
+            {
+              "id": "pension_opening",
+              "label": "Opening obligation",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "pension_service_cost",
+              "label": "Current service cost",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "pension_interest_cost",
+              "label": "Interest cost",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "pension_benefits_paid",
+              "label": "Benefits paid",
+              "indent": 0,
+              "fieldType": "number",
+              "isNegative": true
+            },
+            {
+              "id": "pension_actuarial",
+              "label": "Actuarial gains/losses",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "pension_closing",
+              "label": "Closing obligation",
+              "indent": 0,
+              "fieldType": "number",
+              "isCalculated": true,
+              "isBold": true
+            }
+          ]
+        },
+        {
+          "id": "post_employment_medical",
+          "label": "Post-employment medical benefits",
+          "movementLineItems": [
+            {
+              "id": "medical_opening",
+              "label": "Opening obligation",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "medical_service_cost",
+              "label": "Current service cost",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "medical_interest_cost",
+              "label": "Interest cost",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "medical_benefits_paid",
+              "label": "Benefits paid",
+              "indent": 0,
+              "fieldType": "number",
+              "isNegative": true
+            },
+            {
+              "id": "medical_actuarial",
+              "label": "Actuarial gains/losses",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "medical_closing",
+              "label": "Closing obligation",
+              "indent": 0,
+              "fieldType": "number",
+              "isCalculated": true,
+              "isBold": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "noteNumber": 48,
+      "noteTitle": "Other Liabilities",
+      "statementCategory": "Position",
+      "classificationType": "CurrentNonCurrent",
+      "lineItems": [
+        {
+          "id": "n48_contract_liabilities",
+          "label": "Contract liabilities (unearned revenue)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n48_customer_deposits",
+          "label": "Customer deposits",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n48_dividend_payable",
+          "label": "Dividend payable",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n48_other",
+          "label": "Other liabilities (specify)",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 49,
+      "noteTitle": "Net Assets/Equity",
+      "statementCategory": "Changes",
+      "classificationType": "Movement",
+      "equityComponents": [
+        {
+          "id": "accumulated_surplus",
+          "label": "Accumulated surplus/(deficit)",
+          "movementLineItems": [
+            {
+              "id": "accum_opening",
+              "label": "Opening balance",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "accum_surplus",
+              "label": "Surplus/(deficit) for the year",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "accum_transfers",
+              "label": "Transfers to/from reserves",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "accum_closing",
+              "label": "Closing balance",
+              "indent": 0,
+              "fieldType": "number",
+              "isCalculated": true,
+              "isBold": true
+            }
+          ]
+        },
+        {
+          "id": "revaluation_reserve",
+          "label": "Revaluation reserve",
+          "movementLineItems": [
+            {
+              "id": "reval_opening",
+              "label": "Opening balance",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "reval_ppe",
+              "label": "Revaluation gains/(losses) - PPE",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "reval_investment_property",
+              "label": "Revaluation gains/(losses) - Investment property",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "reval_transfers",
+              "label": "Transfers to accumulated surplus (on disposal)",
+              "indent": 0,
+              "fieldType": "number",
+              "isNegative": true
+            },
+            {
+              "id": "reval_closing",
+              "label": "Closing balance",
+              "indent": 0,
+              "fieldType": "number",
+              "isCalculated": true,
+              "isBold": true
+            }
+          ]
+        },
+        {
+          "id": "capital_grants_reserve",
+          "label": "Capital grants reserve",
+          "movementLineItems": [
+            {
+              "id": "capital_opening",
+              "label": "Opening balance",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "capital_grants_received",
+              "label": "Grants received for capital purposes",
+              "indent": 0,
+              "fieldType": "number"
+            },
+            {
+              "id": "capital_released",
+              "label": "Released to income (depreciation adjustment)",
+              "indent": 0,
+              "fieldType": "number",
+              "isNegative": true
+            },
+            {
+              "id": "capital_closing",
+              "label": "Closing balance",
+              "indent": 0,
+              "fieldType": "number",
+              "isCalculated": true,
+              "isBold": true
+            }
+          ]
+        },
+        {
+          "id": "other_reserves",
+          "label": "Other reserves",
+          "allowMultiple": true,
+          "movementLineItems": [
+            {
+              "id": "other_reserve1",
+              "label": "Specify reserve 1: [name]",
+              "indent": 0,
+              "fieldType": "number",
+              "hasMovement": true
+            },
+            {
+              "id": "other_reserve2",
+              "label": "Specify reserve 2: [name]",
+              "indent": 0,
+              "fieldType": "number",
+              "hasMovement": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "noteNumber": 50,
+      "noteTitle": "Commitments",
+      "statementCategory": "Other",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n50_capital_commitments",
+          "label": "Capital commitments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n50_contracted",
+          "label": "Contracted but not provided for",
+          "indent": 1,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true,
+          "parentId": "n50_capital_commitments"
+        },
+        {
+          "id": "n50_contracted_buildings",
+          "label": "Buildings",
+          "indent": 2,
+          "fieldType": "number",
+          "parentId": "n50_contracted"
+        },
+        {
+          "id": "n50_contracted_plant",
+          "label": "Plant and machinery",
+          "indent": 2,
+          "fieldType": "number",
+          "parentId": "n50_contracted"
+        },
+        {
+          "id": "n50_contracted_other",
+          "label": "Other capital items",
+          "indent": 2,
+          "fieldType": "number",
+          "parentId": "n50_contracted"
+        },
+        {
+          "id": "n50_approved",
+          "label": "Approved but not contracted",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n50_capital_commitments"
+        },
+        {
+          "id": "n50_operating_lease",
+          "label": "Operating lease commitments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n50_lease_within_1yr",
+          "label": "Within 1 year",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n50_operating_lease"
+        },
+        {
+          "id": "n50_lease_1_5yrs",
+          "label": "1-5 years",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n50_operating_lease"
+        },
+        {
+          "id": "n50_lease_over_5yrs",
+          "label": "Over 5 years",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n50_operating_lease"
+        },
+        {
+          "id": "n50_other_commitments",
+          "label": "Other commitments",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 51,
+      "noteTitle": "Contingent Liabilities",
+      "statementCategory": "Other",
+      "classificationType": "Simple",
+      "lineItems": [
+        {
+          "id": "n51_legal_claims",
+          "label": "Pending legal claims",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": true,
+          "isCalculated": true
+        },
+        {
+          "id": "n51_case1",
+          "label": "Case 1: [details, amount]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n51_legal_claims"
+        },
+        {
+          "id": "n51_case2",
+          "label": "Case 2: [details, amount]",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n51_legal_claims"
+        },
+        {
+          "id": "n51_other_cases",
+          "label": "Other cases",
+          "indent": 1,
+          "fieldType": "number",
+          "parentId": "n51_legal_claims"
+        },
+        {
+          "id": "n51_guarantees",
+          "label": "Guarantees given",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n51_claims_against",
+          "label": "Claims against the entity",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        },
+        {
+          "id": "n51_other_contingent",
+          "label": "Other contingent liabilities",
+          "indent": 0,
+          "fieldType": "number",
+          "isParent": false
+        }
+      ]
+    },
+    {
+      "noteNumber": 52,
+      "noteTitle": "Events After the Reporting Date",
+      "statementCategory": "Other",
+      "classificationType": "Simple",
+      "eventTypes": [
+        {
+          "id": "adjusting_events",
+          "label": "Adjusting events (affect financial statements)",
+          "isNarrative": true,
+          "fields": [
+            {
+              "id": "adj_event1",
+              "label": "Event 1: [description, impact]",
+              "indent": 1,
+              "fieldType": "text"
+            },
+            {
+              "id": "adj_event2",
+              "label": "Event 2: [description, impact]",
+              "indent": 1,
+              "fieldType": "text"
+            }
+          ]
+        },
+        {
+          "id": "non_adjusting_events",
+          "label": "Non-adjusting events (disclose only)",
+          "isNarrative": true,
+          "fields": [
+            {
+              "id": "nonadj_event1",
+              "label": "Event 1: [description]",
+              "indent": 1,
+              "fieldType": "text"
+            },
+            {
+              "id": "nonadj_event2",
+              "label": "Event 2: [description]",
+              "indent": 1,
+              "fieldType": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "noteNumber": 53,
+      "noteTitle": "Related Party Transactions",
+      "statementCategory": "Other",
+      "classificationType": "Simple",
+      "sections": [
+        {
+          "id": "govt_transactions",
+          "label": "Transactions with government",
+          "lineItems": [
+            {
+              "id": "n53_grants_received",
+              "label": "Grants received",
+              "indent": 1,
+              "fieldType": "number"
+            },
+            {
+              "id": "n53_purchases_govt",
+              "label": "Purchases from government entities",
+              "indent": 1,
+              "fieldType": "number"
+            },
+            {
+              "id": "n53_sales_govt",
+              "label": "Sales to government entities",
+              "indent": 1,
+              "fieldType": "number"
+            },
+            {
+              "id": "n53_loans_govt",
+              "label": "Loans from government",
+              "indent": 1,
+              "fieldType": "number"
+            }
+          ]
+        },
+        {
+          "id": "sub_assoc_transactions",
+          "label": "Transactions with subsidiaries/associates",
+          "lineItems": [
+            {
+              "id": "n53_sales_purchases",
+              "label": "Sales/purchases",
+              "indent": 1,
+              "fieldType": "number"
+            },
+            {
+              "id": "n53_loans",
+              "label": "Loans advanced/received",
+              "indent": 1,
+              "fieldType": "number"
+            },
+            {
+              "id": "n53_guarantees",
+              "label": "Guarantees",
+              "indent": 1,
+              "fieldType": "number"
+            },
+            {
+              "id": "n53_management_fees",
+              "label": "Management fees",
+              "indent": 1,
+              "fieldType": "number"
+            }
+          ]
+        },
+        {
+          "id": "kmp_compensation",
+          "label": "Key management personnel compensation",
+          "lineItems": [
+            {
+              "id": "n53_short_term",
+              "label": "Short-term benefits",
+              "indent": 1,
+              "fieldType": "number",
+              "isParent": true,
+              "isCalculated": true
+            },
+            {
+              "id": "n53_salaries_allowances",
+              "label": "Salaries and allowances",
+              "indent": 2,
+              "fieldType": "number",
+              "parentId": "n53_short_term"
+            },
+            {
+              "id": "n53_bonuses",
+              "label": "Bonuses",
+              "indent": 2,
+              "fieldType": "number",
+              "parentId": "n53_short_term"
+            },
+            {
+              "id": "n53_post_employment",
+              "label": "Post-employment benefits",
+              "indent": 1,
+              "fieldType": "number"
+            },
+            {
+              "id": "n53_long_term",
+              "label": "Other long-term benefits",
+              "indent": 1,
+              "fieldType": "number"
+            },
+            {
+              "id": "n53_termination",
+              "label": "Termination benefits",
+              "indent": 1,
+              "fieldType": "number"
+            }
+          ]
+        },
+        {
+          "id": "other_rp_transactions",
+          "label": "Other related party transactions",
+          "isNarrative": true,
+          "fieldType": "text"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "standard": "SAGA-IPSAS",
+    "dateCreated": "2025-11-16",
+    "description": "Complete configuration for SAGA IPSAS Notes 6-53 with full hierarchical line items",
+    "categories": {
+      "Performance": "Statement of Financial Performance",
+      "Position": "Statement of Financial Position",
+      "CashFlow": "Statement of Cash Flows",
+      "Changes": "Statement of Changes in Net Assets/Equity",
+      "Other": "Additional Disclosures"
+    },
+    "classificationTypes": {
+      "Simple": "Single level reporting without classification",
+      "CurrentNonCurrent": "Classified between current and non-current",
+      "Movement": "Movement/reconciliation schedule",
+      "Budget": "Budget comparison format"
+    }
+  }
+}
