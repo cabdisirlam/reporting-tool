@@ -83,7 +83,7 @@ function doGet(e) {
 
       case 'login':
         // This is the alternate login page path
-        return HtmlService.createHtmlOutputFromFile('src/frontend/html/Login')
+        return HtmlService.createHtmlOutputFromFile('Login')
           .setTitle('Login - ' + CONFIG.APP_NAME);
 
       case 'dashboard':
@@ -143,7 +143,7 @@ function doGet(e) {
             page === 'EntityList' || page === 'EntityForm' || page === 'UserList') {
             if (!user) return redirectToLogin();
             // This is a generic loader for other HTML files
-            return HtmlService.createTemplateFromFile(`src/frontend/html/${page}`)
+            return HtmlService.createTemplateFromFile(page)
                 .evaluate()
                 .setTitle(page + ' - ' + CONFIG.APP_NAME)
                 .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -203,7 +203,7 @@ function doPost(e) {
 // ============================================================================
 
 function serveDashboard(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/Dashboard');
+  const template = HtmlService.createTemplateFromFile('Dashboard');
   template.user = user;
   template.role = user.role;
 
@@ -213,21 +213,21 @@ function serveDashboard(user) {
 }
 
 function serveDataEntry(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/DataEntry');
+  const template = HtmlService.createTemplateFromFile('DataEntryPage');
   template.user = user;
   return template.evaluate()
     .setTitle('Data Entry - ' + CONFIG.APP_NAME);
 }
 
 function serveReports(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/Reports');
+  const template = HtmlService.createTemplateFromFile('ReportsPage');
   template.user = user;
   return template.evaluate()
     .setTitle('Reports - '.concat(CONFIG.APP_NAME));
 }
 
 function serveAdminPanel(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/AdminPanel');
+  const template = HtmlService.createTemplateFromFile('AdminPanel');
   template.user = user;
   return template.evaluate()
     .setTitle('Admin Panel - ' + CONFIG.APP_NAME)
@@ -235,7 +235,7 @@ function serveAdminPanel(user) {
 }
 
 function servePeriodSetup(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/PeriodSetup');
+  const template = HtmlService.createTemplateFromFile('PeriodSetup');
   template.user = user;
   return template.evaluate()
     .setTitle('Period Setup - ' + CONFIG.APP_NAME)
@@ -243,7 +243,7 @@ function servePeriodSetup(user) {
 }
 
 function serveSystemNotReady(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/SystemNotReady');
+  const template = HtmlService.createTemplateFromFile('SystemNotReady');
   template.user = user;
   return template.evaluate()
     .setTitle('System Setup In Progress - ' + CONFIG.APP_NAME)
@@ -253,7 +253,7 @@ function serveSystemNotReady(user) {
 function serveAdminSetupPrompt(user) {
   try {
     Logger.log('serveAdminSetupPrompt: Creating template for user: ' + user.email);
-    const template = HtmlService.createTemplateFromFile('src/frontend/html/AdminSetupPrompt');
+    const template = HtmlService.createTemplateFromFile('AdminSetupPrompt');
     template.user = user;
     Logger.log('serveAdminSetupPrompt: Evaluating template');
     const output = template.evaluate()
