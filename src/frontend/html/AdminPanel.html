@@ -709,9 +709,16 @@
             event.preventDefault();
 
             const formData = new FormData(event.target);
+            const quarter = formData.get('quarter');
+            const fiscalYear = formData.get('fiscalYear');
+
+            // Generate period name (e.g., "Q2 2025/26")
+            const periodName = `${quarter} ${fiscalYear}`;
+
             const periodData = {
-                quarter: formData.get('quarter'),
-                fiscalYear: formData.get('fiscalYear'),
+                periodName: periodName,
+                quarter: quarter,
+                fiscalYear: fiscalYear,
                 startDate: formData.get('startDate'),
                 endDate: formData.get('endDate'),
                 deadlineDate: formData.get('deadlineDate'),

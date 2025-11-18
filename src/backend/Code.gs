@@ -1324,6 +1324,9 @@ function generateReport(params) {
  */
 function getAdminDashboardData() {
   try {
+    // Run system health check and auto-initialize if needed
+    const healthCheck = checkSystemHealth();
+
     // Get all users
     const usersResult = getAllUsers();
     const userCount = usersResult.success ? usersResult.users.length : 0;
@@ -1376,7 +1379,8 @@ function getAdminDashboardData() {
       entityCount: entityCount,
       openPeriodCount: openPeriodCount,
       activePeriod: activePeriod,
-      stats: submissionStats
+      stats: submissionStats,
+      systemHealth: healthCheck
     };
   } catch (error) {
     Logger.log('Error getting admin dashboard data: ' + error.toString());

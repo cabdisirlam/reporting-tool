@@ -4,6 +4,32 @@
         <p>System administration and configuration.</p>
     </div>
 
+    <!-- System Health Alerts -->
+    <div id="systemHealthAlerts"></div>
+
+    <!-- Active Period Info -->
+    <div id="activePeriodInfo" class="active-period-section" style="display: none;">
+        <h4>Active Reporting Period</h4>
+        <div class="period-info">
+            <div class="period-detail">
+                <span class="period-label">Period:</span>
+                <span class="period-value" id="activePeriodName">-</span>
+            </div>
+            <div class="period-detail">
+                <span class="period-label">Status:</span>
+                <span class="period-badge" id="activePeriodStatus">-</span>
+            </div>
+            <div class="period-detail">
+                <span class="period-label">Deadline:</span>
+                <span class="period-value" id="activePeriodDeadline">-</span>
+            </div>
+        </div>
+        <div class="period-actions">
+            <button onclick="managePeriods()" class="btn-period">Manage Periods</button>
+            <button onclick="viewPeriodDetails()" class="btn-period-secondary">View Details</button>
+        </div>
+    </div>
+
     <div class="dashboard-cards">
         <div class="card">
             <h4>User Management</h4>
@@ -217,6 +243,161 @@
         font-size: 32px;
         font-weight: 700;
     }
+
+    /* System Health Alerts */
+    .alert {
+        margin-bottom: 20px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .alert-error {
+        background: #fee;
+        border: 1px solid #fcc;
+        color: #c00;
+    }
+
+    .alert-warning {
+        background: #fff4e6;
+        border: 1px solid #ffd666;
+        color: #ad6800;
+    }
+
+    .alert-success {
+        background: #f0f9ff;
+        border: 1px solid #7dd3fc;
+        color: #0369a1;
+    }
+
+    .alert-icon {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .alert-content {
+        flex: 1;
+    }
+
+    .alert-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .alert-message {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .alert-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .alert-btn {
+        padding: 6px 12px;
+        background: white;
+        border: 1px solid currentColor;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .alert-btn:hover {
+        background: currentColor;
+        color: white;
+    }
+
+    /* Active Period Section */
+    .active-period-section {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .active-period-section h4 {
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .period-info {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .period-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .period-label {
+        font-size: 13px;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .period-value {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .period-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .period-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-period {
+        padding: 8px 16px;
+        background: white;
+        color: #059669;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-period:hover {
+        background: #f0fdf4;
+    }
+
+    .btn-period-secondary {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-period-secondary:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
 </style>
 
 <script>
@@ -251,6 +432,116 @@
         document.getElementById('activeEntities').textContent = data.entityCount || '0';
         document.getElementById('openPeriods').textContent = data.openPeriodCount || '0';
         document.getElementById('pendingSubmissions').textContent = (data.stats && data.stats.pending) || '0';
+
+        // Display system health alerts
+        if (data.systemHealth) {
+            displaySystemHealthAlerts(data.systemHealth);
+        }
+
+        // Display active period info
+        if (data.activePeriod) {
+            displayActivePeriodInfo(data.activePeriod);
+        }
+    }
+
+    function displaySystemHealthAlerts(health) {
+        const alertsContainer = document.getElementById('systemHealthAlerts');
+        alertsContainer.innerHTML = '';
+
+        // Display errors
+        if (health.issues && health.issues.length > 0) {
+            health.issues.forEach(issue => {
+                const alert = createAlert('error', 'System Issue', issue);
+                alertsContainer.appendChild(alert);
+            });
+        }
+
+        // Display warnings
+        if (health.warnings && health.warnings.length > 0) {
+            health.warnings.forEach(warning => {
+                const alert = createAlert('warning', 'System Warning', warning);
+                alertsContainer.appendChild(alert);
+            });
+        }
+
+        // Display success message if system is healthy and was just initialized
+        if (health.healthy && health.warnings && health.warnings.some(w => w.includes('automatically created'))) {
+            const alert = createAlert('success', 'System Initialized', 'Default period Q2 2025/26 has been created and is ready for use.');
+            alertsContainer.appendChild(alert);
+        }
+    }
+
+    function createAlert(type, title, message) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+
+        const icon = document.createElement('div');
+        icon.className = 'alert-icon';
+        icon.textContent = type === 'error' ? '⚠' : type === 'warning' ? '⚡' : '✓';
+
+        const content = document.createElement('div');
+        content.className = 'alert-content';
+
+        const alertTitle = document.createElement('div');
+        alertTitle.className = 'alert-title';
+        alertTitle.textContent = title;
+
+        const alertMessage = document.createElement('div');
+        alertMessage.className = 'alert-message';
+        alertMessage.textContent = message;
+
+        content.appendChild(alertTitle);
+        content.appendChild(alertMessage);
+
+        const actions = document.createElement('div');
+        actions.className = 'alert-actions';
+
+        if (message.includes('period') || message.includes('Period')) {
+            const btn = document.createElement('button');
+            btn.className = 'alert-btn';
+            btn.textContent = 'Manage Periods';
+            btn.onclick = managePeriods;
+            actions.appendChild(btn);
+        }
+
+        alert.appendChild(icon);
+        alert.appendChild(content);
+        if (actions.children.length > 0) {
+            alert.appendChild(actions);
+        }
+
+        return alert;
+    }
+
+    function displayActivePeriodInfo(period) {
+        const periodSection = document.getElementById('activePeriodInfo');
+        periodSection.style.display = 'block';
+
+        document.getElementById('activePeriodName').textContent = period.periodName || 'N/A';
+
+        const statusBadge = document.getElementById('activePeriodStatus');
+        statusBadge.textContent = period.status || 'N/A';
+
+        // Format deadline date
+        if (period.deadlineDate) {
+            const deadline = new Date(period.deadlineDate);
+            const formattedDate = deadline.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            document.getElementById('activePeriodDeadline').textContent = formattedDate;
+        } else {
+            document.getElementById('activePeriodDeadline').textContent = 'N/A';
+        }
+    }
+
+    function managePeriods() {
+        window.location.href = '?page=AdminPanel&section=periods';
+    }
+
+    function viewPeriodDetails() {
+        window.location.href = '?page=AdminPanel&section=periods';
     }
 
     function showStatsError(errorMsg) {
