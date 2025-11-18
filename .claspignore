@@ -4,18 +4,21 @@
 # Include the project manifest (REQUIRED)
 !appsscript.json
 
-# Include all backend .gs code files at root
-!*.gs
+# Include all backend .gs code files
+!backend/
+!backend/*.gs
 
-# Include all HTML files at root (pages, partials, CSS, JS)
+# Include all frontend HTML, CSS, and JS files
+!frontend/
+!frontend/**/*.html
+
+# Include root HTML files
 !*.html
 
-# Explicitly ignore directories and config files
+# Explicitly ignore these directories
 .git/**
 node_modules/**
 .clasp.json
-src/**
-css/**
 docs/**
 tests/**
 config/**
