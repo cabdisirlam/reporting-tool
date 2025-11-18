@@ -5,6 +5,40 @@
  */
 
 /**
+ * QUICK FIX FUNCTION - Run this to set your Master Config ID
+ *
+ * HOW TO USE:
+ * 1. Get your spreadsheet ID from the URL:
+ *    https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID_HERE/edit
+ * 2. Replace 'YOUR_SPREADSHEET_ID_HERE' below with your actual spreadsheet ID
+ * 3. Run this function from the Apps Script editor
+ */
+function quickFixMasterConfig() {
+  // REPLACE THIS WITH YOUR ACTUAL SPREADSHEET ID
+  const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+
+  if (SPREADSHEET_ID === 'YOUR_SPREADSHEET_ID_HERE') {
+    Logger.log('ERROR: Please edit this function and replace YOUR_SPREADSHEET_ID_HERE with your actual spreadsheet ID');
+    return {
+      success: false,
+      error: 'Please edit the quickFixMasterConfig function and set your spreadsheet ID'
+    };
+  }
+
+  const result = setMasterConfigId(SPREADSHEET_ID);
+  Logger.log('Result: ' + JSON.stringify(result, null, 2));
+
+  if (result.success) {
+    Logger.log('SUCCESS! MASTER_CONFIG_ID has been set. You can now use the system.');
+    Logger.log('Visit your web app URL with ?page=diagnostics to verify.');
+  } else {
+    Logger.log('ERROR: ' + result.error);
+  }
+
+  return result;
+}
+
+/**
  * Sets the MASTER_CONFIG_ID script property
  * @param {string} spreadsheetId - The ID of the master configuration spreadsheet
  * @returns {Object} Result of the operation
