@@ -14,7 +14,7 @@
 // ============================================================================
 
 const CONFIG = {
-  APP_NAME: 'IPSAS Financial Consolidation System',
+  APP_NAME: 'SAGA Financial Consolidation System',
   APP_VERSION: '1.0.0',
   MASTER_CONFIG_ID: PropertiesService.getScriptProperties().getProperty('MASTER_CONFIG_ID'),
   ROLES: {
@@ -434,8 +434,8 @@ function createMasterConfigSpreadsheet() {
   Logger.log('Creating master configuration spreadsheet...');
 
   // Create new spreadsheet with timestamp
-  const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd_HHmmss');
-  const ss = SpreadsheetApp.create(`IPSAS_MASTER_CONFIG_${timestamp}`);
+  const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+  const ss = SpreadsheetApp.create(`SAGA Master Config ${timestamp}`);
   const ssId = ss.getId();
 
   Logger.log('Master config spreadsheet ID: ' + ssId);
@@ -458,9 +458,9 @@ function createMasterConfigSpreadsheet() {
   // Add a README sheet with instructions
   const readmeSheet = ss.insertSheet('README', 0);
   const readmeContent = [
-    ['IPSAS Financial Consolidation System - Master Configuration'],
+    ['SAGA Financial Consolidation System - Master Configuration'],
     [''],
-    ['This spreadsheet contains the master configuration data for the IPSAS system.'],
+    ['This spreadsheet contains the master configuration data for the SAGA system.'],
     [''],
     ['Sheet Overview:'],
     ['- Entities: List of all state corporations and entities'],
