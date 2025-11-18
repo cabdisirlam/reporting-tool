@@ -174,17 +174,20 @@ Or deploy via the Apps Script editor:
 1. Open the deployed web app URL
 2. The first time, run the setup function:
    - Open Apps Script editor
-   - Run `setupSystem()` function
+   - Run `setupSystemNoUI()` function
    - This creates the MASTER_CONFIG spreadsheet
-   - Grant necessary permissions
+   - Automatically creates the default period (Q2 2025/26)
+   - Grant necessary permissions when prompted
 
-3. Configure Script Properties:
-   - Go to **Project Settings** > **Script Properties**
-   - Add `MASTER_CONFIG_ID` with your spreadsheet ID
+3. Verify Setup:
+   - Check the Execution log for:
+     - Master Config Spreadsheet ID
+     - Confirmation that default period was created
+   - The `MASTER_CONFIG_ID` script property is set automatically
 
 ### Step 8: Add Sample Data
 
-Run these functions in Apps Script editor:
+Run these functions in Apps Script editor to add sample data:
 ```javascript
 // Create sample entities
 createSampleEntities();
@@ -192,11 +195,12 @@ createSampleEntities();
 // Create sample users
 createSampleUsers();
 
-// Create first reporting period
+// The default period Q2 2025/26 is already created during setup
+// You can create additional periods if needed:
 createPeriod({
-  periodName: 'Q2 2024-25',
-  fiscalYear: '2024-25',
-  quarter: 'Q2',
+  periodName: 'Q3 2025-26',
+  fiscalYear: '2025-26',
+  quarter: 'Q3',
   startDate: new Date(2024, 9, 1),    // Oct 1
   endDate: new Date(2024, 11, 31),    // Dec 31
   deadlineDate: new Date(2025, 0, 15) // Jan 15

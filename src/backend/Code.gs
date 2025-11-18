@@ -492,6 +492,19 @@ function createMasterConfigSpreadsheet() {
   Logger.log('Master config spreadsheet created successfully: ' + ssId);
   Logger.log('Spreadsheet URL: ' + ss.getUrl());
 
+  // Initialize default period (Q2 2025/26) automatically during setup
+  Logger.log('Initializing default period...');
+  try {
+    const periodResult = initializeDefaultPeriod();
+    if (periodResult.success) {
+      Logger.log('Default period created and opened: ' + periodResult.periodId);
+    } else {
+      Logger.log('Warning: Could not create default period: ' + periodResult.error);
+    }
+  } catch (periodError) {
+    Logger.log('Warning: Error creating default period: ' + periodError.toString());
+  }
+
   return ssId;
 }
 
