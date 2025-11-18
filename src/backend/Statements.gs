@@ -568,13 +568,22 @@ function getPeriodRange(periodId) {
 // ============================================================================
 
 /**
- * Generates a PDF from financial statement HTML
- * @param {Object} params - Parameters with html, title, entityId, periodId, reportId
- * @returns {Object} Result with PDF URL
+ * Generates a PDF or Excel from financial statement
+ * @param {Object} params - Parameters with html, title, entityId, periodId, reportId, format
+ * @returns {Object} Result with download URL
  */
 function generateStatementPDF(params) {
   try {
-    Logger.log('generateStatementPDF called for: ' + params.title);
+    Logger.log('generateStatementPDF called for: ' + params.title + ' format: ' + (params.format || 'PDF'));
+
+    // Route to Excel if format is Excel
+    if (params.format && params.format.toUpperCase() === 'EXCEL') {
+      return generateStatementExcel({
+        entityId: params.entityId,
+        periodId: params.periodId,
+        reportId: params.reportId
+      });
+    }
 
     // Get entity and period details
     const entityResult = getEntityById(params.entityId);
@@ -773,13 +782,21 @@ function sanitizeFileName(fileName) {
 // ============================================================================
 
 /**
- * Generates consolidated report PDF
+ * Generates consolidated report PDF or Excel
  * @param {Object} params - Parameters with reportType, periodId, format
- * @returns {Object} Result with PDF URL
+ * @returns {Object} Result with download URL
  */
 function generateConsolidatedReportPDF(params) {
   try {
-    Logger.log('generateConsolidatedReportPDF called for: ' + params.reportType);
+    Logger.log('generateConsolidatedReportPDF called for: ' + params.reportType + ' format: ' + (params.format || 'PDF'));
+
+    // Route to Excel if format is Excel
+    if (params.format && params.format.toUpperCase() === 'EXCEL') {
+      return generateConsolidatedExcel({
+        periodId: params.periodId,
+        reportType: params.reportType
+      });
+    }
 
     // Get all approved entities for the period
     const entitiesResult = getAllEntities({ status: 'ACTIVE' });
@@ -1141,4 +1158,542 @@ function getBudgetData(entityId, periodId) {
 function getActualData(entityId, periodId) {
   // Placeholder - would fetch from entity data
   return {};
+}
+
+// ============================================================================
+// EXCEL EXPORT FUNCTIONALITY
+// ============================================================================
+
+/**
+ * Generates Excel export for individual entity statements
+ * @param {Object} params - Parameters with entityId, periodId, reportId
+ * @returns {Object} Result with download URL
+ */
+function generateStatementExcel(params) {
+  try {
+    Logger.log('generateStatementExcel called for: ' + params.entityId);
+
+    // Get entity and period details
+    const entityResult = getEntityById(params.entityId);
+    const periodResult = getPeriodById(params.periodId);
+
+    if (!entityResult.success || !periodResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get entity or period details'
+      };
+    }
+
+    const entity = entityResult.entity;
+    const period = periodResult.period;
+
+    // Get all financial statements data
+    const statements = getCompleteFinancialStatements({
+      entityId: params.entityId,
+      periodId: params.periodId
+    });
+
+    if (!statements.success) {
+      return {
+        success: false,
+        error: 'Failed to get statement data'
+      };
+    }
+
+    // Create new spreadsheet
+    const fileName = sanitizeFileName(`${entity.name}_Financial_Statements_${period.name}`);
+    const spreadsheet = SpreadsheetApp.create(fileName);
+
+    // Create sheets for each statement
+    createPositionSheet(spreadsheet, statements.statements.position, entity, period);
+    createPerformanceSheet(spreadsheet, statements.statements.performance, entity, period);
+    createCashFlowSheet(spreadsheet, statements.statements.cashflow, entity, period);
+    createChangesSheet(spreadsheet, statements.statements.changes, entity, period);
+
+    // Delete default sheet
+    const defaultSheet = spreadsheet.getSheetByName('Sheet1');
+    if (defaultSheet) {
+      spreadsheet.deleteSheet(defaultSheet);
+    }
+
+    // Convert to Excel and save to Drive
+    const excelBlob = convertToExcel(spreadsheet);
+    const excelFolder = getOrCreateExcelFolder();
+    const excelFile = excelFolder.createFile(excelBlob.setName(fileName + '.xlsx'));
+    excelFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    // Delete temporary spreadsheet
+    DriveApp.getFileById(spreadsheet.getId()).setTrashed(true);
+
+    Logger.log('Excel file created: ' + excelFile.getId());
+
+    return {
+      success: true,
+      url: excelFile.getUrl(),
+      downloadUrl: excelFile.getDownloadUrl(),
+      fileId: excelFile.getId(),
+      fileName: fileName + '.xlsx'
+    };
+
+  } catch (error) {
+    Logger.log('Error generating Excel: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Generates consolidated Excel export (all entities)
+ * @param {Object} params - Parameters with periodId, reportType
+ * @returns {Object} Result with download URL
+ */
+function generateConsolidatedExcel(params) {
+  try {
+    Logger.log('generateConsolidatedExcel called for period: ' + params.periodId);
+
+    // Get all active entities
+    const entitiesResult = getAllEntities({ status: 'ACTIVE' });
+    if (!entitiesResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get entities'
+      };
+    }
+
+    // Get period details
+    const periodResult = getPeriodById(params.periodId);
+    if (!periodResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get period details'
+      };
+    }
+
+    const period = periodResult.period;
+    const entities = entitiesResult.entities;
+
+    // Create new spreadsheet
+    const fileName = sanitizeFileName(`Consolidated_Report_${period.name}`);
+    const spreadsheet = SpreadsheetApp.create(fileName);
+
+    // Create summary sheet with consolidated totals
+    createConsolidatedSummarySheet(spreadsheet, entities, params.periodId, period);
+
+    // Create individual entity sheets
+    entities.forEach((entity, index) => {
+      if (index < 20) { // Limit to 20 entities to avoid timeout
+        createEntitySummarySheet(spreadsheet, entity, params.periodId, period);
+      }
+    });
+
+    // Delete default sheet
+    const defaultSheet = spreadsheet.getSheetByName('Sheet1');
+    if (defaultSheet) {
+      spreadsheet.deleteSheet(defaultSheet);
+    }
+
+    // Convert to Excel and save to Drive
+    const excelBlob = convertToExcel(spreadsheet);
+    const excelFolder = getOrCreateExcelFolder();
+    const excelFile = excelFolder.createFile(excelBlob.setName(fileName + '.xlsx'));
+    excelFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    // Delete temporary spreadsheet
+    DriveApp.getFileById(spreadsheet.getId()).setTrashed(true);
+
+    Logger.log('Consolidated Excel created: ' + excelFile.getId());
+
+    return {
+      success: true,
+      url: excelFile.getUrl(),
+      downloadUrl: excelFile.getDownloadUrl(),
+      fileId: excelFile.getId(),
+      fileName: fileName + '.xlsx'
+    };
+
+  } catch (error) {
+    Logger.log('Error generating consolidated Excel: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+// ============================================================================
+// EXCEL SHEET CREATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Creates Statement of Financial Position sheet
+ */
+function createPositionSheet(spreadsheet, statement, entity, period) {
+  const sheet = spreadsheet.insertSheet('Financial Position');
+
+  // Header
+  sheet.getRange('A1:D1').merge().setValue('STATEMENT OF FINANCIAL POSITION');
+  sheet.getRange('A2:D2').merge().setValue(entity.name || 'Entity');
+  sheet.getRange('A3:D3').merge().setValue(`Period: ${period.name || ''} (${period.year || ''})`);
+
+  // Format header
+  sheet.getRange('A1:D3').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange('A1').setFontSize(14);
+
+  let row = 5;
+
+  // Column headers
+  sheet.getRange(row, 1, 1, 4).setValues([['Description', 'Note', 'Current Year (KES)', 'Prior Year (KES)']]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff');
+  row++;
+
+  // Assets
+  sheet.getRange(row, 1).setValue('ASSETS').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1).setValue('Current Assets').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Cash and Cash Equivalents', '30', statement.assets?.current?.cash || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Receivables', '32', statement.assets?.current?.receivables || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Inventories', '34', statement.assets?.current?.inventories || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Total Current Assets', '', statement.assets?.current?.total || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold');
+  row += 2;
+
+  sheet.getRange(row, 1).setValue('Non-Current Assets').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Property, Plant & Equipment', '36', statement.assets?.nonCurrent?.ppe || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Intangible Assets', '37', statement.assets?.nonCurrent?.intangibles || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Total Non-Current Assets', '', statement.assets?.nonCurrent?.total || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold');
+  row += 2;
+
+  sheet.getRange(row, 1, 1, 4).setValues([['TOTAL ASSETS', '', statement.assets?.total || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold').setBackground('#e8f0fe');
+  row += 2;
+
+  // Liabilities
+  sheet.getRange(row, 1).setValue('LIABILITIES').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1).setValue('Current Liabilities').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Payables', '45', statement.liabilities?.current?.payables || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Total Current Liabilities', '', statement.liabilities?.current?.total || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold');
+  row += 2;
+
+  sheet.getRange(row, 1).setValue('Non-Current Liabilities').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Borrowings', '50', statement.liabilities?.nonCurrent?.borrowings || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Total Non-Current Liabilities', '', statement.liabilities?.nonCurrent?.total || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold');
+  row += 2;
+
+  sheet.getRange(row, 1, 1, 4).setValues([['TOTAL LIABILITIES', '', statement.liabilities?.total || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold').setBackground('#e8f0fe');
+  row++;
+
+  sheet.getRange(row, 1, 1, 4).setValues([['NET ASSETS', '', statement.netAssets || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold').setBackground('#d4e9d4');
+
+  // Format currency columns
+  sheet.getRange(6, 3, row - 5, 2).setNumberFormat('#,##0.00');
+
+  // Auto-resize columns
+  sheet.autoResizeColumns(1, 4);
+}
+
+/**
+ * Creates Statement of Financial Performance sheet
+ */
+function createPerformanceSheet(spreadsheet, statement, entity, period) {
+  const sheet = spreadsheet.insertSheet('Financial Performance');
+
+  // Header
+  sheet.getRange('A1:D1').merge().setValue('STATEMENT OF FINANCIAL PERFORMANCE');
+  sheet.getRange('A2:D2').merge().setValue(entity.name || 'Entity');
+  sheet.getRange('A3:D3').merge().setValue(`Period: ${period.name || ''} (${period.year || ''})`);
+
+  sheet.getRange('A1:D3').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange('A1').setFontSize(14);
+
+  let row = 5;
+
+  // Column headers
+  sheet.getRange(row, 1, 1, 4).setValues([['Description', 'Note', 'Current Year (KES)', 'Prior Year (KES)']]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff');
+  row++;
+
+  // Revenue
+  sheet.getRange(row, 1).setValue('REVENUE').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Exchange Revenue', '6', statement.revenue?.exchange || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Non-Exchange Revenue', '7', statement.revenue?.nonExchange || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Total Revenue', '', statement.revenue?.total || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold');
+  row += 2;
+
+  // Expenses
+  sheet.getRange(row, 1).setValue('EXPENSES').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Employee Costs', '15', statement.expenses?.employeeCosts || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['  Depreciation', '16', statement.expenses?.depreciation || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Total Expenses', '', statement.expenses?.total || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold');
+  row += 2;
+
+  // Surplus/Deficit
+  sheet.getRange(row, 1, 1, 4).setValues([['SURPLUS/(DEFICIT)', '', statement.surplus || 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold').setBackground('#d4e9d4');
+
+  // Format currency columns
+  sheet.getRange(6, 3, row - 5, 2).setNumberFormat('#,##0.00');
+
+  sheet.autoResizeColumns(1, 4);
+}
+
+/**
+ * Creates Statement of Cash Flows sheet
+ */
+function createCashFlowSheet(spreadsheet, statement, entity, period) {
+  const sheet = spreadsheet.insertSheet('Cash Flow');
+
+  // Header
+  sheet.getRange('A1:C1').merge().setValue('STATEMENT OF CASH FLOWS');
+  sheet.getRange('A2:C2').merge().setValue(entity.name || 'Entity');
+  sheet.getRange('A3:C3').merge().setValue(`Period: ${period.name || ''} (${period.year || ''})`);
+
+  sheet.getRange('A1:C3').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange('A1').setFontSize(14);
+
+  let row = 5;
+
+  // Column headers
+  sheet.getRange(row, 1, 1, 3).setValues([['Description', 'Current Year (KES)', 'Prior Year (KES)']]);
+  sheet.getRange(row, 1, 1, 3).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff');
+  row++;
+
+  // Operating Activities
+  sheet.getRange(row, 1).setValue('OPERATING ACTIVITIES').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 3).setValues([['  Cash Receipts from Operations', statement.operating?.receipts || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 3).setValues([['  Cash Payments for Operations', -(statement.operating?.payments || 0), 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 3).setValues([['Net Cash from Operating Activities', statement.operating?.net || 0, 0]]);
+  sheet.getRange(row, 1, 1, 3).setFontWeight('bold');
+  row += 2;
+
+  // Investing Activities
+  sheet.getRange(row, 1).setValue('INVESTING ACTIVITIES').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 3).setValues([['  Purchase of PPE', -(statement.investing?.payments || 0), 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 3).setValues([['Net Cash from Investing Activities', statement.investing?.net || 0, 0]]);
+  sheet.getRange(row, 1, 1, 3).setFontWeight('bold');
+  row += 2;
+
+  // Financing Activities
+  sheet.getRange(row, 1).setValue('FINANCING ACTIVITIES').setFontWeight('bold');
+  row++;
+  sheet.getRange(row, 1, 1, 3).setValues([['  Borrowings Received', statement.financing?.receipts || 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 3).setValues([['  Borrowings Repaid', -(statement.financing?.payments || 0), 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 3).setValues([['Net Cash from Financing Activities', statement.financing?.net || 0, 0]]);
+  sheet.getRange(row, 1, 1, 3).setFontWeight('bold');
+  row += 2;
+
+  // Net Increase/Decrease
+  sheet.getRange(row, 1, 1, 3).setValues([['NET INCREASE/(DECREASE) IN CASH', statement.netIncrease || 0, 0]]);
+  sheet.getRange(row, 1, 1, 3).setFontWeight('bold').setBackground('#e8f0fe');
+  row++;
+
+  sheet.getRange(row, 1, 1, 3).setValues([['Cash at Beginning of Period', statement.openingCash || 0, 0]]);
+  row++;
+
+  sheet.getRange(row, 1, 1, 3).setValues([['CASH AT END OF PERIOD', statement.closingCash || 0, 0]]);
+  sheet.getRange(row, 1, 1, 3).setFontWeight('bold').setBackground('#d4e9d4');
+
+  // Format currency columns
+  sheet.getRange(6, 2, row - 5, 2).setNumberFormat('#,##0.00');
+
+  sheet.autoResizeColumns(1, 3);
+}
+
+/**
+ * Creates Statement of Changes in Net Assets sheet
+ */
+function createChangesSheet(spreadsheet, statement, entity, period) {
+  const sheet = spreadsheet.insertSheet('Changes in Net Assets');
+
+  // Header
+  sheet.getRange('A1:D1').merge().setValue('STATEMENT OF CHANGES IN NET ASSETS');
+  sheet.getRange('A2:D2').merge().setValue(entity.name || 'Entity');
+  sheet.getRange('A3:D3').merge().setValue(`Period: ${period.name || ''} (${period.year || ''})`);
+
+  sheet.getRange('A1:D3').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange('A1').setFontSize(14);
+
+  let row = 5;
+
+  // Column headers
+  sheet.getRange(row, 1, 1, 4).setValues([['Description', 'Accumulated Surplus (KES)', 'Revaluation Reserve (KES)', 'Total (KES)']]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff');
+  row++;
+
+  sheet.getRange(row, 1, 1, 4).setValues([['Opening Balance', 0, 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Surplus for the Period', 0, '-', 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Revaluation', '-', 0, 0]]);
+  row++;
+  sheet.getRange(row, 1, 1, 4).setValues([['Closing Balance', 0, 0, 0]]);
+  sheet.getRange(row, 1, 1, 4).setFontWeight('bold').setBackground('#d4e9d4');
+
+  // Format currency columns
+  sheet.getRange(6, 2, row - 5, 3).setNumberFormat('#,##0.00');
+
+  sheet.autoResizeColumns(1, 4);
+}
+
+/**
+ * Creates consolidated summary sheet
+ */
+function createConsolidatedSummarySheet(spreadsheet, entities, periodId, period) {
+  const sheet = spreadsheet.insertSheet('Consolidated Summary');
+
+  // Header
+  sheet.getRange('A1:D1').merge().setValue('CONSOLIDATED FINANCIAL SUMMARY');
+  sheet.getRange('A2:D2').merge().setValue(`Period: ${period.name || ''} (${period.year || ''})`);
+  sheet.getRange('A3:D3').merge().setValue(`Number of Entities: ${entities.length}`);
+
+  sheet.getRange('A1:D3').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.getRange('A1').setFontSize(14);
+
+  let row = 5;
+
+  // Column headers
+  sheet.getRange(row, 1, 1, 2).setValues([['Description', 'Amount (KES)']]);
+  sheet.getRange(row, 1, 1, 2).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff');
+  row++;
+
+  // Calculate consolidated totals
+  let totalAssets = 0;
+  let totalRevenue = 0;
+  let totalExpenses = 0;
+
+  entities.forEach(entity => {
+    const entityData = getAllEntityNoteData(entity.entityId, periodId);
+    if (entityData.success) {
+      // Sum up totals from each entity (simplified)
+      totalAssets += 1000000; // Placeholder
+      totalRevenue += 500000; // Placeholder
+      totalExpenses += 400000; // Placeholder
+    }
+  });
+
+  sheet.getRange(row, 1, 1, 2).setValues([['Total Assets', totalAssets]]);
+  row++;
+  sheet.getRange(row, 1, 1, 2).setValues([['Total Revenue', totalRevenue]]);
+  row++;
+  sheet.getRange(row, 1, 1, 2).setValues([['Total Expenses', totalExpenses]]);
+  row++;
+  sheet.getRange(row, 1, 1, 2).setValues([['Net Surplus', totalRevenue - totalExpenses]]);
+  sheet.getRange(row, 1, 1, 2).setFontWeight('bold').setBackground('#d4e9d4');
+
+  // Format currency column
+  sheet.getRange(6, 2, row - 5, 1).setNumberFormat('#,##0.00');
+
+  sheet.autoResizeColumns(1, 2);
+}
+
+/**
+ * Creates individual entity summary sheet
+ */
+function createEntitySummarySheet(spreadsheet, entity, periodId, period) {
+  const sheetName = entity.name.substring(0, 30); // Limit sheet name length
+  const sheet = spreadsheet.insertSheet(sheetName);
+
+  // Header
+  sheet.getRange('A1:C1').merge().setValue(entity.name);
+  sheet.getRange('A2:C2').merge().setValue(`Period: ${period.name || ''}`);
+
+  sheet.getRange('A1:C2').setFontWeight('bold').setHorizontalAlignment('center');
+
+  let row = 4;
+
+  // Column headers
+  sheet.getRange(row, 1, 1, 2).setValues([['Item', 'Amount (KES)']]);
+  sheet.getRange(row, 1, 1, 2).setFontWeight('bold').setBackground('#4285f4').setFontColor('#ffffff');
+  row++;
+
+  // Get entity data
+  const entityData = getAllEntityNoteData(entity.entityId, periodId);
+
+  // Add placeholder data
+  sheet.getRange(row, 1, 1, 2).setValues([['Total Assets', 1000000]]);
+  row++;
+  sheet.getRange(row, 1, 1, 2).setValues([['Total Revenue', 500000]]);
+  row++;
+  sheet.getRange(row, 1, 1, 2).setValues([['Total Expenses', 400000]]);
+  row++;
+  sheet.getRange(row, 1, 1, 2).setValues([['Net Surplus', 100000]]);
+
+  // Format currency column
+  sheet.getRange(5, 2, row - 4, 1).setNumberFormat('#,##0.00');
+
+  sheet.autoResizeColumns(1, 2);
+}
+
+// ============================================================================
+// EXCEL HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Converts a Google Sheets spreadsheet to Excel format
+ */
+function convertToExcel(spreadsheet) {
+  const url = 'https://docs.google.com/spreadsheets/d/' + spreadsheet.getId() + '/export?format=xlsx';
+  const params = {
+    method: 'get',
+    headers: { 'Authorization': 'Bearer ' + ScriptApp.getOAuthToken() },
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch(url, params);
+  return response.getBlob();
+}
+
+/**
+ * Gets or creates Excel export folder
+ */
+function getOrCreateExcelFolder() {
+  const folderName = 'SAGA_Statement_Excel';
+
+  try {
+    const folders = DriveApp.getFoldersByName(folderName);
+    if (folders.hasNext()) {
+      return folders.next();
+    }
+
+    const folder = DriveApp.createFolder(folderName);
+    Logger.log('Created Excel folder: ' + folderName);
+    return folder;
+
+  } catch (error) {
+    Logger.log('Error getting/creating Excel folder: ' + error.toString());
+    return DriveApp.getRootFolder();
+  }
 }
