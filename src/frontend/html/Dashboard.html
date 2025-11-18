@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - IPSAS System</title>
     <style>
-        <?!= include('src/frontend/html/main.css.html'); ?>
-        <?!= include('src/frontend/html/dashboard.css.html'); ?>
+        <?!= include('frontend/css/main.css.html'); ?>
+        <?!= include('frontend/css/dashboard.css.html'); ?>
     </style>
 </head>
 <body>
@@ -31,11 +31,11 @@
 
             <!-- Role-specific dashboard -->
             <? if (role === 'DATA_ENTRY') { ?>
-                <?!= include('src/frontend/html/DataEntryDashboard'); ?>
+                <?!= include('frontend/html/DataEntryDashboard'); ?>
             <? } else if (role === 'APPROVER') { ?>
-                <?!= include('src/frontend/html/ApproverDashboard'); ?>
+                <?!= include('frontend/html/ApproverDashboard'); ?>
             <? } else if (role === 'ADMIN') { ?>
-                <?!= include('src/frontend/html/AdminDashboard'); ?>
+                <?!= include('frontend/html/AdminDashboard'); ?>
             <? } ?>
         </div>
     </main>

@@ -77,13 +77,13 @@ function doGet(e) {
     switch(page) {
       case 'index':
         // This is the main login page
-        return HtmlService.createHtmlOutputFromFile('src/frontend/html/Index')
+        return HtmlService.createHtmlOutputFromFile('Index')
           .setTitle(CONFIG.APP_NAME)
           .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png');
 
       case 'login':
         // This is the alternate login page path
-        return HtmlService.createHtmlOutputFromFile('src/frontend/html/Login')
+        return HtmlService.createHtmlOutputFromFile('frontend/html/Login')
           .setTitle('Login - ' + CONFIG.APP_NAME);
 
       case 'dashboard':
@@ -143,7 +143,7 @@ function doGet(e) {
             page === 'EntityList' || page === 'EntityForm' || page === 'UserList') {
             if (!user) return redirectToLogin();
             // This is a generic loader for other HTML files
-            return HtmlService.createTemplateFromFile(`src/frontend/html/${page}`)
+            return HtmlService.createTemplateFromFile(`frontend/html/${page}`)
                 .evaluate()
                 .setTitle(page + ' - ' + CONFIG.APP_NAME)
                 .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -203,7 +203,7 @@ function doPost(e) {
 // ============================================================================
 
 function serveDashboard(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/Dashboard');
+  const template = HtmlService.createTemplateFromFile('frontend/html/Dashboard');
   template.user = user;
   template.role = user.role;
 
@@ -213,21 +213,21 @@ function serveDashboard(user) {
 }
 
 function serveDataEntry(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/DataEntry');
+  const template = HtmlService.createTemplateFromFile('frontend/html/DataEntry');
   template.user = user;
   return template.evaluate()
     .setTitle('Data Entry - ' + CONFIG.APP_NAME);
 }
 
 function serveReports(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/Reports');
+  const template = HtmlService.createTemplateFromFile('frontend/html/Reports');
   template.user = user;
   return template.evaluate()
     .setTitle('Reports - '.concat(CONFIG.APP_NAME));
 }
 
 function serveAdminPanel(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/AdminPanel');
+  const template = HtmlService.createTemplateFromFile('frontend/html/AdminPanel');
   template.user = user;
   return template.evaluate()
     .setTitle('Admin Panel - ' + CONFIG.APP_NAME)
@@ -235,7 +235,7 @@ function serveAdminPanel(user) {
 }
 
 function servePeriodSetup(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/PeriodSetup');
+  const template = HtmlService.createTemplateFromFile('frontend/html/PeriodSetup');
   template.user = user;
   return template.evaluate()
     .setTitle('Period Setup - ' + CONFIG.APP_NAME)
@@ -243,7 +243,7 @@ function servePeriodSetup(user) {
 }
 
 function serveSystemNotReady(user) {
-  const template = HtmlService.createTemplateFromFile('src/frontend/html/SystemNotReady');
+  const template = HtmlService.createTemplateFromFile('frontend/html/SystemNotReady');
   template.user = user;
   return template.evaluate()
     .setTitle('System Setup In Progress - ' + CONFIG.APP_NAME)
@@ -253,7 +253,7 @@ function serveSystemNotReady(user) {
 function serveAdminSetupPrompt(user) {
   try {
     Logger.log('serveAdminSetupPrompt: Creating template for user: ' + user.email);
-    const template = HtmlService.createTemplateFromFile('src/frontend/html/AdminSetupPrompt');
+    const template = HtmlService.createTemplateFromFile('frontend/html/AdminSetupPrompt');
     template.user = user;
     Logger.log('serveAdminSetupPrompt: Evaluating template');
     const output = template.evaluate()
@@ -276,7 +276,7 @@ function serveAdminSetupPrompt(user) {
 
 function redirectToLogin() {
   // Redirect to the main index page, which IS the login page
-  return HtmlService.createHtmlOutputFromFile('src/frontend/html/Index')
+  return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Login Required - ' + CONFIG.APP_NAME);
 }
 
