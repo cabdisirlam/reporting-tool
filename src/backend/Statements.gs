@@ -562,3 +562,583 @@ function getPeriodRange(periodId) {
   }
   return periodId;
 }
+
+// ============================================================================
+// PDF EXPORT
+// ============================================================================
+
+/**
+ * Generates a PDF from financial statement HTML
+ * @param {Object} params - Parameters with html, title, entityId, periodId, reportId
+ * @returns {Object} Result with PDF URL
+ */
+function generateStatementPDF(params) {
+  try {
+    Logger.log('generateStatementPDF called for: ' + params.title);
+
+    // Get entity and period details
+    const entityResult = getEntityById(params.entityId);
+    const periodResult = getPeriodById(params.periodId);
+
+    if (!entityResult.success || !periodResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get entity or period details'
+      };
+    }
+
+    const entity = entityResult.entity;
+    const period = periodResult.period;
+
+    // Create full HTML document with proper styling for PDF
+    const fullHTML = createPDFHTML(params.html, params.title, entity, period);
+
+    // Create a temporary Google Doc
+    const tempDoc = DocumentApp.create('Statement_' + entity.name + '_' + period.name + '_' + Date.now());
+    const body = tempDoc.getBody();
+
+    // Clear default content
+    body.clear();
+
+    // Unfortunately, DocumentApp doesn't support direct HTML insertion well
+    // So we'll use a different approach: Create a blob from HTML and convert to PDF
+
+    // Create HTML blob
+    const htmlBlob = Utilities.newBlob(fullHTML, 'text/html', 'statement.html');
+
+    // Convert HTML to PDF using Drive API
+    // We need to use a different approach - create a Google Doc via Drive API
+
+    // Alternative: Use the simpler approach of creating PDF directly from blob
+    const pdfBlob = Utilities.newBlob(fullHTML, 'text/html').getAs('application/pdf');
+
+    // Create a file name
+    const fileName = sanitizeFileName(params.title + '_' + entity.name + '_' + period.name + '.pdf');
+
+    // Save to Drive in a PDFs folder
+    const pdfFolder = getOrCreatePDFFolder();
+    const pdfFile = pdfFolder.createFile(pdfBlob.setName(fileName));
+
+    // Make file accessible
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    Logger.log('PDF created successfully: ' + pdfFile.getId());
+
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      downloadUrl: pdfFile.getDownloadUrl(),
+      fileId: pdfFile.getId(),
+      fileName: fileName
+    };
+
+  } catch (error) {
+    Logger.log('Error generating PDF: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Creates full HTML document for PDF export
+ * @param {string} contentHTML - Statement content HTML
+ * @param {string} title - Statement title
+ * @param {Object} entity - Entity object
+ * @param {Object} period - Period object
+ * @returns {string} Complete HTML document
+ */
+function createPDFHTML(contentHTML, title, entity, period) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 12pt;
+        }
+        .statement-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+        }
+        .entity-name {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .statement-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        .period-info {
+            font-size: 11pt;
+            margin: 5px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 2px solid #000;
+            font-weight: bold;
+        }
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .indent-1 {
+            padding-left: 30px;
+        }
+        .indent-2 {
+            padding-left: 50px;
+        }
+        .total-row {
+            border-top: 2px solid #000;
+            border-bottom: 3px double #000;
+            font-weight: bold;
+        }
+        .amount {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        .note-ref {
+            color: #666;
+            font-size: 10pt;
+        }
+        h3 {
+            margin-top: 30px;
+            margin-bottom: 10px;
+            font-size: 13pt;
+        }
+        @page {
+            margin: 2cm;
+        }
+    </style>
+</head>
+<body>
+    ${contentHTML}
+</body>
+</html>`;
+}
+
+/**
+ * Gets or creates the PDF export folder
+ * @returns {Folder} PDF folder
+ */
+function getOrCreatePDFFolder() {
+  const folderName = 'SAGA_Statement_PDFs';
+
+  try {
+    const folders = DriveApp.getFoldersByName(folderName);
+    if (folders.hasNext()) {
+      return folders.next();
+    }
+
+    const folder = DriveApp.createFolder(folderName);
+    Logger.log('Created PDF folder: ' + folderName);
+    return folder;
+
+  } catch (error) {
+    Logger.log('Error getting/creating PDF folder: ' + error.toString());
+    // Fall back to root folder
+    return DriveApp.getRootFolder();
+  }
+}
+
+/**
+ * Sanitizes a file name for use in Drive
+ * @param {string} fileName - Original file name
+ * @returns {string} Sanitized file name
+ */
+function sanitizeFileName(fileName) {
+  // Remove or replace invalid characters
+  return fileName
+    .replace(/[\/\\:*?"<>|]/g, '_')
+    .replace(/\s+/g, '_')
+    .substring(0, 200); // Limit length
+}
+
+// ============================================================================
+// ADDITIONAL REPORT GENERATORS
+// ============================================================================
+
+/**
+ * Generates consolidated report PDF
+ * @param {Object} params - Parameters with reportType, periodId, format
+ * @returns {Object} Result with PDF URL
+ */
+function generateConsolidatedReportPDF(params) {
+  try {
+    Logger.log('generateConsolidatedReportPDF called for: ' + params.reportType);
+
+    // Get all approved entities for the period
+    const entitiesResult = getAllEntities({ status: 'ACTIVE' });
+    if (!entitiesResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get entities'
+      };
+    }
+
+    // Get consolidated data
+    const consolidatedData = calculateConsolidatedTotals(
+      entitiesResult.entities.map(e => ({ entityId: e.entityId, entityName: e.name })),
+      params.reportType.replace('consolidated_', '').toUpperCase()
+    );
+
+    // Create HTML for consolidated report
+    const html = createConsolidatedReportHTML(consolidatedData, params);
+
+    // Generate PDF
+    const fileName = 'Consolidated_' + params.reportType + '_' + params.periodId + '.pdf';
+    const pdfBlob = Utilities.newBlob(html, 'text/html').getAs('application/pdf');
+    const pdfFolder = getOrCreatePDFFolder();
+    const pdfFile = pdfFolder.createFile(pdfBlob.setName(fileName));
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      fileName: fileName
+    };
+
+  } catch (error) {
+    Logger.log('Error generating consolidated report: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Generates budget comparison PDF
+ * @param {Object} params - Parameters with entityId, periodId, format
+ * @returns {Object} Result with PDF URL
+ */
+function generateBudgetComparisonPDF(params) {
+  try {
+    Logger.log('generateBudgetComparisonPDF called');
+
+    // Get budget and actual data
+    const budgetData = getBudgetData(params.entityId, params.periodId);
+    const actualData = getActualData(params.entityId, params.periodId);
+
+    // Create HTML for budget report
+    const html = createBudgetComparisonHTML(budgetData, actualData, params);
+
+    // Generate PDF
+    const fileName = 'Budget_Comparison_' + params.entityId + '_' + params.periodId + '.pdf';
+    const pdfBlob = Utilities.newBlob(html, 'text/html').getAs('application/pdf');
+    const pdfFolder = getOrCreatePDFFolder();
+    const pdfFile = pdfFolder.createFile(pdfBlob.setName(fileName));
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      fileName: fileName
+    };
+
+  } catch (error) {
+    Logger.log('Error generating budget comparison: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Generates notes disclosure PDF
+ * @param {Object} params - Parameters with entityId, periodId, format
+ * @returns {Object} Result with PDF URL
+ */
+function generateNotesDisclosurePDF(params) {
+  try {
+    Logger.log('generateNotesDisclosurePDF called');
+
+    // Get all notes data
+    const notesResult = getAllEntityNoteData(params.entityId, params.periodId);
+    if (!notesResult.success) {
+      return {
+        success: false,
+        error: 'Failed to get notes data'
+      };
+    }
+
+    // Create HTML for notes
+    const html = createNotesDisclosureHTML(notesResult.data, params);
+
+    // Generate PDF
+    const fileName = 'Notes_Disclosure_' + params.entityId + '_' + params.periodId + '.pdf';
+    const pdfBlob = Utilities.newBlob(html, 'text/html').getAs('application/pdf');
+    const pdfFolder = getOrCreatePDFFolder();
+    const pdfFile = pdfFolder.createFile(pdfBlob.setName(fileName));
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      fileName: fileName
+    };
+
+  } catch (error) {
+    Logger.log('Error generating notes disclosure: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Generates submission summary PDF
+ * @param {Object} params - Parameters with periodId, format
+ * @returns {Object} Result with PDF URL
+ */
+function generateSubmissionSummaryPDF(params) {
+  try {
+    Logger.log('generateSubmissionSummaryPDF called');
+
+    // Get submission summary
+    const summary = getSubmissionSummaryReport(params.periodId);
+
+    // Create HTML for summary
+    const html = createSubmissionSummaryHTML(summary, params);
+
+    // Generate PDF
+    const fileName = 'Submission_Summary_' + params.periodId + '.pdf';
+    const pdfBlob = Utilities.newBlob(html, 'text/html').getAs('application/pdf');
+    const pdfFolder = getOrCreatePDFFolder();
+    const pdfFile = pdfFolder.createFile(pdfBlob.setName(fileName));
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      fileName: fileName
+    };
+
+  } catch (error) {
+    Logger.log('Error generating submission summary: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+/**
+ * Generic report PDF generator
+ * @param {Object} params - Parameters with reportId, entityId, periodId, format
+ * @returns {Object} Result with PDF URL
+ */
+function generateReportPDF(params) {
+  try {
+    Logger.log('generateReportPDF called for: ' + params.reportId);
+
+    // Create simple HTML report
+    const html = createGenericReportHTML(params);
+
+    // Generate PDF
+    const fileName = sanitizeFileName(params.reportId + '_' + (params.entityId || 'consolidated') + '_' + params.periodId + '.pdf');
+    const pdfBlob = Utilities.newBlob(html, 'text/html').getAs('application/pdf');
+    const pdfFolder = getOrCreatePDFFolder();
+    const pdfFile = pdfFolder.createFile(pdfBlob.setName(fileName));
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      fileName: fileName,
+      message: 'Report generated successfully'
+    };
+
+  } catch (error) {
+    Logger.log('Error generating report: ' + error.toString());
+    return {
+      success: false,
+      error: error.toString()
+    };
+  }
+}
+
+// ============================================================================
+// HTML GENERATORS FOR ADDITIONAL REPORTS
+// ============================================================================
+
+/**
+ * Creates HTML for consolidated report
+ */
+function createConsolidatedReportHTML(data, params) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #667eea; color: white; }
+        .amount { text-align: right; font-family: 'Courier New', monospace; }
+    </style>
+</head>
+<body>
+    <h1>Consolidated Financial Report</h1>
+    <h2>${params.reportType.replace('_', ' ').toUpperCase()}</h2>
+    <p>Period: ${params.periodId}</p>
+    <p>Generated: ${new Date().toLocaleString()}</p>
+    <table>
+        <tr><th>Description</th><th class="amount">Amount (KES)</th></tr>
+        <tr><td>Total Assets</td><td class="amount">${(data.summary?.totalAssets || 0).toLocaleString()}</td></tr>
+        <tr><td>Total Revenue</td><td class="amount">${(data.summary?.totalRevenue || 0).toLocaleString()}</td></tr>
+        <tr><td>Total Expenses</td><td class="amount">${(data.summary?.totalExpenses || 0).toLocaleString()}</td></tr>
+    </table>
+    <p><em>This report consolidates data from ${data.entityCount || 0} entities.</em></p>
+</body>
+</html>`;
+}
+
+/**
+ * Creates HTML for budget comparison
+ */
+function createBudgetComparisonHTML(budgetData, actualData, params) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #667eea; color: white; }
+        .amount { text-align: right; font-family: 'Courier New', monospace; }
+    </style>
+</head>
+<body>
+    <h1>Budget vs Actual Comparison</h1>
+    <p>Entity: ${params.entityId}</p>
+    <p>Period: ${params.periodId}</p>
+    <p>Generated: ${new Date().toLocaleString()}</p>
+    <table>
+        <tr><th>Category</th><th class="amount">Budget</th><th class="amount">Actual</th><th class="amount">Variance</th></tr>
+        <tr><td colspan="4"><em>Budget comparison data will be populated from budget entries.</em></td></tr>
+    </table>
+</body>
+</html>`;
+}
+
+/**
+ * Creates HTML for notes disclosure
+ */
+function createNotesDisclosureHTML(notesData, params) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Times New Roman', serif; margin: 20px; }
+        h1 { text-align: center; color: #333; }
+        h2 { color: #667eea; margin-top: 30px; }
+        .note { margin-bottom: 20px; padding: 15px; border-left: 3px solid #667eea; }
+    </style>
+</head>
+<body>
+    <h1>Notes to Financial Statements</h1>
+    <p>Entity: ${params.entityId}</p>
+    <p>Period: ${params.periodId}</p>
+    <p>Generated: ${new Date().toLocaleString()}</p>
+    ${Object.keys(notesData || {}).map((noteId, index) => `
+        <div class="note">
+            <h2>Note ${index + 1}: ${noteId}</h2>
+            <p>${JSON.stringify(notesData[noteId].data || {}, null, 2)}</p>
+        </div>
+    `).join('')}
+</body>
+</html>`;
+}
+
+/**
+ * Creates HTML for submission summary
+ */
+function createSubmissionSummaryHTML(summary, params) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #667eea; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Submission Summary Report</h1>
+    <p>Period: ${params.periodId}</p>
+    <p>Generated: ${new Date().toLocaleString()}</p>
+    <table>
+        <tr><th>Entity</th><th>Status</th><th>Submitted Date</th><th>Approved Date</th></tr>
+        <tr><td colspan="4"><em>Submission data will be populated from approval records.</em></td></tr>
+    </table>
+</body>
+</html>`;
+}
+
+/**
+ * Creates generic HTML report
+ */
+function createGenericReportHTML(params) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+        h1 { color: #333; }
+        .info { background: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 600px; }
+    </style>
+</head>
+<body>
+    <h1>Report Generated</h1>
+    <div class="info">
+        <p><strong>Report Type:</strong> ${params.reportId}</p>
+        <p><strong>Entity:</strong> ${params.entityId || 'All'}</p>
+        <p><strong>Period:</strong> ${params.periodId}</p>
+        <p><strong>Format:</strong> ${params.format}</p>
+        <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+    </div>
+    <p><em>This report type is available and can be customized with specific data.</em></p>
+</body>
+</html>`;
+}
+
+/**
+ * Helper: Get budget data
+ */
+function getBudgetData(entityId, periodId) {
+  // Placeholder - would fetch from Budget sheet
+  return {};
+}
+
+/**
+ * Helper: Get actual data
+ */
+function getActualData(entityId, periodId) {
+  // Placeholder - would fetch from entity data
+  return {};
+}

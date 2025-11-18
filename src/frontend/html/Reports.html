@@ -424,13 +424,179 @@
 
             closeModal();
 
-            // Navigate to statement viewer
-            if (selectedReport.id.startsWith('statement_')) {
+            // Navigate to statement viewer for financial statements
+            if (selectedReport.id.startsWith('statement_') || selectedReport.id === 'complete_financial') {
                 window.location.href = `?page=Statements&reportId=${selectedReport.id}&entityId=${entity}&periodId=${periodId}&format=${format}`;
-            } else {
-                // For other reports, trigger download
-                alert('Report generation started. This feature is being enhanced.');
             }
+            // Handle consolidated reports
+            else if (selectedReport.id.startsWith('consolidated_')) {
+                generateConsolidatedReport(selectedReport.id, periodId, format);
+            }
+            // Handle analysis reports
+            else if (selectedReport.id === 'budget_comparison') {
+                generateBudgetReport(entity, periodId, format);
+            }
+            // Handle notes disclosure
+            else if (selectedReport.id === 'notes_disclosure') {
+                generateNotesReport(entity, periodId, format);
+            }
+            // Handle submission summary
+            else if (selectedReport.id === 'submission_summary') {
+                generateSubmissionReport(periodId, format);
+            }
+            // Fallback for any other report types
+            else {
+                generateGenericReport(selectedReport.id, entity, periodId, format);
+            }
+        }
+
+        /**
+         * Generate consolidated report
+         */
+        function generateConsolidatedReport(reportId, periodId, format) {
+            showLoadingMessage('Generating consolidated report...');
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoadingMessage();
+                    if (result.success) {
+                        if (result.url) {
+                            window.open(result.url, '_blank');
+                        } else {
+                            alert('Report generated successfully!');
+                        }
+                    } else {
+                        alert('Failed to generate report: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    hideLoadingMessage();
+                    alert('Error generating report: ' + error.message);
+                })
+                .generateConsolidatedReportPDF({
+                    reportType: reportId,
+                    periodId: periodId,
+                    format: format
+                });
+        }
+
+        /**
+         * Generate budget comparison report
+         */
+        function generateBudgetReport(entityId, periodId, format) {
+            showLoadingMessage('Generating budget comparison report...');
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoadingMessage();
+                    if (result.success && result.url) {
+                        window.open(result.url, '_blank');
+                    } else {
+                        alert('Failed to generate report: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    hideLoadingMessage();
+                    alert('Error generating report: ' + error.message);
+                })
+                .generateBudgetComparisonPDF({
+                    entityId: entityId,
+                    periodId: periodId,
+                    format: format
+                });
+        }
+
+        /**
+         * Generate notes disclosure report
+         */
+        function generateNotesReport(entityId, periodId, format) {
+            showLoadingMessage('Generating notes to financial statements...');
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoadingMessage();
+                    if (result.success && result.url) {
+                        window.open(result.url, '_blank');
+                    } else {
+                        alert('Failed to generate report: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    hideLoadingMessage();
+                    alert('Error generating report: ' + error.message);
+                })
+                .generateNotesDisclosurePDF({
+                    entityId: entityId,
+                    periodId: periodId,
+                    format: format
+                });
+        }
+
+        /**
+         * Generate submission summary report
+         */
+        function generateSubmissionReport(periodId, format) {
+            showLoadingMessage('Generating submission summary...');
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoadingMessage();
+                    if (result.success && result.url) {
+                        window.open(result.url, '_blank');
+                    } else {
+                        alert('Failed to generate report: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    hideLoadingMessage();
+                    alert('Error generating report: ' + error.message);
+                })
+                .generateSubmissionSummaryPDF({
+                    periodId: periodId,
+                    format: format
+                });
+        }
+
+        /**
+         * Generate generic report
+         */
+        function generateGenericReport(reportId, entityId, periodId, format) {
+            showLoadingMessage('Generating report...');
+
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    hideLoadingMessage();
+                    if (result.success && result.url) {
+                        window.open(result.url, '_blank');
+                    } else {
+                        alert('Report generated. ' + (result.message || 'Check your downloads folder.'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    hideLoadingMessage();
+                    alert('Error generating report: ' + error.message);
+                })
+                .generateReportPDF({
+                    reportId: reportId,
+                    entityId: entityId,
+                    periodId: periodId,
+                    format: format
+                });
+        }
+
+        /**
+         * Show loading message
+         */
+        function showLoadingMessage(message) {
+            const grid = document.getElementById('reports-grid');
+            grid.innerHTML = `<div class="loading"><div class="spinner"></div><p style="margin-top: 15px; color: #6b7280;">${message}</p></div>`;
+        }
+
+        /**
+         * Hide loading message
+         */
+        function hideLoadingMessage() {
+            renderReports();
         }
 
         function showError(message) {

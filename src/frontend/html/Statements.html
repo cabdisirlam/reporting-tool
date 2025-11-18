@@ -272,7 +272,37 @@
         }
 
         function exportPDF() {
-            alert('PDF export feature coming soon!');
+            // Hide actions during PDF generation
+            const actionsDiv = document.getElementById('actions');
+            const originalHTML = actionsDiv.innerHTML;
+            actionsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Generating PDF...</p></div>';
+
+            // Get the statement HTML
+            const statementHTML = document.getElementById('statement-container').innerHTML;
+            const statementTitle = getStatementTitle(reportId);
+
+            // Call backend to generate PDF
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    actionsDiv.innerHTML = originalHTML;
+                    if (result.success) {
+                        // Open PDF in new window for download
+                        window.open(result.url, '_blank');
+                    } else {
+                        alert('Failed to generate PDF: ' + result.error);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    actionsDiv.innerHTML = originalHTML;
+                    alert('Error generating PDF: ' + error.message);
+                })
+                .generateStatementPDF({
+                    entityId: entityId,
+                    periodId: periodId,
+                    reportId: reportId,
+                    html: statementHTML,
+                    title: statementTitle
+                });
         }
 
         function showError(message) {
