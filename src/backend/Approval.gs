@@ -201,7 +201,9 @@ function updateSubmissionStatus(entityId, periodId, statusData) {
     let statusSheet = ss.getSheetByName(sheetName);
 
     if (!statusSheet) {
-      statusSheet = createSubmissionStatusSheet(ss);
+      // Sheet creation disabled - period spreadsheets have no tabs
+      Logger.log(`SubmissionStatus update skipped for ${entityId} in ${periodId} - period sheets disabled`);
+      return;
     }
 
     const data = statusSheet.getDataRange().getValues();
@@ -351,21 +353,9 @@ function getPendingApprovals(periodId) {
  * @returns {Sheet} Created sheet
  */
 function createSubmissionStatusSheet(periodId, ss) {
-  const targetSs = ss || periodId;
-  const sheetName = 'SubmissionStatus';
-  const sheet = targetSs.insertSheet(sheetName);
-
-  const headers = [
-    'EntityID', 'Status', 'SubmittedBy', 'SubmittedDate', 'SubmitterComments',
-    'ReviewedBy', 'ReviewedDate', 'ReviewerComments', 'LastUpdated'
-  ];
-
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-  sheet.setFrozenRows(1);
-  sheet.autoResizeColumns(1, headers.length);
-
-  return sheet;
+  // Sheet creation disabled - period spreadsheets have no tabs/sheets
+  Logger.log('SubmissionStatus sheet creation skipped - period spreadsheets remain empty');
+  return null;
 }
 
 /**

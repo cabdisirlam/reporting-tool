@@ -723,58 +723,12 @@ function closeAllOpenPeriods(masterConfigIdOverride) {
  * @param {string} periodName - Period name
  */
 function createPeriodSheets(ss, periodId, periodName) {
-  Logger.log(`Creating period sheets for ${periodId}...`);
+  Logger.log(`Period spreadsheet initialized for ${periodId} - no sheets created`);
 
-  // Remove default sheet if present
-  const defaultSheet = ss.getSheetByName('Sheet1');
-  if (defaultSheet) {
-    ss.deleteSheet(defaultSheet);
-  }
+  // Period spreadsheets remain empty - no tabs/sheets are created
+  // All data is stored in the Master Config or handled by the application
 
-  // Create README sheet first
-  const readmeSheet = ss.insertSheet('README', 0);
-  const masterConfigId = CONFIG.MASTER_CONFIG_ID;
-  const readmeContent = [
-    [`SAGA Period: ${periodName}`],
-    [''],
-    ['This spreadsheet contains data for a specific reporting period.'],
-    [''],
-    ['Sheet Overview:'],
-    ['- SubmissionStatus: Tracks entity submission and approval status'],
-    ['- EntityNoteData: Stores financial data for all entities in this period'],
-    [''],
-    ['Configuration:'],
-    [`- Period ID: ${periodId}`],
-    [`- Period Name: ${periodName}`],
-    [`- Master Config ID: ${masterConfigId || 'Not set'}`],
-    [''],
-    ['Important Notes:'],
-    ['- All users, entities, and templates are defined in the Master Config'],
-    ['- This period references the Master Config for roles and permissions'],
-    ['- Do NOT delete or rename sheets'],
-    ['- Use the web interface for data entry'],
-    [''],
-    ['Created: ' + new Date().toString()],
-    ['Spreadsheet ID: ' + ss.getId()]
-  ];
-
-  readmeSheet.getRange(1, 1, readmeContent.length, 1).setValues(readmeContent);
-  readmeSheet.getRange('A1').setFontWeight('bold').setFontSize(14);
-  readmeSheet.getRange('A5').setFontWeight('bold');
-  readmeSheet.getRange('A9').setFontWeight('bold');
-  readmeSheet.getRange('A14').setFontWeight('bold');
-  readmeSheet.setColumnWidth(1, 600);
-
-  // Create data sheets with simplified names if they don't exist
-  if (!ss.getSheetByName('SubmissionStatus')) {
-    createSubmissionStatusSheet(ss);
-  }
-
-  if (!ss.getSheetByName('EntityNoteData')) {
-    createEntityNoteDataSheet(ss);
-  }
-
-  Logger.log(`Period sheets created successfully for ${periodId}`);
+  Logger.log(`Period spreadsheet setup completed for ${periodId}`);
 }
 
 /**
