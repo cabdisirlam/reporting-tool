@@ -267,7 +267,7 @@
         let categories = [];
         let currentCategory = 'all';
         let selectedReport = null;
-        let entityId = '<?= session.entityId ?>';
+        let entityId = '<?= user.entityId || "" ?>';
         let userRole = '<?= user.role ?>';
 
         window.addEventListener('DOMContentLoaded', function() {
@@ -291,7 +291,7 @@
                 .withFailureHandler(function(error) {
                     showError('Error loading reports: ' + error.message);
                 })
-                .getAvailableReports({ userId: '<?= user.userId ?>' });
+                .getAvailableReports({ userId: '<?= user.id ?>' });
         }
 
         function renderCategories() {
