@@ -71,35 +71,43 @@ function isSystemConfigured() {
 function doGet(e) {
   try {
     const page = e.parameter.page || 'index';
-    const user = getCurrentUser();
+
+    // CRITICAL FIX: Do NOT check user authentication immediately
+    // This was causing the white screen issue because getCurrentUser()
+    // tries to access PropertiesService, which triggers OAuth dialog
+    // We will check user ONLY when needed (after login page loads)
+    let user = null;
 
     // Route to appropriate page
     switch(page) {
       case 'index':
-        // This is the main login page
+      case 'login':
+        // Serve Login page IMMEDIATELY without checking auth/session
+        // This allows the page to load without triggering OAuth dialog
         return HtmlService.createHtmlOutputFromFile('Index')
           .setTitle(CONFIG.APP_NAME)
-          .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png');
+          .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png')
+          .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 
-      case 'login':
-        // This is the alternate login page path
-        return HtmlService.createHtmlOutputFromFile('frontend/html/Login')
-          .setTitle('Login - ' + CONFIG.APP_NAME);
-
+      // For all other protected pages, NOW we check the user
       case 'dashboard':
+        user = getCurrentUser(); // Check user now
         if (!user) return redirectToLogin();
         return serveDashboard(user);
 
       case 'dataEntry':
+        user = getCurrentUser();
         if (!user) return redirectToLogin();
         return serveDataEntry(user);
 
       case 'reports':
+        user = getCurrentUser();
         if (!user) return redirectToLogin();
         return serveReports(user);
 
       case 'admin':
       case 'AdminPanel':
+        user = getCurrentUser();
         if (!user) return redirectToLogin();
         // Only admins can access admin panel
         if (user.role !== CONFIG.ROLES.ADMIN) {
@@ -108,45 +116,36 @@ function doGet(e) {
         return serveAdminPanel(user);
 
       case 'PeriodSetup':
+        user = getCurrentUser();
         if (!user) return redirectToLogin();
-        // Only admins can access period setup
         if (user.role !== CONFIG.ROLES.ADMIN) {
           return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can set up periods.</p>');
         }
         return servePeriodSetup(user);
 
       case 'AdminSetupPrompt':
-        if (!user) {
-          Logger.log('AdminSetupPrompt: No user found, redirecting to login');
-          return redirectToLogin();
-        }
-        Logger.log('AdminSetupPrompt: User found: ' + user.email + ', role: ' + user.role);
-        // Only admins can access setup prompt
+        user = getCurrentUser();
+        if (!user) return redirectToLogin();
         if (user.role !== CONFIG.ROLES.ADMIN) {
-          Logger.log('AdminSetupPrompt: User is not admin, denying access');
           return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can access this page.</p>');
         }
-        Logger.log('AdminSetupPrompt: Serving admin setup prompt');
         return serveAdminSetupPrompt(user);
 
       case 'SystemNotReady':
+        user = getCurrentUser();
         if (!user) return redirectToLogin();
         return serveSystemNotReady(user);
 
       case 'diagnostics':
-        // Allow anyone to view diagnostics for troubleshooting
         return showSystemDiagnostics();
 
       default:
-        // Handle other pages if they exist
-        if (page === 'ApprovalDashboard' || page === 'BudgetEntry' || page === 'CashFlowEntry' ||
-            page === 'EntityList' || page === 'EntityForm' || page === 'UserList') {
+        // Handle dynamic pages
+        if (['ApprovalDashboard', 'BudgetEntry', 'CashFlowEntry', 'EntityList', 'EntityForm', 'UserList'].includes(page)) {
+            user = getCurrentUser(); // Check user now
             if (!user) return redirectToLogin();
 
-            // Create the template
             const template = HtmlService.createTemplateFromFile(`frontend/html/${page}`);
-
-            // Pass the user object to the template
             template.user = user;
             template.role = user.role;
 
