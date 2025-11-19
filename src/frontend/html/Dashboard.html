@@ -29,13 +29,19 @@
         <div class="container">
             <h2>Dashboard</h2>
 
-            <!-- Role-specific dashboard -->
-            <? if (role === 'DATA_ENTRY') { ?>
+            <!-- Role-specific dashboard with normalization -->
+            <? var normalizedRole = roleNormalized || (role || '').toUpperCase(); ?>
+            <? if (normalizedRole === 'DATA_ENTRY') { ?>
                 <?!= include('frontend/html/DataEntryDashboard'); ?>
-            <? } else if (role === 'APPROVER') { ?>
+            <? } else if (normalizedRole === 'APPROVER') { ?>
                 <?!= include('frontend/html/ApproverDashboard'); ?>
-            <? } else if (role === 'ADMIN') { ?>
+            <? } else if (normalizedRole === 'ADMIN') { ?>
                 <?!= include('frontend/html/AdminDashboard'); ?>
+            <? } else { ?>
+                <div class="card" style="margin-top: 20px;">
+                    <h3>Dashboard not available</h3>
+                    <p>Your role ("<?= role ?>") is not recognized. Please contact support to update your user profile.</p>
+                </div>
             <? } ?>
         </div>
     </main>
