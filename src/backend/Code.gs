@@ -213,6 +213,7 @@ function serveDashboard(user) {
   const template = HtmlService.createTemplateFromFile('frontend/html/Dashboard');
   template.user = user;
   template.role = user.role;
+  template.roleNormalized = (user.role || '').toUpperCase();
 
   return template.evaluate()
     .setTitle('Dashboard - ' + CONFIG.APP_NAME)
