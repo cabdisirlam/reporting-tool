@@ -716,8 +716,8 @@
                         progress.style.display = 'none';
                     })
                     .uploadAttachment({
-                        entityId: '<?= session.entityId ?>',
-                        periodId: '<?= session.periodId ?>',
+                        entityId: '<?= user.entityId || "" ?>',
+                        periodId: '<?= user.periodId || "" ?>',
                         noteId: currentNote ? currentNote.noteId : null,
                         fileName: file.name,
                         fileData: base64Data,
@@ -742,8 +742,8 @@
                     console.error('Failed to load attachments:', error);
                 })
                 .getAttachments({
-                    entityId: '<?= session.entityId ?>',
-                    periodId: '<?= session.periodId ?>',
+                    entityId: '<?= user.entityId || "" ?>',
+                    periodId: '<?= user.periodId || "" ?>',
                     noteId: currentNote.noteId
                 });
         }

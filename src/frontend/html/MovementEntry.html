@@ -331,7 +331,7 @@
     <script>
         let currentCategory = 'ppe';
         let movementData = {};
-        let entityId = '<?= session.entityId ?>';
+        let entityId = '<?= user.entityId || "" ?>';
         let periodId = null;
 
         const categories = {
