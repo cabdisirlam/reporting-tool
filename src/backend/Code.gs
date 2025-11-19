@@ -142,8 +142,15 @@ function doGet(e) {
         if (page === 'ApprovalDashboard' || page === 'BudgetEntry' || page === 'CashFlowEntry' ||
             page === 'EntityList' || page === 'EntityForm' || page === 'UserList') {
             if (!user) return redirectToLogin();
-            // This is a generic loader for other HTML files
-            return HtmlService.createTemplateFromFile(`frontend/html/${page}`)
+
+            // Create the template
+            const template = HtmlService.createTemplateFromFile(`frontend/html/${page}`);
+
+            // Pass the user object to the template
+            template.user = user;
+            template.role = user.role;
+
+            return template
                 .evaluate()
                 .setTitle(page + ' - ' + CONFIG.APP_NAME)
                 .addMetaTag('viewport', 'width=device-width, initial-scale=1');
