@@ -401,7 +401,7 @@
 
         // Parse URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const entityId = urlParams.get('entityId') || '<?= session.entityId ?>';
+        const entityId = urlParams.get('entityId') || '<?= user.entityId || "" ?>';
         const periodId = urlParams.get('periodId');
 
         // Load validation results on page load
