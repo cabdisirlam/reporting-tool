@@ -20,7 +20,7 @@
  */
 function logActivity(userEmail, action, details) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     let logSheet = ss.getSheetByName('AuditLog');
 
     // Create log sheet if it doesn't exist
@@ -57,7 +57,7 @@ function logActivity(userEmail, action, details) {
 function getRecentActivities(limit) {
   try {
     limit = limit || 50;
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const logSheet = ss.getSheetByName('AuditLog');
 
     if (!logSheet) {

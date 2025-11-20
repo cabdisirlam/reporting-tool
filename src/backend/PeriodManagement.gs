@@ -311,7 +311,7 @@ function createPeriod(periodData) {
     const spreadsheetId = periodSpreadsheet.getId();
 
     // Add period to config
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('PeriodConfig');
 
     sheet.appendRow([
@@ -546,7 +546,7 @@ function rolloverOpeningBalances(fromPeriodId, toPeriodId) {
  * @returns {Object} Context with sheet, data array, and headerIndex map
  */
 function getPeriodConfigContext(masterConfigIdOverride) {
-  const masterConfigId = masterConfigIdOverride || CONFIG.MASTER_CONFIG_ID;
+  const masterConfigId = masterConfigIdOverride || getMasterConfigId();
   const ss = SpreadsheetApp.openById(masterConfigId);
   const sheet = ss.getSheetByName('PeriodConfig');
 
@@ -626,7 +626,7 @@ function getPeriodById(periodId) {
  */
 function getPeriodSpreadsheet(periodId) {
   try {
-    const masterSS = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const masterSS = SpreadsheetApp.openById(getMasterConfigId());
     const periodConfigSheet = masterSS.getSheetByName('PeriodConfig');
     const data = periodConfigSheet.getDataRange().getValues();
     const headers = data[0];
@@ -727,7 +727,7 @@ function createPeriodSheets(ss, periodId, periodName) {
 
   // Create README sheet first
   const readmeSheet = ss.insertSheet('README', 0);
-  const masterConfigId = CONFIG.MASTER_CONFIG_ID;
+  const masterConfigId = getMasterConfigId();
   const readmeContent = [
     [`SAGA Period: ${periodName}`],
     [''],
@@ -904,7 +904,7 @@ function resetAdminSheets() {
       };
     }
 
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss');
 
     // Get all sheets in the spreadsheet

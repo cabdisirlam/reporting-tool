@@ -449,7 +449,7 @@ function notifyDataEntryOfficer(entityId, periodId, action, approver, comments) 
  */
 function getAllApprovers() {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
 
     if (!sheet) {
