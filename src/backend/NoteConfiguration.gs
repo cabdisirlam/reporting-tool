@@ -32,7 +32,7 @@ function getNoteTemplates() {
     Logger.log('getNoteTemplates: Not in cache, fetching from sheet.');
 
     // 2. If not in cache, get from Spreadsheet
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('NoteTemplates');
     if (!sheet) {
       return { success: false, error: 'NoteTemplates sheet not found' };
@@ -85,7 +85,7 @@ function getNoteTemplates() {
  */
 function getNoteLines(noteId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('NoteLines');
 
     if (!sheet) {

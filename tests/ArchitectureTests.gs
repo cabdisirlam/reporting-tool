@@ -142,7 +142,7 @@ function printTestSummary(results) {
  * Test 1: Verify PeriodConfig has correct structure
  */
 function test_PeriodConfigStructure() {
-  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+  const ss = SpreadsheetApp.openById(getMasterConfigId());
   const sheet = ss.getSheetByName('PeriodConfig');
 
   if (!sheet) {

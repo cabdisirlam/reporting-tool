@@ -16,7 +16,7 @@
 const CONFIG = {
   APP_NAME: 'SAGA Financial Consolidation System',
   APP_VERSION: '1.0.0',
-  MASTER_CONFIG_ID: PropertiesService.getScriptProperties().getProperty('MASTER_CONFIG_ID'),
+  // MASTER_CONFIG_ID removed - use getMasterConfigId() instead to avoid global PropertiesService call
   ROLES: {
     ADMIN: 'ADMIN',
     APPROVER: 'APPROVER',
@@ -1419,7 +1419,7 @@ function getAdminDashboardData() {
  */
 function getAllUsers(filters) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
 
     if (!sheet) {
@@ -1605,7 +1605,7 @@ function uploadAttachment(params) {
  */
 function storeAttachmentMetadata(metadata) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     let sheet = ss.getSheetByName('Attachments');
 
     // Create sheet if it doesn't exist
@@ -1660,7 +1660,7 @@ function getAttachments(params) {
       };
     }
 
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Attachments');
 
     if (!sheet) {
@@ -1781,7 +1781,7 @@ function deleteAttachment(params) {
     file.setTrashed(true);
 
     // Remove from tracking sheet
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Attachments');
 
     if (sheet) {
