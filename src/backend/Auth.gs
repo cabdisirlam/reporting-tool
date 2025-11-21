@@ -9,52 +9,43 @@
 
 function handleLogin(credentials) {
   try {
-    const email = credentials.email;
-    const pin = credentials.pin;
+    const email = (credentials && credentials.email || '').trim();
+    const pin = credentials && credentials.pin;
 
     if (!email || !pin) {
       return { success: false, error: 'Email and PIN are required' };
     }
+
     if (!/^\d{6}$/.test(pin)) {
       return { success: false, error: 'PIN must be exactly 6 digits' };
     }
 
-    // 1. Get user from database (FIRST SPREADSHEET CALL)
     const user = getUserByEmail(email);
     if (!user) {
       return { success: false, error: 'User not found. Please contact your administrator.' };
     }
-    if (user.status !== 'ACTIVE') {
+
+    if ((user.status || '').toUpperCase() !== 'ACTIVE') {
       return { success: false, error: 'Your account has been disabled. Please contact your administrator.' };
     }
 
-    // 2. Verify PIN
-    if (!verifyPIN(pin, user.pinHash, user.pinSalt)) {
-      logLoginAttempt(email, false); // (SECOND SPREADSHEET CALL)
+    if (!verifyUserPin(user, pin)) {
+      logLoginAttempt(email, false);
       return { success: false, error: 'Invalid PIN' };
     }
 
-    // 3. Check for temporary PIN
-    const requirePINChange = isTemporaryPIN(pin, user.pinHash, user.pinSalt);
+    const token = Utilities.getUuid();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    PropertiesService.getScriptProperties().setProperty(token, JSON.stringify({
+      email: user.email,
+      expiresAt: expiresAt
+    }));
 
-    // 4. Create session and CACHE user data
-    if (!requirePINChange) {
-      createUserSession(user); // Caches user data in PropertiesService
-      Logger.log('handleLogin: Session created for user: ' + user.email);
-    } else {
-      Logger.log('handleLogin: PIN change required for user: ' + user.email);
-    }
-
-    // 5. Log successful login (THIRD SPREADSHEET CALL)
     logLoginAttempt(email, true);
-
-    // 6. Get redirect page (FOURTH SPREADSHEET CALL, via checkPeriodsExist)
-    // THIS IS THE FIX FOR THE "ANNOYING ADMIN PROMPT"
-    const redirectPage = getDefaultPageForRole(user.role);
-    Logger.log('handleLogin: Redirecting to: ' + redirectPage);
 
     return {
       success: true,
+      token: token,
       user: {
         id: user.id,
         email: user.email,
@@ -63,34 +54,55 @@ function handleLogin(credentials) {
         entityId: user.entityId,
         entityName: user.entityName
       },
-      redirectTo: redirectPage,
-      requirePINChange: requirePINChange,
+      redirectTo: getDefaultPageForRole(user.role)
     };
-
   } catch (error) {
     Logger.log('Login error: ' + error.toString());
     return { success: false, error: 'An error occurred during login. Please try again.' };
   }
 }
 
-function handleLogout() {
+function handleLogout(token) {
   try {
-    const userProperties = PropertiesService.getUserProperties();
-    const user = JSON.parse(userProperties.getProperty('userCache') || '{}');
-    const email = user.email || Session.getActiveUser().getEmail();
-
-    // Clear session and user cache
-    userProperties.deleteProperty('sessionToken');
-    userProperties.deleteProperty('userId');
-    userProperties.deleteProperty('sessionCreated');
-    userProperties.deleteProperty('userCache');
-
-    logActivity(email, 'LOGOUT', 'User logged out');
-
+    if (token) {
+      PropertiesService.getScriptProperties().deleteProperty(token);
+    }
     return { success: true, message: 'Logged out successfully' };
   } catch (error) {
     Logger.log('Logout error: ' + error.toString());
     return { success: false, error: error.toString() };
+  }
+}
+
+function getUserByToken(token) {
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const tokenData = props.getProperty(token);
+    if (!tokenData) {
+      return null;
+    }
+
+    const parsed = JSON.parse(tokenData);
+    const expiresAt = new Date(parsed.expiresAt);
+    if (isNaN(expiresAt.getTime()) || expiresAt.getTime() < Date.now()) {
+      props.deleteProperty(token);
+      return null;
+    }
+
+    const user = getUserByEmail(parsed.email);
+    if (!user || (user.status || '').toUpperCase() !== 'ACTIVE') {
+      props.deleteProperty(token);
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    Logger.log('getUserByToken error: ' + error.toString());
+    return null;
   }
 }
 
@@ -255,19 +267,19 @@ function createUser(userData) {
     const userId = 'USR_' + Utilities.getUuid().substring(0, 8).toUpperCase();
     const pinData = hashPIN(userData.pin || '123456');
 
-    sheet.appendRow([
-      userId,
-      userData.email,
-      userData.name,
-      userData.role,
-      userData.entityId || '',
-      userData.entityName || '',
-      'ACTIVE',
-      pinData.hash,
-      pinData.salt,
-      new Date(),
-      Session.getActiveUser().getEmail()
-    ]);
+  sheet.appendRow([
+    userId,
+    userData.email,
+    userData.name,
+    userData.role,
+    userData.entityId || '',
+    userData.entityName || '',
+    'ACTIVE',
+    pinData.hash,
+    pinData.salt,
+    new Date(),
+    'SYSTEM'
+  ]);
 
     sendWelcomeEmail(userData.email, userData.name);
 
@@ -357,12 +369,12 @@ function updateUser(userId, userData) {
       Logger.log('updateUser: Cleared cache for current user');
     }
 
-    // Log the update
-    logActivity(
-      Session.getActiveUser().getEmail(),
-      'USER_UPDATE',
-      'Updated user: ' + userId
-    );
+  // Log the update
+  logActivity(
+    'SYSTEM',
+    'USER_UPDATE',
+    'Updated user: ' + userId
+  );
 
     return {
       success: true,
@@ -506,6 +518,15 @@ function generateSalt() {
   const uuid = Utilities.getUuid();
   const timestamp = new Date().getTime();
   return Utilities.base64Encode(uuid + timestamp);
+}
+
+function verifyUserPin(user, pin) {
+  if (user.pinHash) {
+    return verifyPIN(pin, user.pinHash, user.pinSalt);
+  }
+
+  const sheetPin = user.pin || user.PIN;
+  return sheetPin ? sheetPin.toString() === pin.toString() : false;
 }
 
 function hashPIN(pin, salt) {

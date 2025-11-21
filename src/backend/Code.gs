@@ -70,84 +70,64 @@ function isSystemConfigured() {
  */
 function doGet(e) {
   try {
-    const page = e.parameter.page || 'index';
+    const page = (e.parameter.page || 'index');
+    const token = e.parameter.token;
+    const user = token ? getUserByToken(token) : null;
 
-    // CRITICAL FIX: Do NOT check user authentication immediately
-    // This was causing the white screen issue because getCurrentUser()
-    // tries to access PropertiesService, which triggers OAuth dialog
-    // We will check user ONLY when needed (after login page loads)
-    let user = null;
+    const serveLogin = () => HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle(CONFIG.APP_NAME)
+      .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 
-    // Route to appropriate page
+    if (!user && page !== 'index' && page !== 'login') {
+      return serveLogin();
+    }
+
     switch(page) {
       case 'index':
       case 'login':
-        // Serve Login page IMMEDIATELY without checking auth/session
-        // This allows the page to load without triggering OAuth dialog
-        return HtmlService.createHtmlOutputFromFile('Index')
-          .setTitle(CONFIG.APP_NAME)
-          .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png')
-          .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+        return serveLogin();
 
-      // For all other protected pages, NOW we check the user
       case 'dashboard':
-        user = getCurrentUser(); // Check user now
-        if (!user) return redirectToLogin();
-        return serveDashboard(user);
+        return serveDashboard(user, token);
 
       case 'dataEntry':
-        user = getCurrentUser();
-        if (!user) return redirectToLogin();
-        return serveDataEntry(user);
+        return serveDataEntry(user, token);
 
       case 'reports':
-        user = getCurrentUser();
-        if (!user) return redirectToLogin();
-        return serveReports(user);
+        return serveReports(user, token);
 
       case 'admin':
       case 'AdminPanel':
-        user = getCurrentUser();
-        if (!user) return redirectToLogin();
-        // Only admins can access admin panel
         if (user.role !== CONFIG.ROLES.ADMIN) {
           return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>You do not have permission to access this page.</p>');
         }
-        return serveAdminPanel(user);
+        return serveAdminPanel(user, token);
 
       case 'PeriodSetup':
-        user = getCurrentUser();
-        if (!user) return redirectToLogin();
         if (user.role !== CONFIG.ROLES.ADMIN) {
           return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can set up periods.</p>');
         }
-        return servePeriodSetup(user);
+        return servePeriodSetup(user, token);
 
       case 'AdminSetupPrompt':
-        user = getCurrentUser();
-        if (!user) return redirectToLogin();
         if (user.role !== CONFIG.ROLES.ADMIN) {
           return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can access this page.</p>');
         }
-        return serveAdminSetupPrompt(user);
+        return serveAdminSetupPrompt(user, token);
 
       case 'SystemNotReady':
-        user = getCurrentUser();
-        if (!user) return redirectToLogin();
-        return serveSystemNotReady(user);
+        return serveSystemNotReady(user, token);
 
       case 'diagnostics':
         return showSystemDiagnostics();
 
       default:
-        // Handle dynamic pages
         if (['ApprovalDashboard', 'BudgetEntry', 'CashFlowEntry', 'EntityList', 'EntityForm', 'UserList'].includes(page)) {
-            user = getCurrentUser(); // Check user now
-            if (!user) return redirectToLogin();
-
             const template = HtmlService.createTemplateFromFile(`frontend/html/${page}`);
             template.user = user;
             template.role = user.role;
+            template.token = token;
 
             return template
                 .evaluate()
@@ -208,60 +188,67 @@ function doPost(e) {
 // PAGE SERVING FUNCTIONS (WITH CORRECTED PATHS)
 // ============================================================================
 
-function serveDashboard(user) {
+function serveDashboard(user, token) {
   const template = HtmlService.createTemplateFromFile('frontend/html/Dashboard');
   template.user = user;
   template.role = user.role;
   template.roleNormalized = (user.role || '').toUpperCase();
+  template.token = token;
 
   return template.evaluate()
     .setTitle('Dashboard - ' + CONFIG.APP_NAME)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-function serveDataEntry(user) {
+function serveDataEntry(user, token) {
   const template = HtmlService.createTemplateFromFile('frontend/html/DataEntry');
   template.user = user;
+  template.token = token;
   return template.evaluate()
     .setTitle('Data Entry - ' + CONFIG.APP_NAME);
 }
 
-function serveReports(user) {
+function serveReports(user, token) {
   const template = HtmlService.createTemplateFromFile('frontend/html/Reports');
   template.user = user;
+  template.token = token;
   return template.evaluate()
     .setTitle('Reports - '.concat(CONFIG.APP_NAME));
 }
 
-function serveAdminPanel(user) {
+function serveAdminPanel(user, token) {
   const template = HtmlService.createTemplateFromFile('frontend/html/AdminPanel');
   template.user = user;
+  template.token = token;
   return template.evaluate()
     .setTitle('Admin Panel - ' + CONFIG.APP_NAME)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-function servePeriodSetup(user) {
+function servePeriodSetup(user, token) {
   const template = HtmlService.createTemplateFromFile('frontend/html/PeriodSetup');
   template.user = user;
+  template.token = token;
   return template.evaluate()
     .setTitle('Period Setup - ' + CONFIG.APP_NAME)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-function serveSystemNotReady(user) {
+function serveSystemNotReady(user, token) {
   const template = HtmlService.createTemplateFromFile('frontend/html/SystemNotReady');
   template.user = user;
+  template.token = token;
   return template.evaluate()
     .setTitle('System Setup In Progress - ' + CONFIG.APP_NAME)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
-function serveAdminSetupPrompt(user) {
+function serveAdminSetupPrompt(user, token) {
   try {
     Logger.log('serveAdminSetupPrompt: Creating template for user: ' + user.email);
     const template = HtmlService.createTemplateFromFile('frontend/html/AdminSetupPrompt');
     template.user = user;
+    template.token = token;
     Logger.log('serveAdminSetupPrompt: Evaluating template');
     const output = template.evaluate()
       .setTitle('Admin Setup - ' + CONFIG.APP_NAME)
