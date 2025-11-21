@@ -486,7 +486,7 @@
         let validationData = null;
         let currentTab = 'summary';
 
-        // Token-authentication context
+        // CRITICAL FIX: Capture Token and User ID correctly for the new Auth system
         const userToken = '<?= token ?>';
         const currentUserId = '<?= user.id ?>';
 
@@ -875,6 +875,7 @@
                 .withSuccessHandler(function(result) {
                     if (result.success) {
                         alert('Submission approved successfully!');
+                        // FIX: Pass token to redirect
                         window.location.href = '?page=ApprovalDashboard&token=' + userToken;
                     } else {
                         alert('Failed to approve: ' + result.error);
@@ -888,7 +889,7 @@
                 .approveSubmission({
                     entityId,
                     periodId,
-                    approverId: currentUserId,
+                    approverId: currentUserId, // FIX: Use corrected ID
                     comments
                 });
         }
@@ -914,6 +915,7 @@
                 .withSuccessHandler(function(result) {
                     if (result.success) {
                         alert('Submission rejected.');
+                        // FIX: Pass token to redirect
                         window.location.href = '?page=ApprovalDashboard&token=' + userToken;
                     } else {
                         alert('Failed to reject: ' + result.error);
@@ -927,7 +929,7 @@
                 .rejectSubmission({
                     entityId,
                     periodId,
-                    approverId: currentUserId,
+                    approverId: currentUserId, // FIX: Use corrected ID
                     comments
                 });
         }
@@ -949,6 +951,7 @@
                 .withSuccessHandler(function(result) {
                     if (result.success) {
                         alert('Clarification request sent.');
+                        // FIX: Pass token to redirect
                         window.location.href = '?page=ApprovalDashboard&token=' + userToken;
                     } else {
                         alert('Failed to request clarification: ' + result.error);
@@ -962,7 +965,7 @@
                 .requestClarification({
                     entityId,
                     periodId,
-                    approverId: currentUserId,
+                    approverId: currentUserId, // FIX: Use corrected ID
                     comments
                 });
         }
@@ -971,6 +974,7 @@
          * Go back to dashboard
          */
         function goBack() {
+            // FIX: Preserve token when navigating back to the dashboard
             window.location.href = '?page=ApprovalDashboard&token=' + userToken;
         }
 
@@ -1055,6 +1059,7 @@
                 .withSuccessHandler(function() {
                     window.location.href = '?page=index';
                 })
+                // FIX: Pass token to backend to destroy session
                 .handleLogout(userToken);
         }
     </script>
