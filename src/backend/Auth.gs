@@ -100,7 +100,7 @@ function handleLogout() {
 
 function getUserByEmail(email) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
     if (!sheet) {
       Logger.log('Users sheet not found');
@@ -171,7 +171,7 @@ function getUserById(userId) {
   // 2. If not in cache, get from Spreadsheet (SLOW)
   Logger.log('getUserById: User not in cache, fetching from sheet.');
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
     if (!sheet) return null;
 
@@ -210,7 +210,7 @@ function getUserById(userId) {
 
 function getAllUsers() {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
 
     if (!sheet) {
@@ -249,7 +249,7 @@ function getAllUsers() {
 
 function createUser(userData) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
 
     const userId = 'USR_' + Utilities.getUuid().substring(0, 8).toUpperCase();
@@ -291,7 +291,7 @@ function updateUser(userId, userData) {
       return { success: false, error: 'User ID is required' };
     }
 
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
 
     if (!sheet) {
@@ -567,7 +567,7 @@ function changePIN(data) {
 
     const pinData = hashPIN(newPIN);
 
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
     const data_range = sheet.getDataRange().getValues();
     const headers = data_range[0];
@@ -621,7 +621,7 @@ function resetPIN(email) {
     const tempPIN = Math.floor(100000 + Math.random() * 900000).toString();
     const pinData = hashPIN(tempPIN);
 
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
     const data = sheet.getDataRange().getValues();
     const headers = data[0];

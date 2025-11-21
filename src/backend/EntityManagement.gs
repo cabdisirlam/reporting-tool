@@ -19,7 +19,7 @@
  */
 function getAllEntities(filters) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Entities');
 
     if (!sheet) {
@@ -82,7 +82,7 @@ function getAllEntities(filters) {
  */
 function getEntityById(entityId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Entities');
 
     if (!sheet) {
@@ -138,7 +138,7 @@ function createEntity(entityData) {
       };
     }
 
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Entities');
 
     // Check if entity code already exists
@@ -194,7 +194,7 @@ function createEntity(entityData) {
  */
 function updateEntity(entityId, entityData) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Entities');
     const data = sheet.getDataRange().getValues();
 
@@ -242,7 +242,7 @@ function updateEntity(entityId, entityData) {
  */
 function deleteEntity(entityId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Entities');
     const data = sheet.getDataRange().getValues();
 
@@ -288,7 +288,7 @@ function deleteEntity(entityId) {
  * @returns {boolean} True if exists
  */
 function entityCodeExists(code) {
-  const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+  const ss = SpreadsheetApp.openById(getMasterConfigId());
   const sheet = ss.getSheetByName('Entities');
   const data = sheet.getDataRange().getValues();
 
