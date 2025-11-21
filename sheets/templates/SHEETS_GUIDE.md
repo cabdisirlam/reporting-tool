@@ -46,6 +46,7 @@ Stores user accounts.
 | EntityID | Text | Assigned entity | ENT_001 |
 | EntityName | Text | Entity name | KENGEN |
 | Status | Text | Account status | ACTIVE/INACTIVE |
+| PIN | Text | Temporary 6-digit PIN (optional for setup) | 123456 |
 | PINHash | Text | Hashed 6-digit PIN | [hash] |
 | PINSalt | Text | Unique salt for PIN | [salt] |
 | CreatedDate | Date | Account creation date | 2024-01-15 |
@@ -53,10 +54,12 @@ Stores user accounts.
 
 **Sample Data:**
 ```
-USR_ADMIN | cabdisirlam@gmail.com | System Administrator | ADMIN      |         |        | ACTIVE
-USR_002   | john@kengen.co.ke     | John Doe             | DATA_ENTRY | ENT_001 | KENGEN | ACTIVE
-USR_003   | jane@kengen.co.ke     | Jane Approver        | APPROVER   |         |        | ACTIVE
+USR_ADMIN | cabdisirlam@gmail.com | System Administrator | ADMIN      |         |        | ACTIVE | 123456 | [hash] | [salt] | 2024-01-15 | system
+USR_002   | john@kengen.co.ke     | John Doe             | DATA_ENTRY | ENT_001 | KENGEN | ACTIVE |        | [hash] | [salt] | 2024-01-15 | admin@kengen.co.ke
+USR_003   | jane@kengen.co.ke     | Jane Approver        | APPROVER   |         |        | ACTIVE |        | [hash] | [salt] | 2024-01-15 | admin@kengen.co.ke
 ```
+
+**PIN handling:** The `PIN` column lets administrators enter an easy-to-remember 6-digit PIN when setting up users. On first read, the Apps Script backend hashes the value into `PINHash`/`PINSalt` and clears the plaintext `PIN` cell, keeping login simple for users while preserving security.
 
 ### Sheet: NoteTemplates
 
