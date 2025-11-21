@@ -102,7 +102,7 @@ function getOrCreateEntityFolder(periodId, entityId, entityName) {
  * @returns {Sheet} Attachments sheet
  */
 function getOrCreateAttachmentsSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(getMasterConfigId());
   let sheet = ss.getSheetByName('Attachments');
 
   if (!sheet) {
