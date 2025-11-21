@@ -8,7 +8,9 @@
     "pull": "clasp pull",
     "deploy": "clasp deploy",
     "open": "clasp open",
-    "logs": "clasp logs"
+    "logs": "clasp logs",
+    "test": "npm run test:gas",
+    "test:gas": "node scripts/runGasTests.js"
   },
   "keywords": [
     "ipsas",
