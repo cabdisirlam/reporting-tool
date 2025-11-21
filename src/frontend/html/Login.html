@@ -120,12 +120,6 @@
             const errorDiv = document.getElementById('errorMessage');
             const loginBtn = document.getElementById('loginButton');
 
-            // Validate PIN format
-            if (!/^\d{6}$/.test(pin)) {
-                showError('PIN must be exactly 6 digits');
-                return;
-            }
-
             // Clear previous errors
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
@@ -138,8 +132,8 @@
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result.success) {
-                        // Redirect to appropriate page based on role
-                        window.location.href = '?page=' + result.redirectTo;
+                        // FIX: Include the TOKEN in the URL to prevent white screen
+                        window.location.href = '?page=' + result.redirectTo + '&token=' + result.token;
                     } else {
                         showError(result.error);
                         loginBtn.disabled = false;

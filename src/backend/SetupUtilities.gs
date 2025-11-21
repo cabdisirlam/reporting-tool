@@ -1,4 +1,83 @@
 /**
+ * SetupUtilities.gs - Setup & Authorization Enforcer
+ */
+
+// === PERMISSION ENFORCER ===
+function verifyPermissions() {
+  Logger.log("Verifying permissions...");
+  try {
+    // 1. Check Spreadsheet Permission
+    SpreadsheetApp.create("Permission_Check_Temp").setTrashed(true);
+    
+    // 2. Check Gmail Permission (Forces Auth Popup)
+    // We send a log to the user's own email to trigger the scope
+    const email = Session.getActiveUser().getEmail();
+    GmailApp.sendEmail(email, "System Authorization Confirmed", "Your system permissions are active.");
+    
+    Logger.log("✅ All Permissions Verified (Sheets + Gmail)");
+    return true;
+  } catch (e) {
+    Logger.log("❌ Permission Check Failed: " + e.toString());
+    throw new Error("Authorization Required. Please run this script again and click 'Review Permissions'.");
+  }
+}
+
+// === MAIN SETUP FUNCTION ===
+function setupSystem() {
+  const ui = SpreadsheetApp.getUi();
+  
+  // STEP 1: FORCE RE-AUTHORIZATION
+  // This will fail and trigger popup if permissions are missing
+  verifyPermissions(); 
+
+  const response = ui.alert(
+    'Setup System',
+    'This will initialize the database and verify all permissions. Continue?',
+    ui.ButtonSet.YES_NO
+  );
+
+  if (response === ui.Button.YES) {
+    try {
+      createMasterConfigSpreadsheet();
+      ui.alert('Success', 'System setup & authorization complete!', ui.ButtonSet.OK);
+    } catch (error) {
+      ui.alert('Error', 'Setup failed: ' + error.toString(), ui.ButtonSet.OK);
+    }
+  }
+}
+
+// Keep your existing creation logic below
+function createMasterConfigSpreadsheet() {
+  Logger.log('Creating master configuration spreadsheet...');
+  const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
+  const ss = SpreadsheetApp.create(`SAGA Master Config ${timestamp}`);
+  const ssId = ss.getId();
+
+  PropertiesService.getScriptProperties().setProperty('MASTER_CONFIG_ID', ssId);
+
+  // Create Sheets
+  createEntitiesSheet(ss);
+  createUsersSheet(ss);
+  createPeriodConfigSheet(ss);
+  createNoteTemplatesSheet(ss);
+  createNoteLineSheet(ss);
+  createValidationRulesSheet(ss);
+  
+  // Initialize Default Period
+  try {
+     initializeDefaultPeriod(ssId); 
+  } catch(e) {
+     Logger.log("Note: Default period init skipped or failed: " + e.toString());
+  }
+
+  Logger.log('Master config created: ' + ssId);
+  return ssId;
+}
+
+// ... (Keep your existing initializeDefaultPeriod and other helper functions here) ...
+// ... (You can paste the rest of your original SetupUtilities.gs content below this line if needed) ...
+
+/**
  * SetupUtilities.gs - System Initialization and Setup Functions
  *
  * Handles:
