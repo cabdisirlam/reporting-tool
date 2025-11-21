@@ -70,8 +70,8 @@ function isSystemConfigured() {
  */
 function doGet(e) {
   try {
-    const page = (e.parameter.page || 'index');
-    const token = e.parameter.token;
+    const page = (e && e.parameter && e.parameter.page) ? e.parameter.page : 'index';
+    const token = (e && e.parameter) ? e.parameter.token : null;
     const user = token ? getUserByToken(token) : null;
 
     const outputMode = HtmlService.XFrameOptionsMode.ALLOWALL;
@@ -146,7 +146,8 @@ function doGet(e) {
           .setXFrameOptionsMode(outputMode);
     }
   } catch (error) {
-    Logger.log('Error in doGet: ' + error.toString() + ' for page: ' + (e.parameter.page || 'index'));
+    const requestedPage = (e && e.parameter && e.parameter.page) ? e.parameter.page : 'index';
+    Logger.log('Error in doGet: ' + error.toString() + ' for page: ' + requestedPage);
     return HtmlService.createHtmlOutput('<h1>Error loading page</h1><p>' + error.toString() + '</p>')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
