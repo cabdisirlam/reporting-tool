@@ -531,6 +531,8 @@ function testSystem() {
  */
 function getDashboardData() {
   try {
+    const user = getCurrentUser();
+
     // Get current active/open period
     const periodsResult = getAllPeriods();
     if (!periodsResult.success) {
@@ -566,7 +568,9 @@ function getDashboardData() {
 
     return {
       success: true,
+      user: user,
       period: currentPeriod,
+      allPeriods: periodsResult.periods,
       stats: stats
     };
   } catch (error) {

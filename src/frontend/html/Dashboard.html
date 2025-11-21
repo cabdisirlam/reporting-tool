@@ -29,6 +29,26 @@
         <div class="container">
             <h2>Dashboard</h2>
 
+            <div id="adminPeriodSwitcher" class="card" style="display: none; margin-bottom: 20px; border-left: 4px solid #1a73e8;">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin:0; display:flex; align-items:center; gap:10px;">
+                        <span class="icon">⚡</span> Active Reporting Period
+                    </h3>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="periodSelector" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd; min-width: 200px;">
+                            <option>Loading periods...</option>
+                        </select>
+                        <button onclick="switchPeriod()" class="btn-primary" style="padding: 8px 15px;">Set Active</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p style="margin:0; color:#666; font-size: 0.9em;">
+                        <strong>Note:</strong> Setting a period to "Active" will automatically close all other periods. 
+                        All Data Entry users will immediately see the new active period.
+                    </p>
+                </div>
+            </div>
+
             <!-- Role-specific dashboard with normalization -->
             <? var normalizedRole = roleNormalized || (role || '').toUpperCase(); ?>
             <? if (normalizedRole === 'DATA_ENTRY') { ?>
@@ -54,6 +74,102 @@
                 })
                 .handleLogout();
         }
+
+        (function() {
+            const dashboardUser = <?= JSON.stringify(user) ?>;
+            const hasExistingLoad = typeof window.loadDashboardData === 'function';
+
+            function initPeriodSwitcher(user, allPeriods, activePeriod) {
+                if (!user || user.role !== 'ADMIN') {
+                    return;
+                }
+
+                const container = document.getElementById('adminPeriodSwitcher');
+                const select = document.getElementById('periodSelector');
+
+                if (!(container && select && Array.isArray(allPeriods))) {
+                    return;
+                }
+
+                container.style.display = 'block';
+                select.innerHTML = '';
+
+                allPeriods.sort(function(a, b) {
+                    return new Date(b.startDate) - new Date(a.startDate);
+                });
+
+                allPeriods.forEach(function(p) {
+                    const option = document.createElement('option');
+                    option.value = p.periodId;
+                    option.text = `${p.periodName} (${p.status})`;
+
+                    if (activePeriod && p.periodId === activePeriod.periodId) {
+                        option.selected = true;
+                        option.text = `✅ ${p.periodName} (CURRENT)`;
+                        option.style.fontWeight = 'bold';
+                    }
+
+                    select.appendChild(option);
+                });
+            }
+
+            function switchPeriod() {
+                const select = document.getElementById('periodSelector');
+                if (!select) {
+                    return;
+                }
+
+                const newPeriodId = select.value;
+                const newPeriodName = select.options[select.selectedIndex].text;
+
+                if (!confirm(`Are you sure you want to make "${newPeriodName}" the ACTIVE period?\n\nThis will close all other periods.`)) {
+                    return;
+                }
+
+                const btn = document.querySelector('#adminPeriodSwitcher button');
+                const originalText = btn.innerText;
+                btn.innerText = 'Switching...';
+                btn.disabled = true;
+
+                google.script.run
+                    .withSuccessHandler(function(result) {
+                        if (result.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Error: ' + result.error);
+                            btn.innerText = originalText;
+                            btn.disabled = false;
+                        }
+                    })
+                    .withFailureHandler(function(error) {
+                        alert('System Error: ' + error);
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    })
+                    .openPeriod(newPeriodId);
+            }
+
+            window.switchPeriod = switchPeriod;
+
+            if (!hasExistingLoad && dashboardUser && dashboardUser.role === 'ADMIN') {
+                window.loadDashboardData = function() {
+                    google.script.run
+                        .withSuccessHandler(function(data) {
+                            if (data && data.success) {
+                                initPeriodSwitcher(data.user || dashboardUser, data.allPeriods, data.period);
+                            }
+                        })
+                        .withFailureHandler(function(error) {
+                            console.error('Error loading dashboard data:', error);
+                        })
+                        .getDashboardData();
+                };
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadDashboardData();
+                });
+            }
+        })();
     </script>
 </body>
 </html>

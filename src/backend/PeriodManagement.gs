@@ -363,7 +363,7 @@ function openPeriod(periodId) {
     if (!user || user.role !== CONFIG.ROLES.ADMIN) {
       return {
         success: false,
-        error: 'Only admins can open periods'
+        error: 'Only admins can switch periods'
       };
     }
 
@@ -373,16 +373,21 @@ function openPeriod(periodId) {
     // Open the period
     updatePeriodStatus(periodId, CONFIG.PERIOD_STATUS.OPEN);
 
+    // Update script-wide active period configuration
+    const scriptProperties = PropertiesService.getScriptProperties();
+    scriptProperties.setProperty('ACTIVE_PERIOD_ID', periodId);
+    scriptProperties.setProperty('LAST_CONFIG_SYNC', new Date().toISOString());
+
     // Log activity
     logActivity(
       user.email,
-      'OPEN_PERIOD',
-      `Opened period: ${periodId}`
+      'SWITCH_PERIOD',
+      `Switched active period to: ${periodId}`
     );
 
     return {
       success: true,
-      message: 'Period opened successfully'
+      message: 'Period switched successfully'
     };
   } catch (error) {
     Logger.log('Error opening period: ' + error.toString());
