@@ -20,13 +20,7 @@ function initializeDefaultPeriod(masterConfigIdOverride) {
     Logger.log('Starting default period initialization...');
 
     // Get MASTER_CONFIG_ID - use override if provided (for initial setup), otherwise use CONFIG
-    const masterConfigId = masterConfigIdOverride || CONFIG.MASTER_CONFIG_ID;
-    if (!masterConfigId) {
-      return {
-        success: false,
-        error: 'MASTER_CONFIG_ID is not set in CONFIG'
-      };
-    }
+    const masterConfigId = masterConfigIdOverride || getMasterConfigId();
 
     // Open the master config spreadsheet
     const ss = SpreadsheetApp.openById(masterConfigId);
@@ -131,7 +125,7 @@ function createPeriodWithoutAuth(periodData, masterConfigIdOverride) {
     const periodId = `PER_${quarter}_${fiscalYear.replace('-', '')}`;
 
     // Add period to config - use override if provided, otherwise use CONFIG
-    const masterConfigId = masterConfigIdOverride || CONFIG.MASTER_CONFIG_ID;
+    const masterConfigId = masterConfigIdOverride || getMasterConfigId();
     const ss = SpreadsheetApp.openById(masterConfigId);
     const sheet = ss.getSheetByName('PeriodConfig');
 
@@ -244,7 +238,7 @@ function checkSystemHealth() {
 
   try {
     // Check 1: MASTER_CONFIG_ID is set
-    if (!CONFIG.MASTER_CONFIG_ID) {
+    if (!isSystemConfigured()) {
       issues.push('MASTER_CONFIG_ID is not configured');
       return {
         success: false,
@@ -255,7 +249,8 @@ function checkSystemHealth() {
 
     // Check 2: Can access master config spreadsheet
     try {
-      const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+      const masterConfigId = getMasterConfigId();
+      const ss = SpreadsheetApp.openById(masterConfigId);
       const requiredSheets = ['Users', 'Entities', 'PeriodConfig', 'NoteTemplates', 'NoteLines'];
 
       requiredSheets.forEach(sheetName => {

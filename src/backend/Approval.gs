@@ -495,7 +495,7 @@ function getAllApprovers() {
  */
 function getDataEntryOfficerForEntity(entityId) {
   try {
-    const ss = SpreadsheetApp.openById(CONFIG.MASTER_CONFIG_ID);
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
 
     if (!sheet) {
