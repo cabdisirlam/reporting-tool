@@ -427,6 +427,44 @@ function createSuccessResponse(data, message) {
 }
 
 // ============================================================================
+// SECURITY
+// ============================================================================
+
+/**
+ * Creates a salted SHA-256 hash for a PIN
+ * @param {string|number} pin - PIN to hash
+ * @returns {{hash: string, salt: string}} Hash and salt values
+ */
+function hashPIN(pin) {
+  const safePin = (pin || '').toString();
+  const salt = Utilities.getUuid().substring(0, 8);
+  const hashBytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    safePin + salt,
+    Utilities.Charset.UTF_8
+  );
+
+  return {
+    hash: bytesToHex(hashBytes),
+    salt: salt
+  };
+}
+
+/**
+ * Converts a byte array to a hexadecimal string
+ * @param {number[]} bytes - Byte array
+ * @returns {string} Hex representation
+ */
+function bytesToHex(bytes) {
+  return bytes
+    .map(function(byte) {
+      const value = byte < 0 ? byte + 256 : byte;
+      return ('0' + value.toString(16)).slice(-2);
+    })
+    .join('');
+}
+
+// ============================================================================
 // SHEET CREATION HELPERS
 // ============================================================================
 
