@@ -60,8 +60,9 @@ function createUser(userData) {
     const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
     const userId = 'USR_' + Utilities.getUuid().substring(0, 8).toUpperCase();
-    
-    const plainPIN = userData.pin || '123456'; 
+
+    const plainPIN = userData.pin || '123456';
+    const hashedPIN = hashPIN(plainPIN);
 
     sheet.appendRow([
       userId,
@@ -71,8 +72,9 @@ function createUser(userData) {
       userData.entityId || '',
       userData.entityName || '',
       'ACTIVE',
-      plainPIN,      // Stored as Plain Text
-      'PLAINTEXT',   // Salt marker
+      plainPIN,          // Stored as Plain Text for legacy checks
+      hashedPIN.hash,    // Stored hash for future use
+      hashedPIN.salt,    // Salt for hash verification
       new Date(),
       'SYSTEM'
     ]);
