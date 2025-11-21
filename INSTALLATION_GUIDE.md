@@ -379,7 +379,7 @@ The system automatically creates a default admin user:
 - **PIN**: 123456
 - **Role**: ADMIN
 
-**Note:** The system uses 6-digit PINs for authentication, not passwords. PINs are automatically hashed with SHA-256 and unique salts when the Users sheet is created
+**Note:** The Users sheet includes a visible **PIN** column for quick setup; when the backend first reads the sheet it hashes any value into **PINHash**/**PINSalt** and clears the plaintext cell. This keeps login easy (enter a 6-digit PIN) while maintaining secure storage.
 
 ### Step 2: Create Sample Users (Optional)
 
