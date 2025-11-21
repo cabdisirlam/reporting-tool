@@ -438,7 +438,7 @@ function createUsersSheet(ss) {
   const sheet = ss.insertSheet('Users');
   const headers = [
     'UserID', 'Email', 'Name', 'Role', 'EntityID', 'EntityName',
-    'Status', 'PINHash', 'PINSalt', 'CreatedDate', 'CreatedBy'
+    'Status', 'PIN', 'PINHash', 'PINSalt', 'CreatedDate', 'CreatedBy'
   ];
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
@@ -454,6 +454,7 @@ function createUsersSheet(ss) {
     '',
     '',
     'ACTIVE',
+    '123456',
     defaultUserHash.hash,
     defaultUserHash.salt,
     new Date(),
