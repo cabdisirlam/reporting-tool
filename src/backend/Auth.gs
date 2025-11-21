@@ -167,7 +167,30 @@ function sendWelcomeEmail(email, name) {
 }
 
 function getUserById(userId) {
-  const user = getUserByEmail(userId); // simplified lookup for this context if needed
-  // Real impl needs to loop by ID column, similar to getUserByEmail
-  return null; 
+  try {
+    const ss = SpreadsheetApp.openById(getMasterConfigId());
+    const sheet = ss.getSheetByName('Users');
+    const data = sheet.getDataRange().getValues();
+
+    // Iterate to find the User ID in the first column (Index 0)
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === userId) {
+        return {
+          id: data[i][0],
+          email: data[i][1],
+          name: data[i][2],
+          role: data[i][3],
+          entityId: data[i][4],
+          entityName: data[i][5],
+          status: data[i][6],
+          pinHash: data[i][7],
+          pinSalt: data[i][8]
+        };
+      }
+    }
+    return null;
+  } catch (e) {
+    Logger.log("Error in getUserById: " + e.toString());
+    return null;
+  }
 }
