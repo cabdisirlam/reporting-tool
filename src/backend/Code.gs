@@ -74,10 +74,14 @@ function doGet(e) {
     const token = e.parameter.token;
     const user = token ? getUserByToken(token) : null;
 
-    const serveLogin = () => HtmlService.createHtmlOutputFromFile('Index')
+    const outputMode = HtmlService.XFrameOptionsMode.ALLOWALL;
+
+    const serveLogin = () => HtmlService.createTemplateFromFile('Index')
+      .evaluate()
       .setTitle(CONFIG.APP_NAME)
       .setFaviconUrl('https://www.gstatic.com/images/branding/product/1x/sheets_48dp.png')
-      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(outputMode);
 
     if (!user && page !== 'index' && page !== 'login') {
       return serveLogin();
@@ -100,19 +104,22 @@ function doGet(e) {
       case 'admin':
       case 'AdminPanel':
         if (user.role !== CONFIG.ROLES.ADMIN) {
-          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>You do not have permission to access this page.</p>');
+          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>You do not have permission to access this page.</p>')
+            .setXFrameOptionsMode(outputMode);
         }
         return serveAdminPanel(user, token);
 
       case 'PeriodSetup':
         if (user.role !== CONFIG.ROLES.ADMIN) {
-          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can set up periods.</p>');
+          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can set up periods.</p>')
+            .setXFrameOptionsMode(outputMode);
         }
         return servePeriodSetup(user, token);
 
       case 'AdminSetupPrompt':
         if (user.role !== CONFIG.ROLES.ADMIN) {
-          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can access this page.</p>');
+          return HtmlService.createHtmlOutput('<h1>403 - Forbidden</h1><p>Only administrators can access this page.</p>')
+            .setXFrameOptionsMode(outputMode);
         }
         return serveAdminSetupPrompt(user, token);
 
@@ -132,13 +139,16 @@ function doGet(e) {
             return template
                 .evaluate()
                 .setTitle(page + ' - ' + CONFIG.APP_NAME)
-                .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+                .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+                .setXFrameOptionsMode(outputMode);
         }
-        return HtmlService.createHtmlOutput('<h1>404 - Page Not Found</h1><p>The page "' + page + '" does not exist.</p>');
+        return HtmlService.createHtmlOutput('<h1>404 - Page Not Found</h1><p>The page "' + page + '" does not exist.</p>')
+          .setXFrameOptionsMode(outputMode);
     }
   } catch (error) {
     Logger.log('Error in doGet: ' + error.toString() + ' for page: ' + (e.parameter.page || 'index'));
-    return HtmlService.createHtmlOutput('<h1>Error loading page</h1><p>' + error.toString() + '</p>');
+    return HtmlService.createHtmlOutput('<h1>Error loading page</h1><p>' + error.toString() + '</p>')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 }
 
@@ -197,7 +207,8 @@ function serveDashboard(user, token) {
 
   return template.evaluate()
     .setTitle('Dashboard - ' + CONFIG.APP_NAME)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function serveDataEntry(user, token) {
@@ -205,7 +216,8 @@ function serveDataEntry(user, token) {
   template.user = user;
   template.token = token;
   return template.evaluate()
-    .setTitle('Data Entry - ' + CONFIG.APP_NAME);
+    .setTitle('Data Entry - ' + CONFIG.APP_NAME)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function serveReports(user, token) {
@@ -213,7 +225,8 @@ function serveReports(user, token) {
   template.user = user;
   template.token = token;
   return template.evaluate()
-    .setTitle('Reports - '.concat(CONFIG.APP_NAME));
+    .setTitle('Reports - '.concat(CONFIG.APP_NAME))
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function serveAdminPanel(user, token) {
@@ -222,7 +235,8 @@ function serveAdminPanel(user, token) {
   template.token = token;
   return template.evaluate()
     .setTitle('Admin Panel - ' + CONFIG.APP_NAME)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function servePeriodSetup(user, token) {
@@ -231,7 +245,8 @@ function servePeriodSetup(user, token) {
   template.token = token;
   return template.evaluate()
     .setTitle('Period Setup - ' + CONFIG.APP_NAME)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function serveSystemNotReady(user, token) {
@@ -240,7 +255,8 @@ function serveSystemNotReady(user, token) {
   template.token = token;
   return template.evaluate()
     .setTitle('System Setup In Progress - ' + CONFIG.APP_NAME)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function serveAdminSetupPrompt(user, token) {
@@ -252,7 +268,8 @@ function serveAdminSetupPrompt(user, token) {
     Logger.log('serveAdminSetupPrompt: Evaluating template');
     const output = template.evaluate()
       .setTitle('Admin Setup - ' + CONFIG.APP_NAME)
-      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     Logger.log('serveAdminSetupPrompt: Template evaluated successfully');
     return output;
   } catch (error) {
@@ -264,7 +281,8 @@ function serveAdminSetupPrompt(user, token) {
       '<p><strong>Error:</strong> ' + error.toString() + '</p>' +
       '<p>Please check the execution logs for more details.</p>' +
       '<p><a href="?page=AdminPanel">Go to Admin Panel</a></p>'
-    ).setTitle('Error - ' + CONFIG.APP_NAME);
+    ).setTitle('Error - ' + CONFIG.APP_NAME)
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 }
 
