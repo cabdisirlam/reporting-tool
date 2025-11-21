@@ -127,6 +127,55 @@ function generateConsolidatedReport(periodId, reportType) {
 }
 
 // ============================================================================
+// EXPORT WRAPPERS (DEPRECATED)
+// ============================================================================
+
+/**
+ * Deprecated: forwards to Statements.gs Excel export implementation
+ */
+function exportToExcel(entityId, periodId, reportType) {
+  Logger.log('exportToExcel is deprecated; forwarding to generateStatementExcel');
+
+  return generateStatementExcel({
+    entityId: entityId,
+    periodId: periodId,
+    reportId: reportType
+  });
+}
+
+/**
+ * Deprecated: forwards to Statements.gs PDF export implementation
+ * @param {string} entityId - Entity ID
+ * @param {string} periodId - Period ID
+ * @param {string} reportType - Report type
+ * @param {Object} [options] - Optional export options including html
+ */
+function exportToPDF(entityId, periodId, reportType, options) {
+  Logger.log('exportToPDF is deprecated; forwarding to generateStatementPDF');
+
+  const params = {
+    entityId: entityId,
+    periodId: periodId,
+    reportId: reportType,
+    title: reportType || 'Report',
+    format: 'PDF'
+  };
+
+  if (options && options.html) {
+    params.html = options.html;
+  } else {
+    params.html = createGenericReportHTML({
+      entityId: entityId,
+      periodId: periodId,
+      reportId: reportType,
+      format: 'PDF'
+    });
+  }
+
+  return generateStatementPDF(params);
+}
+
+// ============================================================================
 // SPECIFIC REPORT GENERATORS
 // ============================================================================
 
