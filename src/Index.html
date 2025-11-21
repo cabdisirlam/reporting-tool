@@ -489,17 +489,9 @@
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result.success) {
-                        // Check if PIN needs to be changed
-                        if (result.requirePINChange) {
-                            currentUserEmail = email;
-                            document.getElementById('currentPIN').value = pin;
-                            showPinChangeModal('You must change your PIN before continuing. Please set a new secure 6-digit PIN.');
-                            loginBtn.disabled = false;
-                            loginBtn.textContent = 'Login';
-                        } else {
-                            // Redirect to appropriate page based on role
-                            window.location.href = '?page=' + result.redirectTo;
-                        }
+                        const token = result.token;
+                        const targetPage = result.redirectTo || 'dashboard';
+                        window.location.href = '?page=' + targetPage + '&token=' + encodeURIComponent(token);
                     } else {
                         alert('Login Failed: ' + result.error);
                         loginBtn.disabled = false;

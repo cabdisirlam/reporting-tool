@@ -8,40 +8,45 @@
  * @returns {Object} The configuration object containing all note definitions
  */
 function getSagaNotesConfig() {
-  const configJson = getSagaNotesConfigJson();
-  return JSON.parse(configJson);
-}
+  const props = PropertiesService.getScriptProperties();
+  const storedConfig = props.getProperty('SAGA_NOTES_CONFIG');
 
-/**
- * Returns the raw JSON configuration as a string
- * Note: The actual JSON data is stored in saga-notes-config.json
- * This function loads it from the project properties or directly embeds it
- * @returns {string} JSON configuration string
- */
-function getSagaNotesConfigJson() {
-  // For now, we'll load from a separate JSON resource file
-  // In Apps Script, you may need to embed this or use Properties Service
-  try {
-    const props = PropertiesService.getScriptProperties();
-    const configData = props.getProperty('SAGA_NOTES_CONFIG');
-    if (configData) {
-      return configData;
+  if (storedConfig) {
+    try {
+      return JSON.parse(storedConfig);
+    } catch (error) {
+      Logger.log('Error parsing SAGA_NOTES_CONFIG: ' + error.toString());
     }
-  } catch (e) {
-    Logger.log('Could not load config from properties: ' + e.toString());
   }
-  
-  // Fallback: Return empty config structure
-  return JSON.stringify({ notes: [] });
+
+  const defaultConfig = getDefaultSagaNotesConfig();
+  props.setProperty('SAGA_NOTES_CONFIG', JSON.stringify(defaultConfig));
+  return defaultConfig;
 }
 
-/**
- * Initializes the configuration in Script Properties
- * This should be run once to store the configuration
- */
+function getSagaNotesConfigJson() {
+  return JSON.stringify(getSagaNotesConfig());
+}
+
 function initializeSagaNotesConfig() {
-  // This function can be used to load the JSON file content
-  // and store it in Script Properties for runtime access
-  Logger.log('Configuration initialization required');
-  Logger.log('Please manually set SAGA_NOTES_CONFIG in Script Properties');
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty('SAGA_NOTES_CONFIG', JSON.stringify(getDefaultSagaNotesConfig()));
+  return { success: true };
+}
+
+function getDefaultSagaNotesConfig() {
+  return {
+    noteTemplates: [
+      { noteId: 'NOTE_06', noteNumber: '6', noteName: 'Transfers from other governments entities', category: 'Performance', statementType: 'SOFP', hasMovementSchedule: false, required: true, active: true },
+      { noteId: 'NOTE_07', noteNumber: '7', noteName: 'Levies, Fines, and penalties', category: 'Performance', statementType: 'SOFP', hasMovementSchedule: false, required: true, active: true },
+      { noteId: 'NOTE_08', noteNumber: '8', noteName: 'Public contributions and donations', category: 'Performance', statementType: 'SOFP', hasMovementSchedule: false, required: true, active: true },
+      { noteId: 'NOTE_09', noteNumber: '9', noteName: 'Property taxes revenue', category: 'Performance', statementType: 'SOFP', hasMovementSchedule: false, required: true, active: true },
+      { noteId: 'NOTE_10', noteNumber: '10', noteName: 'Licenses and permits', category: 'Performance', statementType: 'SOFP', hasMovementSchedule: false, required: true, active: true },
+      { noteId: 'NOTE_30', noteNumber: '30', noteName: 'Cash and Cash equivalents', category: 'Position', statementType: 'SFP', hasMovementSchedule: false, required: true, active: true },
+      { noteId: 'NOTE_36', noteNumber: '36', noteName: 'Property, Plant and Equipment', category: 'Position', statementType: 'SFP', hasMovementSchedule: true, required: true, active: true },
+      { noteId: 'NOTE_40', noteNumber: '40', noteName: 'Trade and Other Payables', category: 'Position', statementType: 'SFP', hasMovementSchedule: false, required: true, active: true },
+      { noteId: 'NOTE_CF', noteNumber: 'CF', noteName: 'Cash Flow Statement', category: 'CashFlow', statementType: 'SCF', hasMovementSchedule: false, required: true, active: true },
+      { noteId: 'NOTE_BUDGET', noteNumber: 'BUDGET', noteName: 'Statement of Comparison of Budget and Actual', category: 'Budget', statementType: 'BUDGET', hasMovementSchedule: false, required: true, active: true }
+    ]
+  };
 }
