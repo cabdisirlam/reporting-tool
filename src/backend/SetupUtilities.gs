@@ -24,11 +24,18 @@ function verifyPermissions() {
 
 // === MAIN SETUP FUNCTION ===
 function setupSystem() {
-  const ui = SpreadsheetApp.getUi();
-  
+  let ui;
+  try {
+    ui = SpreadsheetApp.getUi();
+  } catch (error) {
+    Logger.log('UI context not available, running setup without prompts...');
+    verifyPermissions();
+    return setupSystemNoUI();
+  }
+
   // STEP 1: FORCE RE-AUTHORIZATION
   // This will fail and trigger popup if permissions are missing
-  verifyPermissions(); 
+  verifyPermissions();
 
   const response = ui.alert(
     'Setup System',
