@@ -288,8 +288,10 @@ function serveAdminSetupPrompt(user, token) {
 
 function redirectToLogin() {
   // Redirect to the main index page, which IS the login page
-  return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('Login Required - ' + CONFIG.APP_NAME);
+  return HtmlService.createTemplateFromFile('Index')
+    .evaluate()
+    .setTitle('Login Required - ' + CONFIG.APP_NAME)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 // ============================================================================
