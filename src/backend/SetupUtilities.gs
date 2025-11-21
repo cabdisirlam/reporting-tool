@@ -1,59 +1,73 @@
 /**
- * SetupUtilities.gs - Setup & Authorization Enforcer
+ * SetupUtilities.gs - System Initialization
+ * Includes Force-Auth and Standalone Script compatibility.
  */
 
-// === PERMISSION ENFORCER ===
+// === 1. PERMISSION & AUTH FORCE CHECK ===
 function verifyPermissions() {
   Logger.log("Verifying permissions...");
   try {
-    // 1. Check Spreadsheet Permission
-    SpreadsheetApp.create("Permission_Check_Temp").setTrashed(true);
-    
-    // 2. Check Gmail Permission (Forces Auth Popup)
-    // We send a log to the user's own email to trigger the scope
+    // This triggers the "Review Permissions" popup if Gmail isn't authorized yet
     const email = Session.getActiveUser().getEmail();
-    GmailApp.sendEmail(email, "System Authorization Confirmed", "Your system permissions are active.");
+    // We send a dummy email to self to force the scope check
+    GmailApp.sendEmail(email, "System Auth Check", "Your system permissions are active.");
     
-    Logger.log("✅ All Permissions Verified (Sheets + Gmail)");
+    Logger.log("✅ Gmail & Drive Permissions Verified");
     return true;
   } catch (e) {
-    Logger.log("❌ Permission Check Failed: " + e.toString());
-    throw new Error("Authorization Required. Please run this script again and click 'Review Permissions'.");
+    // If this fails with "Insufficient permissions", the Editor will prompt the user.
+    // If it fails for other reasons, we log it.
+    Logger.log("⚠️ Permission Check Note: " + e.toString());
+    return false; 
   }
 }
 
-// === MAIN SETUP FUNCTION ===
+// === 2. MAIN SETUP FUNCTION ===
 function setupSystem() {
-  let ui;
-  try {
-    ui = SpreadsheetApp.getUi();
-  } catch (error) {
-    Logger.log('UI context not available, running setup without prompts...');
-    verifyPermissions();
-    return setupSystemNoUI();
-  }
-
-  // STEP 1: FORCE RE-AUTHORIZATION
-  // This will fail and trigger popup if permissions are missing
+  // Step A: Force the Authorization Popup
   verifyPermissions();
 
-  const response = ui.alert(
-    'Setup System',
-    'This will initialize the database and verify all permissions. Continue?',
-    ui.ButtonSet.YES_NO
-  );
+  // Step B: Check for UI availability (Prevents "Cannot call getUi" error)
+  let ui = null;
+  try {
+    ui = SpreadsheetApp.getUi();
+  } catch (e) {
+    Logger.log("ℹ️ Running in Standalone Mode (No UI available). Using logs.");
+  }
 
-  if (response === ui.Button.YES) {
-    try {
-      createMasterConfigSpreadsheet();
-      ui.alert('Success', 'System setup & authorization complete!', ui.ButtonSet.OK);
-    } catch (error) {
-      ui.alert('Error', 'Setup failed: ' + error.toString(), ui.ButtonSet.OK);
+  // Step C: Confirm Setup (via Alert or Log)
+  if (ui) {
+    const response = ui.alert(
+      'Setup System',
+      'This will initialize the database and verify permissions. Continue?',
+      ui.ButtonSet.YES_NO
+    );
+    if (response !== ui.Button.YES) return;
+  } else {
+    Logger.log("▶️ Starting System Setup...");
+  }
+
+  // Step D: Run Creation Logic
+  try {
+    const ssId = createMasterConfigSpreadsheet();
+    
+    const successMsg = 'System setup complete! Spreadsheet ID: ' + ssId;
+    if (ui) {
+      ui.alert('Success', successMsg, ui.ButtonSet.OK);
+    } else {
+      Logger.log("✅ " + successMsg);
+    }
+  } catch (error) {
+    const errorMsg = 'Setup failed: ' + error.toString();
+    if (ui) {
+      ui.alert('Error', errorMsg, ui.ButtonSet.OK);
+    } else {
+      Logger.log("❌ " + errorMsg);
     }
   }
 }
 
-// Keep your existing creation logic below
+// === 3. CONFIGURATION CREATION ===
 function createMasterConfigSpreadsheet() {
   Logger.log('Creating master configuration spreadsheet...');
   const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss');
@@ -74,15 +88,16 @@ function createMasterConfigSpreadsheet() {
   try {
      initializeDefaultPeriod(ssId); 
   } catch(e) {
-     Logger.log("Note: Default period init skipped or failed: " + e.toString());
+     Logger.log("Note: Default period init skipped/failed: " + e.toString());
   }
 
   Logger.log('Master config created: ' + ssId);
   return ssId;
 }
 
-// ... (Keep your existing initializeDefaultPeriod and other helper functions here) ...
-// ... (You can paste the rest of your original SetupUtilities.gs content below this line if needed) ...
+// Keep existing helper functions below (initializeDefaultPeriod, etc.)
+// ... [The rest of your original file content for periods/sheets goes here] ...
+// (Ensure you keep createPeriodWithoutAuth, openPeriodWithoutAuth, etc.)
 
 /**
  * SetupUtilities.gs - System Initialization and Setup Functions

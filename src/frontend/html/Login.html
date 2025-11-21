@@ -120,7 +120,7 @@
             const errorDiv = document.getElementById('errorMessage');
             const loginBtn = document.getElementById('loginButton');
 
-            // Clear previous errors
+            // Clear errors
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
 
@@ -128,11 +128,11 @@
             loginBtn.disabled = true;
             loginBtn.textContent = 'Logging in...';
 
-            // Call Google Apps Script function
+            // Call Backend
             google.script.run
                 .withSuccessHandler(function(result) {
                     if (result.success) {
-                        // FIX: Include the TOKEN in the URL to prevent white screen
+                        // FIX: Include the TOKEN in the URL
                         window.location.href = '?page=' + result.redirectTo + '&token=' + result.token;
                     } else {
                         showError(result.error);
@@ -141,7 +141,7 @@
                     }
                 })
                 .withFailureHandler(function(error) {
-                    showError('An error occurred. Please try again.');
+                    showError('Connection error. Please try again.');
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'Login';
                 })
@@ -157,15 +157,8 @@
         function handleForgotPIN() {
             const email = prompt('Enter your email address:');
             if (email) {
-                google.script.run
-                    .withSuccessHandler(function(result) {
-                        if (result.success) {
-                            alert('PIN reset link sent to your email.');
-                        } else {
-                            alert('Error: ' + result.error);
-                        }
-                    })
-                    .resetPIN(email);
+                google.script.run.resetPIN(email);
+                alert('If the email exists, a reset link has been sent.');
             }
         }
     </script>
