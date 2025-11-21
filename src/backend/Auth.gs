@@ -167,17 +167,16 @@ function logLoginAttempt(email, success) {
 function sendWelcomeEmail(email, name) {
    GmailApp.sendEmail(email, "Welcome", "Your account is ready. Default PIN: 123456");
 }
-
 function getUserById(userId) {
   try {
     const ss = SpreadsheetApp.openById(getMasterConfigId());
     const sheet = ss.getSheetByName('Users');
     const data = sheet.getDataRange().getValues();
-
+    
     // Iterate to find the User ID in the first column (Index 0)
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === userId) {
-        return {
+      if (data[i][0] === userId) { 
+         return {
           id: data[i][0],
           email: data[i][1],
           name: data[i][2],
@@ -185,7 +184,7 @@ function getUserById(userId) {
           entityId: data[i][4],
           entityName: data[i][5],
           status: data[i][6],
-          pinHash: data[i][7],
+          pinHash: data[i][7], 
           pinSalt: data[i][8]
         };
       }
