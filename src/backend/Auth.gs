@@ -127,6 +127,7 @@ function getUserByEmail(email) {
     const entityIdColIndex = headers.indexOf('EntityID');
     const entityNameColIndex = headers.indexOf('EntityName');
     const statusColIndex = headers.indexOf('Status');
+    const pinColIndex = headers.indexOf('PIN');
     const pinHashColIndex = headers.indexOf('PINHash');
     const pinSaltColIndex = headers.indexOf('PINSalt');
 
@@ -137,7 +138,7 @@ function getUserByEmail(email) {
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][emailColIndex] === email) {
-        return {
+        const user = {
           id: data[i][0],
           email: data[i][emailColIndex],
           name: nameColIndex >= 0 ? data[i][nameColIndex] : '',
@@ -145,9 +146,28 @@ function getUserByEmail(email) {
           entityId: entityIdColIndex >= 0 ? data[i][entityIdColIndex] : '',
           entityName: entityNameColIndex >= 0 ? data[i][entityNameColIndex] : '',
           status: statusColIndex >= 0 ? data[i][statusColIndex] : 'ACTIVE',
+          pin: pinColIndex >= 0 ? data[i][pinColIndex] : '',
           pinHash: pinHashColIndex >= 0 ? data[i][pinHashColIndex] : '',
           pinSalt: pinSaltColIndex >= 0 ? data[i][pinSaltColIndex] : null
         };
+
+        // Auto-hash plaintext PINs entered directly in the sheet
+        if (!user.pinHash && user.pin && pinHashColIndex >= 0) {
+          const pinData = hashPIN(user.pin);
+          sheet.getRange(i + 1, pinHashColIndex + 1).setValue(pinData.hash);
+          if (pinSaltColIndex >= 0) {
+            sheet.getRange(i + 1, pinSaltColIndex + 1).setValue(pinData.salt);
+          }
+          // Clear the plaintext PIN to reduce exposure
+          if (pinColIndex >= 0) {
+            sheet.getRange(i + 1, pinColIndex + 1).setValue('');
+          }
+
+          user.pinHash = pinData.hash;
+          user.pinSalt = pinData.salt;
+        }
+
+        return user;
       }
     }
     return null;
@@ -267,19 +287,20 @@ function createUser(userData) {
     const userId = 'USR_' + Utilities.getUuid().substring(0, 8).toUpperCase();
     const pinData = hashPIN(userData.pin || '123456');
 
-  sheet.appendRow([
-    userId,
-    userData.email,
-    userData.name,
-    userData.role,
-    userData.entityId || '',
-    userData.entityName || '',
-    'ACTIVE',
-    pinData.hash,
-    pinData.salt,
-    new Date(),
-    'SYSTEM'
-  ]);
+    sheet.appendRow([
+      userId,
+      userData.email,
+      userData.name,
+      userData.role,
+      userData.entityId || '',
+      userData.entityName || '',
+      'ACTIVE',
+      userData.pin || '',
+      pinData.hash,
+      pinData.salt,
+      new Date(),
+      'SYSTEM'
+    ]);
 
     sendWelcomeEmail(userData.email, userData.name);
 
@@ -359,6 +380,20 @@ function updateUser(userId, userData) {
     }
     if (userData.status !== undefined && statusColIndex >= 0) {
       sheet.getRange(rowNumber, statusColIndex + 1).setValue(userData.status);
+    }
+
+    if (userData.pin !== undefined) {
+      const pinData = hashPIN(userData.pin);
+
+      if (pinColIndex >= 0) {
+        sheet.getRange(rowNumber, pinColIndex + 1).setValue(userData.pin);
+      }
+      if (pinHashColIndex >= 0) {
+        sheet.getRange(rowNumber, pinHashColIndex + 1).setValue(pinData.hash);
+      }
+      if (pinSaltColIndex >= 0) {
+        sheet.getRange(rowNumber, pinSaltColIndex + 1).setValue(pinData.salt);
+      }
     }
 
     // Clear user cache if updating current user
@@ -595,6 +630,7 @@ function changePIN(data) {
 
     const hashColIndex = headers.indexOf('PINHash');
     const saltColIndex = headers.indexOf('PINSalt');
+    const pinColIndex = headers.indexOf('PIN');
     const emailColIndex = headers.indexOf('Email');
 
     if (hashColIndex === -1 || emailColIndex === -1) {
@@ -603,12 +639,16 @@ function changePIN(data) {
 
     const hashCol = hashColIndex + 1;
     const saltCol = saltColIndex >= 0 ? saltColIndex + 1 : -1;
+    const pinCol = pinColIndex >= 0 ? pinColIndex + 1 : -1;
 
     for (let i = 1; i < data_range.length; i++) {
       if (data_range[i][emailColIndex] === email) {
         sheet.getRange(i + 1, hashCol).setValue(pinData.hash);
         if (saltCol > 0) {
           sheet.getRange(i + 1, saltCol).setValue(pinData.salt);
+        }
+        if (pinCol > 0) {
+          sheet.getRange(i + 1, pinCol).setValue('');
         }
         break;
       }
@@ -649,6 +689,7 @@ function resetPIN(email) {
 
     const hashColIndex = headers.indexOf('PINHash');
     const saltColIndex = headers.indexOf('PINSalt');
+    const pinColIndex = headers.indexOf('PIN');
     const emailColIndex = headers.indexOf('Email');
 
     if (hashColIndex === -1 || emailColIndex === -1) {
@@ -657,12 +698,16 @@ function resetPIN(email) {
 
     const hashCol = hashColIndex + 1;
     const saltCol = saltColIndex >= 0 ? saltColIndex + 1 : -1;
+    const pinCol = pinColIndex >= 0 ? pinColIndex + 1 : -1;
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][emailColIndex] === email) {
         sheet.getRange(i + 1, hashCol).setValue(pinData.hash);
         if (saltCol > 0) {
           sheet.getRange(i + 1, saltCol).setValue(pinData.salt);
+        }
+        if (pinCol > 0) {
+          sheet.getRange(i + 1, pinCol).setValue('');
         }
         break;
       }
