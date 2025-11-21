@@ -52,11 +52,11 @@
             <!-- Role-specific dashboard with normalization -->
             <? var normalizedRole = roleNormalized || (role || '').toUpperCase(); ?>
             <? if (normalizedRole === 'DATA_ENTRY') { ?>
-                <?!= include('frontend/html/DataEntryDashboard'); ?>
+                <?!= includeTemplate('frontend/html/DataEntryDashboard', {user: user}); ?>
             <? } else if (normalizedRole === 'APPROVER') { ?>
-                <?!= include('frontend/html/ApproverDashboard'); ?>
+                <?!= includeTemplate('frontend/html/ApproverDashboard', {user: user}); ?>
             <? } else if (normalizedRole === 'ADMIN') { ?>
-                <?!= include('frontend/html/AdminDashboard'); ?>
+                <?!= includeTemplate('frontend/html/AdminDashboard', {user: user}); ?>
             <? } else { ?>
                 <div class="card" style="margin-top: 20px;">
                     <h3>Dashboard not available</h3>

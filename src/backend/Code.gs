@@ -296,14 +296,39 @@ function redirectToLogin() {
 // HELPER FUNCTIONS FOR HTML
 // ============================================================================
 
+/**
+ * Includes a file's content directly (for CSS/JS).
+ * Does NOT evaluate scriptlets.
+ */
 function include(filename) {
   try {
     Logger.log('include: Loading file: ' + filename);
     return HtmlService.createHtmlOutputFromFile(filename).getContent();
   } catch (error) {
     Logger.log('include: Error loading file ' + filename + ': ' + error.toString());
-    // Return empty string or basic fallback CSS instead of failing
     return '/* Error loading ' + filename + ': ' + error.toString() + ' */';
+  }
+}
+
+/**
+ * Evaluates a template file and returns the result (for HTML partials).
+ * Passes the provided data object to the template context.
+ */
+function includeTemplate(filename, data) {
+  try {
+    Logger.log('includeTemplate: Evaluating template: ' + filename);
+    const template = HtmlService.createTemplateFromFile(filename);
+
+    if (data) {
+      Object.keys(data).forEach(function(key) {
+        template[key] = data[key];
+      });
+    }
+
+    return template.evaluate().getContent();
+  } catch (error) {
+    Logger.log('includeTemplate: Error evaluating template ' + filename + ': ' + error.toString());
+    return '<div class="alert alert-error">Error loading ' + filename + ': ' + error.toString() + '</div>';
   }
 }
 
