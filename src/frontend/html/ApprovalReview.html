@@ -454,7 +454,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <div class="container">
             <div class="header-content">
@@ -468,7 +467,6 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="review-container">
         <div id="content-container">
             <div class="loading-spinner">
@@ -486,15 +484,15 @@
         let validationData = null;
         let currentTab = 'summary';
 
-        // ==========================================
-        // CRITICAL FIXES FOR TOKEN AUTH SYSTEM
-        // ==========================================
-        // 1. Capture the token passed from Code.gs so we don't lose the session
+        // ============================================================
+        // CRITICAL FIXES FOR TOKEN AUTHENTICATION
+        // ============================================================
+        // 1. Capture the token passed from the backend
         const userToken = '<?= token ?>'; 
         
-        // 2. Use 'user.id' (not user.userId) to match Auth.gs object structure
+        // 2. Use the correct user ID property (id, not userId)
         const currentUserId = '<?= user.id ?>'; 
-        // ==========================================
+        // ============================================================
 
         // Parse URL parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -537,63 +535,328 @@
          */
         function renderReviewPage() {
             const container = document.getElementById('content-container');
-            // (Rendering logic matches your previous implementation)
-            // This block re-renders the HTML structure when data is loaded
-            
-            // ... [Keep your existing renderReviewPage HTML generation code here] ...
-            // The most important part is ensuring the buttons call the functions below
-            
-            // Since the full HTML generation is long, I am focusing on the logic functions below
-            // which are the source of the bugs.
-            
-            // Ensure your renderReviewPage calls approveSubmission(), rejectSubmission() etc.
-            
-            // Re-injecting the basic container content for clarity (refer to your previous file for full HTML):
-             let html = `
+
+            let html = `
                 <div class="entity-header">
                     <div class="entity-title">${escapeHtml(entityData.name || 'Unknown Entity')}</div>
                     <div class="entity-meta">
-                        <div class="meta-item"><div class="meta-label">Period</div><div class="meta-value">${escapeHtml(periodData.name || 'N/A')}</div></div>
-                        <div class="meta-item"><div class="meta-label">Status</div><div class="meta-value">${escapeHtml(submissionData.status || 'SUBMITTED')}</div></div>
+                        <div class="meta-item">
+                            <div class="meta-label">Entity Code</div>
+                            <div class="meta-value">${escapeHtml(entityData.code || 'N/A')}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Entity Type</div>
+                            <div class="meta-value">${escapeHtml(entityData.type || 'N/A')}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Period</div>
+                            <div class="meta-value">${escapeHtml(periodData.name || 'N/A')}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Submitted By</div>
+                            <div class="meta-value">${escapeHtml(submissionData.submittedBy || 'N/A')}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Submitted Date</div>
+                            <div class="meta-value">${formatDate(submissionData.submittedDate)}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Status</div>
+                            <div class="meta-value">${escapeHtml(submissionData.status || 'SUBMITTED')}</div>
+                        </div>
                     </div>
                 </div>
-                
+
+                <div class="validation-summary">
+                    <div class="summary-header">Validation Summary</div>
+                    <div class="validation-grid">
+                        <div class="validation-item ${validationData.errorCount === 0 ? 'success' : 'error'}">
+                            <div class="validation-icon">${validationData.errorCount === 0 ? '✅' : '❌'}</div>
+                            <div class="validation-text">
+                                <div class="validation-label">Errors</div>
+                                <div class="validation-count">${validationData.errorCount || 0}</div>
+                            </div>
+                        </div>
+
+                        <div class="validation-item ${validationData.warningCount === 0 ? 'success' : 'warning'}">
+                            <div class="validation-icon">${validationData.warningCount === 0 ? '✅' : '⚠️'}</div>
+                            <div class="validation-text">
+                                <div class="validation-label">Warnings</div>
+                                <div class="validation-count">${validationData.warningCount || 0}</div>
+                            </div>
+                        </div>
+
+                        <div class="validation-item success">
+                            <div class="validation-icon">✅</div>
+                            <div class="validation-text">
+                                <div class="validation-label">Passed Checks</div>
+                                <div class="validation-count">${validationData.passedCount || 0}</div>
+                            </div>
+                        </div>
+
+                        <div class="validation-item ${validationData.completeness >= 100 ? 'success' : 'warning'}">
+                            <div class="validation-icon">${validationData.completeness >= 100 ? '✅' : '📊'}</div>
+                            <div class="validation-text">
+                                <div class="validation-label">Completeness</div>
+                                <div class="validation-count">${validationData.completeness || 0}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tabs-container">
                     <div class="tabs-header">
                         <button class="tab-button active" onclick="switchTab('summary')">Summary</button>
                         <button class="tab-button" onclick="switchTab('notes')">Financial Notes</button>
-                        <button class="tab-button" onclick="switchTab('validation')">Validation</button>
+                        <button class="tab-button" onclick="switchTab('validation')">Validation Details</button>
                         <button class="tab-button" onclick="switchTab('attachments')">Attachments</button>
                     </div>
-                    <div id="tab-summary" class="tab-content active">${renderSummaryTab()}</div>
-                    <div id="tab-notes" class="tab-content">${renderNotesTab()}</div>
-                    <div id="tab-validation" class="tab-content">${renderValidationTab()}</div>
-                    <div id="tab-attachments" class="tab-content">${renderAttachmentsTab()}</div>
+
+                    <div id="tab-summary" class="tab-content active">
+                        ${renderSummaryTab()}
+                    </div>
+
+                    <div id="tab-notes" class="tab-content">
+                        ${renderNotesTab()}
+                    </div>
+
+                    <div id="tab-validation" class="tab-content">
+                        ${renderValidationTab()}
+                    </div>
+
+                    <div id="tab-attachments" class="tab-content">
+                        ${renderAttachmentsTab()}
+                    </div>
                 </div>
 
                 <div class="comments-section">
                     <div class="comments-header">Review Comments</div>
-                    ${submissionData.submitterComments ? `<div class="existing-comments"><div class="comment-label">Submitter:</div><div class="comment-text">${escapeHtml(submissionData.submitterComments)}</div></div>` : ''}
+
+                    ${submissionData.submitterComments ? `
+                        <div class="existing-comments">
+                            <div class="comment-label">Submitter Comments:</div>
+                            <div class="comment-text">${escapeHtml(submissionData.submitterComments)}</div>
+                        </div>
+                    ` : ''}
+
+                    <div class="comment-label" style="margin-bottom: 8px;">Your Review Comments:</div>
                     <textarea id="review-comments" class="comment-input" placeholder="Enter your review comments here..."></textarea>
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn-action btn-back" onclick="goBack()">← Back</button>
-                    <button class="btn-action btn-clarify" onclick="requestClarification()">Request Clarification</button>
-                    <button class="btn-action btn-reject" onclick="rejectSubmission()">❌ Reject</button>
-                    <button class="btn-action btn-approve" onclick="approveSubmission()">✅ Approve</button>
-                </div>`;
-            
+                    <button class="btn-action btn-back" onclick="goBack()">
+                        ← Back to Dashboard
+                    </button>
+                    <button class="btn-action btn-clarify" onclick="requestClarification()">
+                        Request Clarification
+                    </button>
+                    <button class="btn-action btn-reject" onclick="rejectSubmission()">
+                        ❌ Reject
+                    </button>
+                    <button class="btn-action btn-approve" onclick="approveSubmission()">
+                        ✅ Approve
+                    </button>
+                </div>
+            `;
+
             container.innerHTML = html;
         }
 
-        // ... [Keep renderSummaryTab, renderNotesTab, renderValidationTab, renderAttachmentsTab] ...
-        // ... [These functions from your previous code are safe to keep as-is] ...
+        /**
+         * Render summary tab
+         */
+        function renderSummaryTab() {
+            const notes = submissionData.notes || [];
+            if (notes.length === 0) {
+                return '<div class="empty-state"><p>No financial data submitted</p></div>';
+            }
 
-        function renderSummaryTab() { /* ... use your existing code ... */ return '<p>Summary data...</p>'; }
-        function renderNotesTab() { /* ... use your existing code ... */ return '<p>Notes data...</p>'; }
-        function renderValidationTab() { /* ... use your existing code ... */ return '<p>Validation data...</p>'; }
-        function renderAttachmentsTab() { /* ... use your existing code ... */ return '<p>Attachments...</p>'; }
+            let html = '<h3>Key Financial Highlights</h3>';
+            html += '<table class="data-table">';
+            html += '<thead><tr><th>Note</th><th>Description</th><th>Current Year</th><th>Prior Year</th><th>Variance</th></tr></thead>';
+            html += '<tbody>';
+
+            notes.forEach(note => {
+                const variance = (note.currentYear || 0) - (note.priorYear || 0);
+                const varianceClass = variance >= 0 ? 'variance-positive' : 'variance-negative';
+
+                html += `
+                    <tr>
+                        <td><strong>${escapeHtml(note.noteNumber || '')}</strong></td>
+                        <td>${escapeHtml(note.noteName || '')}</td>
+                        <td>${formatCurrency(note.currentYear || 0)}</td>
+                        <td>${formatCurrency(note.priorYear || 0)}</td>
+                        <td class="${varianceClass}">${formatCurrency(variance)}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            return html;
+        }
+
+        /**
+         * Render notes tab
+         */
+        function renderNotesTab() {
+            const notes = submissionData.notes || [];
+            if (notes.length === 0) {
+                return '<div class="empty-state"><p>No notes data available</p></div>';
+            }
+
+            let html = '<div style="max-height: 600px; overflow-y: auto;">';
+            notes.forEach(note => {
+                html += `
+                    <div style="margin-bottom: 30px; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                        <h4 style="margin-bottom: 15px;">${escapeHtml(note.noteNumber || '')} - ${escapeHtml(note.noteName || '')}</h4>
+                        <p style="color: #6b7280; font-size: 14px;">${escapeHtml(note.description || 'No description available')}</p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        /**
+         * Render validation tab
+         */
+        function renderValidationTab() {
+            const errors = validationData.errors || [];
+            const warnings = validationData.warnings || [];
+
+            let html = '';
+
+            if (errors.length > 0) {
+                html += '<h3 style="color: #ef4444;">Validation Errors</h3>';
+                html += '<div style="margin-bottom: 30px;">';
+                errors.forEach(error => {
+                    html += `
+                        <div style="background: #fee2e2; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444; margin-bottom: 10px;">
+                            <strong>${escapeHtml(error.rule || 'Validation Error')}</strong><br>
+                            <span style="color: #6b7280;">${escapeHtml(error.message || '')}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (warnings.length > 0) {
+                html += '<h3 style="color: #f59e0b;">Warnings</h3>';
+                html += '<div style="margin-bottom: 30px;">';
+                warnings.forEach(warning => {
+                    html += `
+                        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin-bottom: 10px;">
+                            <strong>${escapeHtml(warning.rule || 'Warning')}</strong><br>
+                            <span style="color: #6b7280;">${escapeHtml(warning.message || '')}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (errors.length === 0 && warnings.length === 0) {
+                html = '<div class="empty-state"><div style="font-size: 48px; margin-bottom: 15px;">✅</div><p>No validation issues found!</p></div>';
+            }
+
+            return html;
+        }
+
+        /**
+         * Render attachments tab
+         */
+        function renderAttachmentsTab() {
+            if (!submissionData || !submissionData.attachments || submissionData.attachments.length === 0) {
+                return '<div class="empty-state"><div style="font-size: 48px; margin-bottom: 15px;">📎</div><p>No attachments uploaded for this submission</p></div>';
+            }
+
+            let html = '<div class="attachments-list">';
+
+            submissionData.attachments.forEach(file => {
+                const icon = getFileIcon(file.mimeType || file.type);
+                const sizeStr = formatFileSize(file.size);
+                const date = new Date(file.uploadedDate || file.uploadDate);
+                const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+                html += `
+                    <div class="attachment-item">
+                        <div class="attachment-icon">${icon}</div>
+                        <div class="attachment-info">
+                            <div class="attachment-name">${escapeHtml(file.name || file.fileName)}</div>
+                            <div class="attachment-meta">
+                                <span>${sizeStr}</span>
+                                <span>•</span>
+                                <span>Uploaded ${dateStr}</span>
+                                ${file.uploadedBy ? `<span>•</span><span>by ${escapeHtml(file.uploadedBy)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="attachment-actions">
+                            <button class="btn-icon" onclick="downloadAttachment('${file.id || file.attachmentId}', '${escapeHtml(file.name || file.fileName)}')">
+                                📥 Download
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        /**
+         * Get file icon based on MIME type
+         */
+        function getFileIcon(mimeType) {
+            if (!mimeType) return '📄';
+            if (mimeType.includes('pdf')) return '📄';
+            if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊';
+            if (mimeType.includes('word') || mimeType.includes('document')) return '📝';
+            if (mimeType.includes('image')) return '🖼️';
+            return '📄';
+        }
+
+        /**
+         * Format file size
+         */
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        /**
+         * Download attachment
+         */
+        function downloadAttachment(fileId, fileName) {
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success && result.url) {
+                        window.open(result.url, '_blank');
+                    } else {
+                        alert('Failed to download file: ' + (result.error || 'Unknown error'));
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    alert('Download error: ' + error.message);
+                })
+                .getAttachmentDownloadUrl({ fileId: fileId });
+        }
+
+        /**
+         * Switch tabs
+         */
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
 
         /**
          * Approve submission
@@ -611,7 +874,7 @@
                 .withSuccessHandler(function(result) {
                     if (result.success) {
                         alert('Submission approved successfully!');
-                        // FIX: Append token to URL to maintain session
+                        // FIXED: Added token to redirect to maintain session
                         window.location.href = '?page=ApprovalDashboard&token=' + userToken;
                     } else {
                         alert('Failed to approve: ' + result.error);
@@ -625,7 +888,7 @@
                 .approveSubmission({
                     entityId,
                     periodId,
-                    approverId: currentUserId, // FIX: Use correct variable
+                    approverId: currentUserId, // FIXED: Using currentUserId instead of 'user.userId'
                     comments
                 });
         }
@@ -651,7 +914,7 @@
                 .withSuccessHandler(function(result) {
                     if (result.success) {
                         alert('Submission rejected.');
-                        // FIX: Append token to URL to maintain session
+                        // FIXED: Added token to redirect to maintain session
                         window.location.href = '?page=ApprovalDashboard&token=' + userToken;
                     } else {
                         alert('Failed to reject: ' + result.error);
@@ -665,7 +928,7 @@
                 .rejectSubmission({
                     entityId,
                     periodId,
-                    approverId: currentUserId, // FIX: Use correct variable
+                    approverId: currentUserId, // FIXED: Using currentUserId
                     comments
                 });
         }
@@ -687,7 +950,7 @@
                 .withSuccessHandler(function(result) {
                     if (result.success) {
                         alert('Clarification request sent.');
-                        // FIX: Append token to URL to maintain session
+                        // FIXED: Added token to redirect
                         window.location.href = '?page=ApprovalDashboard&token=' + userToken;
                     } else {
                         alert('Failed to request clarification: ' + result.error);
@@ -701,7 +964,7 @@
                 .requestClarification({
                     entityId,
                     periodId,
-                    approverId: currentUserId, // FIX: Use correct variable
+                    approverId: currentUserId, // FIXED: Using currentUserId
                     comments
                 });
         }
@@ -710,32 +973,13 @@
          * Go back to dashboard
          */
         function goBack() {
-            // FIX: Append token to URL
+            // FIXED: Added token to redirect
             window.location.href = '?page=ApprovalDashboard&token=' + userToken;
         }
 
         /**
-         * Logout function
+         * Disable action buttons
          */
-        function logout() {
-            google.script.run
-                .withSuccessHandler(function() {
-                    window.location.href = '?page=index';
-                })
-                .handleLogout(userToken); // FIX: Pass token to backend
-        }
-
-        // Helper functions
-        function switchTab(tabName) {
-            currentTab = tabName;
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                if (btn.textContent.toLowerCase().includes(tabName) || (tabName === 'notes' && btn.textContent.includes('Financial'))) btn.classList.add('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.add('active');
-        }
-
         function disableActionButtons() {
             document.querySelectorAll('.btn-action').forEach(btn => {
                 btn.disabled = true;
@@ -744,6 +988,9 @@
             });
         }
 
+        /**
+         * Enable action buttons
+         */
         function enableActionButtons() {
             document.querySelectorAll('.btn-action').forEach(btn => {
                 btn.disabled = false;
@@ -752,6 +999,9 @@
             });
         }
 
+        /**
+         * Format currency
+         */
         function formatCurrency(amount) {
             return 'KES ' + parseFloat(amount || 0).toLocaleString('en-US', {
                 minimumFractionDigits: 2,
@@ -759,6 +1009,9 @@
             });
         }
 
+        /**
+         * Format date
+         */
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
             const date = new Date(dateStr);
@@ -771,13 +1024,18 @@
             });
         }
 
+        /**
+         * Escape HTML
+         */
         function escapeHtml(text) {
-            if (text == null) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
+        /**
+         * Show error message
+         */
         function showError(message) {
             const container = document.getElementById('content-container');
             container.innerHTML = `
@@ -791,31 +1049,16 @@
                 </div>
             `;
         }
-        
-        // Mock for download attachment needed by the attachments tab
-        function downloadAttachment(fileId, fileName) {
-             google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.success && result.url) {
-                        window.open(result.url, '_blank');
-                    } else {
-                        alert('Failed to download: ' + (result.error || 'Unknown error'));
-                    }
+
+        /**
+         * Logout function
+         */
+        function logout() {
+            google.script.run
+                .withSuccessHandler(function() {
+                    window.location.href = '?page=index';
                 })
-                .withFailureHandler(function(error) { alert('Error: ' + error.message); })
-                .getAttachmentDownloadUrl({ fileId: fileId });
-        }
-        
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-        }
-        
-        function getFileIcon(mimeType) {
-            return '📄';
+                .handleLogout(userToken); // FIXED: Pass userToken so backend knows which session to delete
         }
     </script>
 </body>
